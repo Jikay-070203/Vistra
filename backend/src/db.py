@@ -57,12 +57,23 @@ POSTGRES_ID_TABLES = (
 
 def _fix_mojibake(value):
     """Repair legacy UTF-8 text accidentally decoded as Latin-1."""
-    if not isinstance(value, str) or not any(marker in value for marker in ("Ã", "Â", "â", "�")):
+    if not isinstance(value, str):
         return value
-    try:
-        return value.encode("latin1").decode("utf-8")
-    except (UnicodeEncodeError, UnicodeDecodeError):
-        return value
+    markers = ("Ã", "Â", "â", "�")
+    current = value
+    for _ in range(3):
+        score = sum(current.count(marker) for marker in markers)
+        if score == 0:
+            break
+        try:
+            candidate = current.encode("latin1").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            break
+        candidate_score = sum(candidate.count(marker) for marker in markers)
+        if candidate_score >= score:
+            break
+        current = candidate
+    return current
 
 
 def _repair_mojibake(db):
