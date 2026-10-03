@@ -55,6 +55,26 @@ POSTGRES_ID_TABLES = (
 )
 
 
+def _fix_mojibake(value):
+    """Repair legacy UTF-8 text accidentally decoded as Latin-1."""
+    if not isinstance(value, str) or not any(marker in value for marker in ("Ã", "Â", "â", "�")):
+        return value
+    try:
+        return value.encode("latin1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return value
+
+
+def _repair_mojibake(db):
+    """Repair old imported names/addresses without changing valid Unicode."""
+    for table, columns in {"destinations": ("display_name",), "places": ("display_name", "address")}.items():
+        for column in columns:
+            for item in rows(db, f"SELECT id, {column} FROM {table} WHERE {column} IS NOT NULL"):
+                fixed = _fix_mojibake(item[column])
+                if fixed != item[column]:
+                    db.execute(f"UPDATE {table} SET {column}=? WHERE id=?", (fixed, item["id"]))
+
+
 def _ensure_postgres_id_sequences(db):
     for table in POSTGRES_ID_TABLES:
         sequence = f"{table}_id_seq"
@@ -119,6 +139,7 @@ def initialize(path: Path):
                 "('tp-ho-chi-minh', 'TP. Hồ Chí Minh', 300, 1), ('da-lat', 'Đà Lạt', 300, 1) "
                 "ON CONFLICT DO NOTHING"
             )
+            _repair_mojibake(db)
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     with connect(path) as db:
@@ -134,6 +155,7 @@ def initialize(path: Path):
                 except Exception:
                     db.rollback()
                     raise
+        _repair_mojibake(db)
 
 
 def row(db, sql, params=()):
