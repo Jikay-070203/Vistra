@@ -1,0 +1,168 @@
+/* ==========================================================================
+   HeroGeoScene Scoped Styles (V4-002A)
+   Dominant Geography-led 3D Travel Scene
+   Source-Faithful Palette: Turquoise, Aqua, Mint, Navy, Royal Blue, Yellow
+   ========================================================================== */
+
+.geoSceneContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  min-height: 520px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #E6F8F4 0%, #D4F3EB 40%, #BFEFE4 100%);
+  border: 1px solid rgba(14, 29, 79, 0.12);
+  box-shadow: 0 16px 40px -10px rgba(14, 29, 79, 0.12),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1024px) {
+  .geoSceneContainer {
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 640px) {
+  .geoSceneContainer {
+    min-height: 250px;
+    aspect-ratio: 16 / 10;
+    border-radius: 16px;
+  }
+
+  .sceneCoords,
+  .elevationBadge {
+    display: none;
+  }
+
+  .sceneTag {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .legendPill {
+    font-size: 10px;
+    padding: 4px 10px;
+    gap: 8px;
+  }
+}
+
+.sceneOverlayHeader {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.sceneTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(14, 29, 79, 0.1);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #0E1D4F;
+  text-transform: uppercase;
+}
+
+.tagDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #08B3C6;
+  box-shadow: 0 0 6px #08B3C6;
+}
+
+.sceneCoords {
+  font-family: monospace;
+  font-size: 11px;
+  color: #4A635D;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(14, 29, 79, 0.08);
+}
+
+.svgCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sceneFooterLegend {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.legendPill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(14, 29, 79, 0.08);
+  font-size: 11px;
+  font-weight: 600;
+  color: #0E1D4F;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendLineRoute {
+  width: 18px;
+  height: 3px;
+  background: #205BD6;
+  border-radius: 2px;
+}
+
+.legendLineContour {
+  width: 18px;
+  height: 1px;
+  background: #08B3C6;
+  border-bottom: 1px dashed #08B3C6;
+}
+
+.legendMarker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E7AD2E;
+  border: 1.5px solid #FFFFFF;
+}
+
+.elevationBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4A635D;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(14, 29, 79, 0.08);
+}

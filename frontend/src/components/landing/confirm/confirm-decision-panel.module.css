@@ -1,0 +1,379 @@
+/* ==========================================================================
+   ConfirmDecisionPanel Module CSS (LP-14)
+   Scoped styling for the Decision & Confirmation panel on the right column.
+   ========================================================================== */
+
+.decisionPanel {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.panelHeader {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(14, 29, 79, 0.08);
+}
+
+.panelTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.panelTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vistra-navy, #0E1D4F);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panelSubtitle {
+  font-size: 11.5px;
+  color: #4B5875;
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   Case 1: Empty state (No activities retained yet)
+   -------------------------------------------------------------------------- */
+.emptyStateBox {
+  background-color: #F8FAFB;
+  border: 1px dashed rgba(14, 29, 79, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.emptyStateTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--vistra-navy, #0E1D4F);
+}
+
+.emptyStateDesc {
+  font-size: 12px;
+  color: #4B5875;
+  line-height: 1.45;
+  max-width: 360px;
+}
+
+/* Quick retain recommendations inside empty state */
+.quickRetainContainer {
+  width: 100%;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(14, 29, 79, 0.08);
+  text-align: left;
+}
+
+.quickRetainHeading {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4B5875;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.quickRetainList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quickRetainItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background-color: #FFFFFF;
+  border: 1px solid rgba(14, 29, 79, 0.1);
+  border-radius: 8px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.quickRetainItem:hover {
+  border-color: var(--vistra-royal-blue, #205BD6);
+  background-color: rgba(32, 91, 214, 0.02);
+}
+
+.quickRetainMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vistra-navy, #0E1D4F);
+}
+
+.dayBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: rgba(14, 29, 79, 0.08);
+  color: #4B5875;
+}
+
+.btnQuickRetainAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--vistra-royal-blue, #205BD6);
+  background-color: rgba(32, 91, 214, 0.06);
+  border: 1px solid rgba(32, 91, 214, 0.2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnQuickRetainAction:hover {
+  background-color: var(--vistra-royal-blue, #205BD6);
+  color: #FFFFFF;
+}
+
+.btnBackToCoCreate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vistra-royal-blue, #205BD6);
+  background-color: #FFFFFF;
+  border: 1px solid rgba(32, 91, 214, 0.25);
+  border-radius: 6px;
+  padding: 6px 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 4px;
+}
+
+.btnBackToCoCreate:hover {
+  background-color: rgba(32, 91, 214, 0.06);
+  border-color: var(--vistra-royal-blue, #205BD6);
+}
+
+/* --------------------------------------------------------------------------
+   Case 2: Confirmed State
+   -------------------------------------------------------------------------- */
+.confirmSuccessBox {
+  background-color: rgba(8, 179, 198, 0.06);
+  border: 1.5px solid var(--vistra-turquoise, #08B3C6);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.confirmSuccessBadge {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #056974;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.confirmSuccessNote {
+  font-size: 12px;
+  color: #4B5875;
+  line-height: 1.5;
+}
+
+.confirmSuccessHint {
+  font-size: 11.5px;
+  color: #4B5875;
+  background-color: #FFFFFF;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #DCE7D8;
+  line-height: 1.45;
+}
+
+.btnContinueEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vistra-royal-blue, #205BD6);
+  background-color: #FFFFFF;
+  border: 1px solid var(--vistra-royal-blue, #205BD6);
+  border-radius: 6px;
+  padding: 6px 14px;
+  text-decoration: none;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.15s ease;
+}
+
+.btnContinueEdit:hover {
+  background-color: rgba(32, 91, 214, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   Case 3: Retained activities ready for confirmation
+   -------------------------------------------------------------------------- */
+.retainedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--vistra-navy, #0E1D4F);
+  margin-bottom: 8px;
+}
+
+.retainedCountPill {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #2E7D32;
+  background-color: #E8F5E9;
+  border: 1px solid #C8E6C9;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.selectedSummaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 130px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.selectedSummaryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background-color: rgba(32, 91, 214, 0.03);
+  border: 1px solid rgba(32, 91, 214, 0.15);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+.selectedSummaryItemTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--vistra-navy, #0E1D4F);
+}
+
+.selectedSummaryItemMeta {
+  font-size: 10.5px;
+  color: #4B5875;
+}
+
+.badgeSelected {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background-color: #E8F5E9;
+  border: 1px solid #A5D6A7;
+  color: #2E7D32;
+  flex-shrink: 0;
+}
+
+.retainedNotesGroup {
+  font-size: 11px;
+  color: #4B5875;
+  background-color: #F8FAFB;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(14, 29, 79, 0.08);
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Primary Confirmation Action Button */
+.btnConfirmPlan {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--vistra-royal-blue, #205BD6);
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(32, 91, 214, 0.25);
+  min-height: 42px;
+}
+
+.btnConfirmPlan:hover:not(:disabled) {
+  background-color: var(--vistra-royal-blue-deep, #0739A8);
+  box-shadow: 0 4px 14px rgba(32, 91, 214, 0.35);
+  transform: translateY(-1px);
+}
+
+.btnConfirmPlan:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  background-color: #8C9BA5;
+}
+
+.btnConfirmPlan:focus-visible {
+  outline: 2px solid var(--vistra-turquoise, #08B3C6);
+  outline-offset: 2px;
+}
+
+/* Feedback alert */
+.feedbackAlert {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background-color: #FDF2F0;
+  border: 1px solid #F2C4BC;
+  font-size: 11px;
+  color: #B94A48;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* Mandatory disclaimer */
+.disclaimer {
+  font-size: 10.5px;
+  color: #67736D;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(14, 29, 79, 0.08);
+  line-height: 1.4;
+}

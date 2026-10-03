@@ -1,0 +1,148 @@
+import sqlite3
+import re
+from contextlib import contextmanager
+from datetime import UTC, datetime
+from pathlib import Path
+
+from backend.config import ROOT
+
+
+class PostgresConnection:
+    def __init__(self, connection):
+        self._connection = connection
+
+    def execute(self, statement, params=()):
+        return self._connection.execute(statement.replace("?", "%s"), params)
+
+    def commit(self):
+        self._connection.commit()
+
+    def rollback(self):
+        self._connection.rollback()
+
+    def close(self):
+        self._connection.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        (self.rollback if exc_type else self.commit)()
+
+
+def _postgres_sql(sql: str) -> str:
+    sql = re.sub(r"^\s*PRAGMA[^;]*;", "", sql, flags=re.MULTILINE | re.IGNORECASE)
+    sql = sql.replace("WITHOUT ROWID", "")
+    sql = sql.replace("INSERT OR IGNORE INTO", "INSERT INTO")
+    sql = sql.replace("CREATE VIEW IF NOT EXISTS", "CREATE OR REPLACE VIEW")
+    sql = re.sub(r"CREATE TABLE(?! IF NOT EXISTS)", "CREATE TABLE IF NOT EXISTS", sql, flags=re.IGNORECASE)
+    sql = re.sub(r"CREATE INDEX(?! IF NOT EXISTS)", "CREATE INDEX IF NOT EXISTS", sql, flags=re.IGNORECASE)
+    sql = re.sub(r"\s+GLOB\s+'[^']+'", "", sql, flags=re.IGNORECASE)
+    sql = sql.replace("CHECK (opens_local)", "CHECK (opens_local IS NOT NULL)")
+    sql = sql.replace("CHECK (closes_local)", "CHECK (closes_local IS NOT NULL)")
+    sql = re.sub(r"DEFAULT \(strftime\([^)]*\)\)", "DEFAULT CURRENT_TIMESTAMP", sql, flags=re.IGNORECASE)
+    sql = re.sub(r"(\b\w+\s+)INTEGER PRIMARY KEY\b", r"\1BIGSERIAL PRIMARY KEY", sql)
+    sql = re.sub(r"^\s*(BEGIN|COMMIT);\s*$", "", sql, flags=re.MULTILINE | re.IGNORECASE)
+    if "INSERT INTO destinations" in sql:
+        sql = re.sub(r"INSERT INTO destinations.*?;\s*", "", sql, count=1, flags=re.DOTALL)
+    return sql
+
+
+POSTGRES_ID_TABLES = (
+    "destinations", "sources", "crawl_runs", "source_pages", "raw_place_records",
+    "places", "place_sources", "tags", "opening_intervals", "opening_exceptions",
+    "price_estimates", "place_ratings", "crawl_requests", "place_reviews",
+)
+
+
+def _ensure_postgres_id_sequences(db):
+    for table in POSTGRES_ID_TABLES:
+        sequence = f"{table}_id_seq"
+        db._connection.execute(f'CREATE SEQUENCE IF NOT EXISTS "{sequence}"')
+        db._connection.execute(
+            f'ALTER TABLE "{table}" ALTER COLUMN id SET DEFAULT nextval(\'{sequence}\')'
+        )
+        db._connection.execute(
+            f"SELECT setval('{sequence}', GREATEST(COALESCE((SELECT MAX(id) FROM \"{table}\"), 0), 1), "
+            f"COALESCE((SELECT MAX(id) IS NOT NULL FROM \"{table}\"), false))"
+        )
+
+
+def now() -> str:
+    return datetime.now(UTC).isoformat(timespec="microseconds")
+
+
+@contextmanager
+def connect(path: Path | str):
+    if isinstance(path, str) and path.startswith(("postgres://", "postgresql://")):
+        import psycopg
+        db = PostgresConnection(psycopg.connect(path))
+        try:
+            yield db
+        finally:
+            db.close()
+        return
+    # FastAPI may enter a sync dependency and execute its endpoint/cleanup on
+    # different worker threads. Each request still owns its own connection.
+    db = sqlite3.connect(path, timeout=30, check_same_thread=False)
+    db.row_factory = sqlite3.Row
+    db.execute("PRAGMA foreign_keys=ON")
+    db.execute("PRAGMA busy_timeout=30000")
+    try:
+        with db:
+            yield db
+    finally:
+        db.close()
+
+
+def initialize(path: Path):
+    if isinstance(path, str) and path.startswith(("postgres://", "postgresql://")):
+        schema = (ROOT / "backend/data/YourTripYourTry_Places_Schema.sql").read_text(encoding="utf-8-sig")
+        migrations = sorted((Path(__file__).resolve().parent / "migrations").glob("*.sql"))
+        with connect(path) as db:
+            db._connection.execute(_postgres_sql(schema))
+            db._connection.execute("CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY)")
+            for file in migrations:
+                if not db.execute("SELECT 1 FROM schema_migrations WHERE version=?", (file.name,)).fetchone():
+                    db._connection.execute(_postgres_sql(file.read_text(encoding="utf-8")))
+                    db.execute("INSERT INTO schema_migrations(version) VALUES (?) ON CONFLICT DO NOTHING", (file.name,))
+            _ensure_postgres_id_sequences(db)
+            db._connection.execute('ALTER TABLE destinations ALTER COLUMN enabled SET DEFAULT 1')
+            db._connection.execute('UPDATE destinations SET enabled=1 WHERE enabled IS NULL')
+            db._connection.execute('ALTER TABLE trips ALTER COLUMN current_version SET DEFAULT 0')
+            db._connection.execute('UPDATE trips SET current_version=0 WHERE current_version IS NULL')
+            db._connection.execute('ALTER TABLE revision_previews ALTER COLUMN committed SET DEFAULT 0')
+            db._connection.execute('UPDATE revision_previews SET committed=0 WHERE committed IS NULL')
+            db._connection.execute(
+                "INSERT INTO destinations (slug, display_name, target_places, enabled) VALUES "
+                "('ha-noi', 'Hà Nội', 300, 1), ('ninh-binh', 'Ninh Bình', 300, 1), "
+                "('tp-ho-chi-minh', 'TP. Hồ Chí Minh', 300, 1), ('da-lat', 'Đà Lạt', 300, 1) "
+                "ON CONFLICT DO NOTHING"
+            )
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with connect(path) as db:
+        db.execute("PRAGMA journal_mode=WAL")
+        db.executescript((ROOT / "backend/data/YourTripYourTry_Places_Schema.sql").read_text(encoding="utf-8-sig"))
+        db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY)")
+        for file in sorted((Path(__file__).resolve().parent / "migrations").glob("*.sql")):
+            if not db.execute("SELECT 1 FROM schema_migrations WHERE version=?", (file.name,)).fetchone():
+                try:
+                    db.executescript("BEGIN IMMEDIATE;\n" + file.read_text(encoding="utf-8"))
+                    db.execute("INSERT INTO schema_migrations VALUES (?)", (file.name,))
+                    db.commit()
+                except Exception:
+                    db.rollback()
+                    raise
+
+
+def row(db, sql, params=()):
+    cursor = db.execute(sql, params)
+    result = cursor.fetchone()
+    return dict(zip([column[0] for column in cursor.description], result)) if result else None
+
+
+def rows(db, sql, params=()):
+    cursor = db.execute(sql, params)
+    columns = [column[0] for column in cursor.description]
+    return [dict(zip(columns, result)) for result in cursor.fetchall()]

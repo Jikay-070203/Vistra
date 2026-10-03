@@ -1,0 +1,228 @@
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+  background-color: var(--vistra-warm-neutral);
+  border: 1px dashed var(--vistra-aqua);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: var(--vistra-navy);
+  opacity: 0.8;
+}
+
+.emptyIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+  color: var(--vistra-royal-blue);
+}
+
+.emptyIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.emptyText {
+  font-size: 14px;
+  margin: 0;
+  max-width: 200px;
+}
+
+.detailCard {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(14, 29, 79, 0.08);
+  height: 100%;
+  border: 1px solid rgba(8, 179, 198, 0.15);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.categoryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vistra-royal-blue);
+  background-color: var(--vistra-warm-neutral);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.dot {
+  color: var(--vistra-aqua);
+  font-weight: bold;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #67736D;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover,
+.closeBtn:focus-visible {
+  background-color: var(--vistra-warm-neutral);
+  color: var(--vistra-navy);
+  outline: none;
+}
+
+.placeName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--vistra-navy);
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.placeDesc {
+  font-size: 14px;
+  color: #4A5568;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.visualSlot {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(135deg, var(--vistra-warm-neutral) 0%, rgba(157, 216, 226, 0.2) 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.placeholderImg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+/* ==========================================================================
+   V4-008B Place Detail Journey Metadata & Cautions
+   ========================================================================== */
+.journeyPhaseBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.phaseCurrent {
+  background-color: rgba(8, 179, 198, 0.15);
+  color: #0369A1;
+  border: 1px solid rgba(8, 179, 198, 0.35);
+}
+
+.phaseCompleted {
+  background-color: #F0FDF4;
+  color: #059669;
+  border: 1px solid #BBF7D0;
+}
+
+.phasePending {
+  background-color: #F8FAFC;
+  color: #64748B;
+  border: 1px solid #E2E8F0;
+}
+
+.timingRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vistra-navy, #0E1D4F);
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: var(--vistra-warm-neutral, #EBF1F0);
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.cautionBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  background-color: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: #92400E;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.cautionBox strong {
+  color: #78350F;
+}
+
+.tradeoffBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: #1E40AF;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.tradeoffBox strong {
+  color: #1E3A8A;
+}
+

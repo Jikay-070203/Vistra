@@ -1,0 +1,22 @@
+/**
+ * Scoped styles for LandingEditorialMotif (LP-10B)
+ * Geometric Editorial Travel motif component (Reference B / Style Guide)
+ */
+.motifWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+  pointer-events: none;
+  user-select: none;
+  line-height: 0;
+  overflow: visible;
+}
+
+.motifSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}

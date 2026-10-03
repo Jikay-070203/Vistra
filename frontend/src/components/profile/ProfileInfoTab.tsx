@@ -1,0 +1,169 @@
+'use client';
+
+import React from 'react';
+import { ProfileFormData } from './useProfileController';
+
+interface ProfileInfoTabProps {
+  formData: ProfileFormData;
+  setFormData: React.Dispatch<React.SetStateAction<ProfileFormData>>;
+  savedSuccess: boolean;
+  setSavedSuccess: (val: boolean) => void;
+  handleSave: (e: React.FormEvent) => void;
+}
+
+export default function ProfileInfoTab({
+  formData,
+  setFormData,
+  savedSuccess,
+  setSavedSuccess,
+  handleSave,
+}: ProfileInfoTabProps) {
+  return (
+    <>
+      {/* Toast Notification */}
+      {savedSuccess && (
+        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-sm animate-fade-in">
+          <div className="flex items-center gap-3">
+            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">
+              ✓
+            </span>
+            <span>
+              <strong>Cập nhật thành công!</strong> Các tinh chỉnh hồ sơ đã được lưu trữ cục bộ trong phiên làm việc demo hiện tại.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSavedSuccess(false)}
+            className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-1"
+          >
+            Đóng
+          </button>
+        </div>
+      )}
+
+      {/* Main Info Form & Preferences */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm">
+          <h2 className="font-headline-sm text-xl text-[#0E1D4F] font-bold mb-1">
+            Thông tin liên hệ & Điểm xuất phát
+          </h2>
+          <p className="text-xs text-[#4B5875] mb-6">
+            VISTRA sử dụng điểm xuất phát mặc định để tự động tính toán phương thức di chuyển tối ưu cho mọi lịch trình mới.
+          </p>
+
+          <form onSubmit={handleSave} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                  Họ và tên
+                </label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                  Địa chỉ email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                  Số điện thoại
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                  Điểm xuất phát mặc định
+                </label>
+                <input
+                  type="text"
+                  value={formData.defaultOrigin}
+                  onChange={(e) => setFormData({ ...formData, defaultOrigin: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                Tiểu sử & Phong cách di chuyển cá nhân
+              </label>
+              <textarea
+                rows={3}
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+              />
+            </div>
+
+            <div className="pt-4 border-t border-[#0E1D4F]/10 flex items-center justify-between">
+              <span className="text-xs text-[#4B5875]">
+                Dữ liệu được lưu trong phạm vi phiên demo của trình duyệt.
+              </span>
+              <button
+                type="submit"
+                className="px-6 py-3 rounded-full bg-[#205BD6] text-white text-sm font-bold shadow-md hover:bg-[#205BD6]/90 transition-all cursor-pointer"
+              >
+                Lưu thay đổi hồ sơ
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Side Preference Card */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 className="font-headline-sm text-lg text-[#0E1D4F] font-bold mb-2">
+              Tùy chọn trải nghiệm mặc định
+            </h3>
+            <p className="text-xs text-[#4B5875] mb-5">
+              Các tiêu chí này được AI Agent đối chiếu khi tạo mới lịch trình tại /create-trip.
+            </p>
+
+            <div className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
+                <div className="text-xs font-bold text-[#0E1D4F] mb-1">Nhịp độ hành trình:</div>
+                <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredPace}</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
+                <div className="text-xs font-bold text-[#0E1D4F] mb-1">Gu lưu trú:</div>
+                <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredStay}</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
+                <div className="text-xs font-bold text-[#0E1D4F] mb-1">Khẩu vị trải nghiệm:</div>
+                <div className="text-xs text-[#205BD6] font-semibold">{formData.dietaryPreference}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+            <span className="font-bold">Lưu ý Demo:</span> Các tùy chọn này là bản dựng tĩnh mô phỏng cách hệ thống ghi nhận hồ sơ du khách.
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

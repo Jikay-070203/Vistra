@@ -1,0 +1,628 @@
+/**
+ * ExplorePlanWorkspace CSS Module (LP-12B)
+ *
+ * Scoped styling for the Right Plan Graph Workspace.
+ * Fixed 560px height on desktop, rich interactive topology for Beats A-D.
+ */
+
+.workspaceContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: #FFFFFF;
+  border: 1px solid #DEDCD2;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(14, 29, 79, 0.05);
+  height: 100%;
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  .workspaceContainer {
+    height: 560px;
+  }
+}
+
+/* ============================================================================
+   1. Header Bar
+   ============================================================================ */
+
+.workspaceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background-color: #F8FAF9;
+  border-bottom: 1px solid #DEDCD2;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background-color: rgba(8, 179, 196, 0.12);
+  color: #08B3C6;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0E1D4F;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.headerSub {
+  font-size: 11px;
+  color: #67736D;
+  display: block;
+}
+
+.quickBeatTabs {
+  display: flex;
+  gap: 3px;
+  background-color: #EBF1F0;
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.quickBeatBtn {
+  width: 26px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #67736D;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quickBeatBtn:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  color: #0E1D4F;
+}
+
+.quickBeatBtnActive {
+  background-color: #FFFFFF;
+  color: #0E1D4F;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.quickDayGroup {
+  display: flex;
+  gap: 3px;
+  background-color: #EBF1F0;
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.quickDayBtn {
+  padding: 0 7px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #67736D;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quickDayBtn:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  color: #0E1D4F;
+}
+
+.quickDayBtnActive {
+  background-color: #FFFFFF;
+  color: #205BD6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.mapQuickToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 7px;
+  border: 1px solid #DEDCD2;
+  background-color: #FFFFFF;
+  color: #0E1D4F;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mapQuickToggle:hover {
+  background-color: #F2FCFD;
+  border-color: #08B3C6;
+  color: #088D9C;
+}
+
+.mapQuickToggleActive {
+  background-color: #08B3C6;
+  border-color: #08B3C6;
+  color: #FFFFFF;
+}
+
+.mapQuickToggleActive:hover {
+  background-color: #079fb0;
+  color: #FFFFFF;
+}
+
+/* ============================================================================
+   2. Map Stage (SVG + HTML Interactive Overlays)
+   ============================================================================ */
+
+.mapStage {
+  flex: 1;
+  position: relative;
+  background-color: #FBF9F6;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapBackgroundPattern {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(#DEDCD2 1px, transparent 1px),
+    linear-gradient(to right, rgba(222, 220, 210, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(222, 220, 210, 0.25) 1px, transparent 1px);
+  background-size: 20px 20px, 40px 40px, 40px 40px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.watermarkMotif {
+  position: absolute;
+  right: 12px;
+  bottom: 40px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.svgLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.conflictPathStroke {
+  animation: pulseConflict 2s infinite ease-in-out;
+}
+
+@keyframes pulseConflict {
+  0%, 100% {
+    stroke-opacity: 1;
+    stroke-width: 3.2;
+  }
+  50% {
+    stroke-opacity: 0.6;
+    stroke-width: 4;
+  }
+}
+
+.optimizedPathStroke {
+  animation: glowSuccess 3s infinite ease-in-out;
+}
+
+@keyframes glowSuccess {
+  0%, 100% {
+    stroke-opacity: 1;
+  }
+  50% {
+    stroke-opacity: 0.75;
+  }
+}
+
+/* ============================================================================
+   3. Nodes Overlay (Positioned by % coordinates)
+   ============================================================================ */
+
+.nodesOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+/* Cluster cards for Beat A */
+.clusterCard {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background-color: #FFFFFF;
+  border: 1px solid #DEDCD2;
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 12px rgba(14, 29, 79, 0.08);
+  max-width: 170px;
+  z-index: 5;
+  transition: transform 0.2s;
+}
+
+.clusterCard:hover {
+  transform: translate(-50%, -55%) scale(1.03);
+  box-shadow: 0 6px 16px rgba(14, 29, 79, 0.12);
+}
+
+.clusterConflicted {
+  border-color: #F3C9BA;
+  background-color: #FFF9F6;
+}
+
+.clusterBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #088D9C;
+  margin-bottom: 2px;
+}
+
+.clusterTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0E1D4F;
+  line-height: 1.25;
+}
+
+.clusterSnippet {
+  font-size: 10px;
+  color: #67736D;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+/* Geographic Pins (Beats B, C, D) */
+.pinNode {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+  transition: transform 0.2s ease-out;
+}
+
+.pinNode:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 15;
+}
+
+.pinNodeSelected {
+  transform: translate(-50%, -50%) scale(1.12);
+  z-index: 20;
+}
+
+.pinButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2.5px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.pinButton:focus-visible {
+  outline: 2px solid #205BD6;
+  outline-offset: 2px;
+}
+
+.pinNodeWarning .pinButton {
+  box-shadow: 0 0 0 3px rgba(185, 110, 82, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pinLabelWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid #DEDCD2;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.pinShortLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #0E1D4F;
+  line-height: 1.1;
+}
+
+.pinFullName {
+  font-size: 9px;
+  color: #67736D;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .pinFullName {
+    display: block;
+  }
+}
+
+/* Interactive Edge Buttons */
+.conflictEdgeTrigger {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #F3C9BA;
+  padding: 4px 9px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #9C4B2E;
+  box-shadow: 0 2px 8px rgba(185, 110, 82, 0.2);
+  cursor: pointer;
+  z-index: 12;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.conflictEdgeTrigger:hover {
+  background-color: #FDF5F2;
+  transform: translate(-50%, -55%) scale(1.05);
+}
+
+.conflictEdgeTrigger:focus-visible {
+  outline: 2px solid #B96E52;
+  outline-offset: 1px;
+}
+
+.solutionEdgeTrigger {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #08B3C6;
+  padding: 4px 9px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #088D9C;
+  box-shadow: 0 2px 8px rgba(8, 179, 196, 0.2);
+  cursor: pointer;
+  z-index: 12;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.solutionEdgeTrigger:hover {
+  background-color: #F2FCFD;
+  transform: translate(-50%, -55%) scale(1.05);
+}
+
+.solutionEdgeTrigger:focus-visible {
+  outline: 2px solid #08B3C6;
+  outline-offset: 1px;
+}
+
+/* ============================================================================
+   4. Detail Popup Cards (Dismissible & Accessible)
+   ============================================================================ */
+
+.detailPopupCard {
+  position: absolute;
+  bottom: 44px;
+  right: 14px;
+  max-width: 280px;
+  background-color: #FFFFFF;
+  border: 1px solid #DEDCD2;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(14, 29, 79, 0.14);
+  z-index: 25;
+  animation: popIn 0.2s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.popupHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.popupIconWarning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: rgba(185, 110, 82, 0.15);
+  flex-shrink: 0;
+}
+
+.popupIconSuccess {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: rgba(8, 179, 196, 0.15);
+  flex-shrink: 0;
+}
+
+.popupIconCategory {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.popupTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0E1D4F;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.popupSub {
+  font-size: 10px;
+  color: #67736D;
+  text-transform: capitalize;
+}
+
+.popupCloseBtn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #67736D;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.popupCloseBtn:hover {
+  background-color: #F5F3F0;
+  color: #0E1D4F;
+}
+
+.popupBody {
+  font-size: 11.5px;
+  color: #4A5650;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+}
+
+.popupFooter {
+  padding-top: 8px;
+  border-top: 1px dashed #DEDCD2;
+}
+
+.popupTag {
+  font-size: 10px;
+  font-weight: 600;
+  color: #B96E52;
+}
+
+.popupTagSuccess {
+  font-size: 10px;
+  font-weight: 600;
+  color: #08B3C6;
+}
+
+/* ============================================================================
+   5. Canvas Footer Legend Bar
+   ============================================================================ */
+
+.mapLegendBar {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  border-top: 1px solid #DEDCD2;
+  font-size: 11px;
+  color: #67736D;
+  gap: 8px;
+  z-index: 5;
+}
+
+.legendItems {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legendDotScenic {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #08B3C6;
+}
+
+.legendDotDining {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #E7AD2E;
+}
+
+.legendDotStay {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #205BD6;
+}
+
+.legendDotCulture {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #0E1D4F;
+}
+
+.legendNote {
+  font-size: 10.5px;
+  font-style: italic;
+}

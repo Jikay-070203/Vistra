@@ -1,0 +1,751 @@
+/**
+ * CoCreatePlanEditor CSS Module (LP-13B)
+ *
+ * Scoped styling for Right Plan Editor in Section "Cùng xây".
+ * Includes topological SVG map with order numbers, rich activity cards with
+ * non-color differentiation, native accessible reorder buttons,
+ * and dynamic trade-off summary box in a unified 580px desktop card.
+ */
+
+.editorContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(14, 29, 79, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(14, 29, 79, 0.05);
+  height: 100%;
+}
+
+@media (min-width: 1024px) {
+  .editorContainer {
+    height: 580px;
+  }
+}
+
+/* ============================================================================
+   1. Header & Day Tabs
+   ============================================================================ */
+
+.editorHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background-color: rgba(248, 250, 249, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(14, 29, 79, 0.08);
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.headerTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0E1D4F;
+}
+
+.headerIcon {
+  color: #08B3C6;
+}
+
+.dayTabsGroup {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background-color: #EBF1F0;
+  padding: 2px;
+  border-radius: 7px;
+}
+
+.dayTabBtn {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #67736D;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.dayTabBtn:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  color: #0E1D4F;
+}
+
+.dayTabBtnActive {
+  background-color: #FFFFFF;
+  color: #0E1D4F;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   2. Day Context Banner
+   ============================================================================ */
+
+.dayBanner {
+  padding: 8px 16px;
+  background-color: #FBF9F6;
+  border-bottom: 1px solid #EAE6D9;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dayBannerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.dayTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dayTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0E1D4F;
+}
+
+.dayPaceBadge {
+  font-size: 10px;
+  font-weight: 600;
+  background-color: #EBF8FA;
+  color: #088D9C;
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 1px solid #B5E3EB;
+}
+
+.prefUpdatedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  background-color: rgba(8, 179, 196, 0.12);
+  color: #088D9C;
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+.dayBannerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 10.5px;
+  color: #67736D;
+}
+
+.dayBannerMeta strong {
+  color: #0E1D4F;
+}
+
+/* ============================================================================
+   3. Spatial Route Map (SVG + Ordered Pins)
+   ============================================================================ */
+
+.mapArea {
+  position: relative;
+  height: 125px;
+  background-color: #FAF8F2;
+  border-bottom: 1px solid #EAE6D9;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mapGridPattern {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(#DEDCD2 1px, transparent 1px),
+    linear-gradient(to right, rgba(222, 220, 210, 0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(222, 220, 210, 0.2) 1px, transparent 1px);
+  background-size: 20px 20px, 40px 40px, 40px 40px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.svgLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.mapPinsOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pinMarker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.14);
+  pointer-events: auto;
+  transition: all 0.2s;
+}
+
+.pinOrderBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  color: #0E1D4F;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.pinMarkerSelected {
+  box-shadow: 0 0 0 2px #FFFFFF, 0 2px 8px rgba(8, 179, 196, 0.35);
+}
+
+.pinMarkerUnselected {
+  opacity: 0.65;
+  background-color: #FAF8F2 !important;
+  color: #67736D !important;
+  border: 1px dashed #B8B5A7;
+}
+
+.mapLegend {
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(4px);
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid #DEDCD2;
+  font-size: 9.5px;
+  color: #67736D;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legendLineActive {
+  width: 12px;
+  height: 3px;
+  background-color: #08B3C6;
+  border-radius: 2px;
+}
+
+.legendLineMuted {
+  width: 12px;
+  height: 2px;
+  background-color: #B96E52;
+  border-radius: 2px;
+}
+
+/* ============================================================================
+   4. Scrollable Middle Body (Activities & Dynamic Trade-off Box)
+   ============================================================================ */
+
+.editorBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #DEDCD2 transparent;
+}
+
+.editorBody::-webkit-scrollbar {
+  width: 5px;
+}
+
+.editorBody::-webkit-scrollbar-thumb {
+  background-color: #DEDCD2;
+  border-radius: 4px;
+}
+
+/* Displaced Recovery Notice */
+.displacedBox {
+  padding: 8px 12px;
+  background-color: #FFF9F6;
+  border: 1px solid #F3C9BA;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.displacedHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #9C4B2E;
+}
+
+.displacedItemRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.restoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background-color: #FFFFFF;
+  border: 1px solid #F3C9BA;
+  color: #9C4B2E;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.restoreBtn:hover {
+  background-color: #FDF5F2;
+}
+
+/* ============================================================================
+   5. Interactive Activities List & Cards
+   ============================================================================ */
+
+.activitiesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activityCard {
+  background-color: #FFFFFF;
+  border: 1px solid #DEDCD2;
+  border-radius: 10px;
+  padding: 9px 12px;
+  transition: all 0.2s ease-out;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Non-color differentiation for Selected Card */
+.activityCardSelected {
+  border-color: #08B3C6;
+  border-left-width: 4px;
+  box-shadow: 0 2px 8px rgba(8, 179, 196, 0.12);
+  background-color: #FAFFFF;
+}
+
+/* Skipped Card */
+.activityCardSkipped {
+  border-style: dashed;
+  border-color: #DEDCD2;
+  background-color: #F8FAF9;
+  opacity: 0.65;
+}
+
+/* Focus from Editing Item */
+.activityCardEditing {
+  outline: 2px solid #205BD6;
+  outline-offset: 2px;
+}
+
+.editingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  background-color: rgba(32, 91, 214, 0.1);
+  color: #205BD6;
+  padding: 1px 6px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.cardTopRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cardTimeLocation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.orderIndexBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background-color: #0E1D4F;
+  color: #FFFFFF;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.timeSlot {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #0E1D4F;
+}
+
+.locationName {
+  font-size: 10.5px;
+  color: #67736D;
+}
+
+.cardBadges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badgeNeedsReview {
+  font-size: 9.5px;
+  font-weight: 700;
+  background-color: #FFF3EB;
+  border: 1px solid #F3C9BA;
+  color: #9C4B2E;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.badgeSelected {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  background-color: #EBF8FA;
+  border: 1px solid #B5E3EB;
+  color: #088D9C;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.badgeProposed {
+  font-size: 9.5px;
+  color: #67736D;
+  background-color: #F5F3F0;
+  border: 1px solid #DEDCD2;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.badgeSwapped {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  background-color: #FEF9EB;
+  border: 1px solid #F7E3B5;
+  color: #B2831E;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.badgeSkipped {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  color: #8C9993;
+  background-color: #F0EDE8;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0E1D4F;
+  line-height: 1.3;
+}
+
+.cardDesc {
+  font-size: 11px;
+  color: #4A5650;
+  line-height: 1.4;
+}
+
+.impactTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #088D9C;
+  margin-top: 2px;
+}
+
+/* Actions Row */
+.cardActionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding-top: 5px;
+  border-top: 1px solid #F0EDE8;
+}
+
+.primaryActions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border: 1px solid #DEDCD2;
+  background-color: #FFFFFF;
+  color: #20312B;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.actionBtn:hover {
+  background-color: #F8FAF9;
+  border-color: #B8B5A7;
+}
+
+.actionBtnKeepActive {
+  background-color: #08B3C6;
+  border-color: #08B3C6;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.actionBtnKeepActive:hover {
+  background-color: #079fb0;
+}
+
+.actionBtnSwap {
+  color: #B2831E;
+  border-color: #F7E3B5;
+  background-color: #FEF9EB;
+}
+
+.actionBtnSwap:hover {
+  background-color: #FDF3D6;
+}
+
+.actionBtnSkip {
+  color: #8C9993;
+}
+
+.actionBtnSkip:hover {
+  background-color: #F5F3F0;
+  color: #4A5650;
+}
+
+/* Native Keyboard Reorder Buttons */
+.reorderGroup {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #DEDCD2;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #FFFFFF;
+}
+
+.reorderBtn {
+  background: transparent;
+  border: none;
+  padding: 3px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #67736D;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.reorderBtn:hover:not(:disabled) {
+  background-color: #EBF1F0;
+  color: #0E1D4F;
+}
+
+.reorderBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.reorderDivider {
+  width: 1px;
+  height: 12px;
+  background-color: #DEDCD2;
+}
+
+/* ============================================================================
+   6. Dynamic Trade-off Summary Box (LP-13 Core Requirement)
+   ============================================================================ */
+
+.tradeoffBox {
+  margin-top: 4px;
+  background-color: #FBF9F6;
+  border: 1px solid #DEDCD2;
+  border-left: 4px solid #E7AD2E;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tradeoffHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0E1D4F;
+}
+
+.tradeoffPointsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: #4A5650;
+}
+
+.tradeoffItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.tradeoffIconSuccess {
+  color: #08B3C6;
+  shrink: 0;
+  margin-top: 1px;
+}
+
+.tradeoffIconWarning {
+  color: #B96E52;
+  shrink: 0;
+  margin-top: 1px;
+}
+
+.tradeoffIconInfo {
+  color: #205BD6;
+  shrink: 0;
+  margin-top: 1px;
+}
+
+/* ============================================================================
+   7. Footer Counters & Link
+   ============================================================================ */
+
+.editorFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: #F8FAF9;
+  border-top: 1px solid #DEDCD2;
+  font-size: 11px;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.countersRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.counterItem {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+}
+
+.counterSelected {
+  color: #088D9C;
+}
+
+.counterFlexible {
+  color: #67736D;
+}
+
+.counterReview {
+  color: #9C4B2E;
+}
+
+.nextStepLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: #205BD6;
+  text-decoration: none;
+}
+
+.nextStepLink:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/destinationpicker.tsx","./src/mapview.tsx","./src/placepicker.tsx","./src/travelagent.tsx","./src/tripdetail.tsx","./src/triprecommendations.tsx","./src/trips.tsx","./src/api.ts","./src/main.tsx","./src/types.ts","./src/ui.tsx","./vite.config.ts"],"errors":true,"version":"5.8.3"}

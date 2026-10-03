@@ -1,0 +1,18 @@
+.landingTheme {
+  /* VISTRA Source-Faithful Visual System Scoped Palette (LP-10A) */
+  --vistra-turquoise: #08B3C6;
+  --vistra-turquoise-hover: #15A6B4;
+  --vistra-aqua: #9DD8E2;
+  --vistra-aqua-soft: #6AD6EF;
+  --vistra-warm-neutral: #EBF1F0;
+  --vistra-royal-blue: #205BD6;
+  --vistra-royal-blue-deep: #0739A8;
+  --vistra-navy: #0E1D4F;
+  --vistra-mint: #9FEFC7;
+  --vistra-cyan: #10E4D0;
+  --vistra-yellow: #E7AD2E;
+  --vistra-yellow-light: #F4DB38;
+  --vistra-ai-violet: #7C3AED;
+
+  display: contents;
+}

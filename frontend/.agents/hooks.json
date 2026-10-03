@@ -1,0 +1,17 @@
+{
+  "command-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "name": "check-safe-command",
+            "type": "command",
+            "command": "node scripts/command_guard.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

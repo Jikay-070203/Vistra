@@ -1,0 +1,244 @@
+/* ==========================================================================
+   StarSkyCanvas - Bầu trời sao (Celestial Constellation Metaphor)
+   ========================================================================== */
+
+.canvasWrapper {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  min-height: 480px;
+  background: radial-gradient(circle at 40% 35%, rgba(16, 48, 115, 0.80) 0%, rgba(10, 32, 82, 0.70) 55%, rgba(6, 20, 56, 0.52) 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(8, 179, 198, 0.30);
+  overflow: hidden;
+  box-shadow: 0 16px 36px -12px rgba(10, 32, 82, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  mask-image: radial-gradient(ellipse at 65% 50%, black 72%, rgba(0, 0, 0, 0.6) 92%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse at 65% 50%, black 72%, rgba(0, 0, 0, 0.6) 92%, transparent 100%);
+}
+
+@media (max-width: 1024px) {
+  .canvasWrapper {
+    height: 420px;
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 768px) {
+  .canvasWrapper {
+    height: 320px;
+    min-height: 280px;
+    border-radius: 16px;
+  }
+}
+
+.skySvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Cosmic Glow & Ambient Nebulae */
+.nebulaGlow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+  opacity: 0.35;
+  transition: opacity 0.8s ease;
+}
+
+.nebula1 {
+  top: 15%;
+  left: 20%;
+  width: 300px;
+  height: 250px;
+  background: radial-gradient(circle, #205BD6 0%, transparent 70%);
+}
+
+.nebula2 {
+  bottom: 20%;
+  right: 15%;
+  width: 320px;
+  height: 280px;
+  background: radial-gradient(circle, #08B3C6 0%, transparent 70%);
+}
+
+.nebula3 {
+  top: 40%;
+  right: 35%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, #F4DB38 0%, transparent 75%);
+  opacity: 0.15;
+}
+
+/* Star Node Interactive Elements */
+.starNode {
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.starNode:hover,
+.starNode:focus-visible {
+  filter: drop-shadow(0 0 12px #08B3C6);
+}
+
+.starCore {
+  transition: all 0.4s ease;
+}
+
+.starNode:hover .starCore {
+  r: 9;
+}
+
+/* Star Label Pill */
+.starLabelPill {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  fill: #FFFFFF;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  user-select: none;
+}
+
+.starSubLabel {
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 500;
+  fill: #99A8C7;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Constellation Path Glow */
+.constellationLine {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.constellationHalo {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: blur(4px);
+  opacity: 0.4;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ethereal Floating Star Animation */
+@keyframes twinkleStar {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.15);
+  }
+}
+
+.twinkle {
+  animation: twinkleStar 3.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.twinkleDelay1 {
+  animation-delay: 0.8s;
+}
+
+.twinkleDelay2 {
+  animation-delay: 1.6s;
+}
+
+.twinkleDelay3 {
+  animation-delay: 2.4s;
+}
+
+/* Active Pin Info Overlay */
+.starDetailPopover {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  right: 20px;
+  background: rgba(14, 29, 79, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(8, 179, 198, 0.35);
+  border-radius: 14px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #FFFFFF;
+  z-index: 10;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popoverContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.popoverTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popoverCategory {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: rgba(8, 179, 198, 0.2);
+  color: #08B3C6;
+  border: 1px solid rgba(8, 179, 198, 0.3);
+}
+
+.popoverDesc {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #C0CDE2;
+  margin: 0;
+}
+
+.popoverCloseBtn {
+  background: transparent;
+  border: none;
+  color: #99A8C7;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.popoverCloseBtn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}

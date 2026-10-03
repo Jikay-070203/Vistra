@@ -1,0 +1,127 @@
+/* ==========================================================================
+   ConfirmTradeoffSummary Module CSS (LP-14)
+   Scoped styling for the Trade-off and Rhythm balance card on the right column.
+   ========================================================================== */
+
+.tradeoffCard {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.tradeoffHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(14, 29, 79, 0.08);
+}
+
+.tradeoffTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vistra-navy, #0E1D4F);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preferenceBadge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background-color: rgba(8, 179, 198, 0.1);
+  border: 1px solid rgba(8, 179, 198, 0.3);
+  color: #056974;
+}
+
+.tradeoffComparisonGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tradeoffRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.tradeoffRowGain {
+  background-color: #F4FBF7;
+  border: 1px solid #D5EFE1;
+  color: #1E663B;
+}
+
+.tradeoffRowLoss {
+  background-color: #FFF9F0;
+  border: 1px solid #F8E3C3;
+  color: #8C4E0A;
+}
+
+.tradeoffIconWrapper {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tradeoffText {
+  flex: 1 1 auto;
+}
+
+/* 3-day rhythm progression bar */
+.rhythmSection {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(14, 29, 79, 0.1);
+}
+
+.rhythmLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4B5875;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rhythmPills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.rhythmPill {
+  background-color: #F8FAFB;
+  border: 1px solid rgba(14, 29, 79, 0.08);
+  border-radius: 6px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.rhythmPillDay {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--vistra-navy, #0E1D4F);
+}
+
+.rhythmPillTheme {
+  font-size: 10px;
+  color: #67736D;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

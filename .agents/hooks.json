@@ -1,0 +1,31 @@
+{
+  "command-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "name": "check-safe-command",
+            "type": "command",
+            "command": "node scripts/command_guard.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "ai-log": {
+    "PreInvocation": [
+      {
+        "hooks": [
+          {
+            "name": "log-prompt",
+            "type": "command",
+            "command": "bash scripts/_pyrun.sh scripts/log_antigravity.py --hook",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

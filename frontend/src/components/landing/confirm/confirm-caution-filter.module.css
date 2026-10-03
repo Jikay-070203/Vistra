@@ -1,0 +1,176 @@
+/* ==========================================================================
+   ConfirmCautionFilter Module CSS (LP-14A)
+   Scoped styling for Controlled Caution vs Full Plan filter
+   ========================================================================== */
+
+.filterContainer {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(14, 29, 79, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(14, 29, 79, 0.04);
+}
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.filterHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vistra-navy, #0E1D4F);
+}
+
+.filterHelpText {
+  font-size: 11.5px;
+  color: #4B5875;
+}
+
+/* Tablist segmented control */
+.tablist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background-color: rgba(14, 29, 79, 0.04);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4B5875;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  min-height: 44px;
+}
+
+.tabButton:hover:not(.tabButtonActive) {
+  background-color: rgba(14, 29, 79, 0.03);
+  color: var(--vistra-navy, #0E1D4F);
+}
+
+.tabButton:focus-visible {
+  outline: 2px solid var(--vistra-royal-blue, #205BD6);
+  outline-offset: 2px;
+}
+
+/* Active Caution Filter Button */
+.tabButtonActiveCaution {
+  background-color: #FFFFFF;
+  border-color: #D99A4E;
+  color: #8C4E0A;
+  box-shadow: 0 2px 8px rgba(217, 154, 78, 0.16);
+  font-weight: 700;
+}
+
+/* Active All Filter Button */
+.tabButtonActiveAll {
+  background-color: #FFFFFF;
+  border-color: var(--vistra-royal-blue, #205BD6);
+  color: var(--vistra-royal-blue-deep, #0739A8);
+  box-shadow: 0 2px 8px rgba(32, 91, 214, 0.15);
+  font-weight: 700;
+}
+
+.tabIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabLabel {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  background-color: rgba(14, 29, 79, 0.08);
+  color: #4B5875;
+}
+
+.badgeActiveCaution {
+  background-color: #FDF4E6;
+  border: 1px solid rgba(217, 154, 78, 0.4);
+  color: #8C4E0A;
+}
+
+.badgeActiveAll {
+  background-color: rgba(32, 91, 214, 0.1);
+  border: 1px solid rgba(32, 91, 214, 0.25);
+  color: var(--vistra-royal-blue-deep, #0739A8);
+}
+
+.selectedStatusIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Informational Callout under active filter */
+.filterNoticeBox {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.filterNoticeCaution {
+  background-color: #FFF9F0;
+  border: 1px solid #F5DEB3;
+  color: #804B06;
+}
+
+.filterNoticeAll {
+  background-color: #F4F8FE;
+  border: 1px solid #D1E1FC;
+  color: #174291;
+}
+
+.filterNoticeIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+@media (max-width: 640px) {
+  .tablist {
+    grid-template-columns: 1fr;
+  }
+
+  .filterHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

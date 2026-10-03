@@ -1,0 +1,14 @@
+services:
+  frontend-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: yourtripyourtry-frontend-demo:local
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+
+networks:
+  default:
+    external: true
+    name: p103-app-network
