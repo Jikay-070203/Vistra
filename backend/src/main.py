@@ -99,6 +99,17 @@ def create_app(settings=None, services=None, gemini_client=None):
         db.execute("SELECT 1")
         return {"status": "ok", "version": "0.1.0"}
 
+    @app.api_route("/admin/fix-destinations", methods=["GET", "POST"])
+    def fix_destinations(db=Depends(database)):
+        # Temporary: repair corrupted display names. Unicode escapes keep the values encoding-safe.
+        fixes = {"ha-noi": "H\u00e0 N\u1ed9i", "tp-ho-chi-minh": "TP. H\u1ed3 Ch\u00ed Minh"}
+        query = "SELECT slug,display_name FROM destinations WHERE slug IN (?,?) ORDER BY slug"
+        before = rows(db, query, tuple(fixes))
+        for slug, display_name in fixes.items():
+            db.execute("UPDATE destinations SET display_name=? WHERE slug=?", (display_name, slug))
+        after = rows(db, query, tuple(fixes))
+        return JSONResponse({"before": before, "after": after}, media_type="application/json; charset=utf-8")
+
     @app.get("/destinations", dependencies=auth)
     def destinations(db=Depends(database)):
         return {"items": rows(db, """SELECT d.*,COUNT(p.id) AS places,
