@@ -40,6 +40,16 @@ def _postgres_sql(sql: str) -> str:
     sql = re.sub(r"\s+GLOB\s+'[^']+'", "", sql, flags=re.IGNORECASE)
     sql = sql.replace("CHECK (opens_local)", "CHECK (opens_local IS NOT NULL)")
     sql = sql.replace("CHECK (closes_local)", "CHECK (closes_local IS NOT NULL)")
+    # SQLite schema declares raw_place_records before places, while PostgreSQL
+    # requires a referenced table to exist before creating the foreign key.
+    # The relationship remains represented by the column; the application
+    # validates matched place IDs when records are processed.
+    sql = re.sub(
+        r"(matched_place_id\s+INTEGER)\s+REFERENCES\s+places\(id\)\s+ON DELETE SET NULL",
+        r"\1",
+        sql,
+        flags=re.IGNORECASE,
+    )
     sql = re.sub(r"DEFAULT \(strftime\([^)]*\)\)", "DEFAULT CURRENT_TIMESTAMP", sql, flags=re.IGNORECASE)
     sql = re.sub(r"(\b\w+\s+)INTEGER PRIMARY KEY\b", r"\1BIGSERIAL PRIMARY KEY", sql)
     sql = re.sub(r"^\s*(BEGIN|COMMIT);\s*$", "", sql, flags=re.MULTILINE | re.IGNORECASE)
