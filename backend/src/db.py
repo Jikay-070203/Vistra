@@ -60,6 +60,10 @@ def _postgres_sql(sql: str) -> str:
 
 def _sql_statements(script: str) -> list[str]:
     """Split the small project SQL scripts without splitting quoted strings."""
+    # A semicolon may appear inside a SQL line comment (the schema contains
+    # prose such as "...; Da Lat is a city destination."). Remove comments
+    # before splitting so prose can never be sent to PostgreSQL as SQL.
+    script = re.sub(r"--[^\r\n]*", "", script)
     statements, buffer = [], []
     quote = None
     for char in script:
