@@ -58,6 +58,34 @@ def _postgres_sql(sql: str) -> str:
     return sql
 
 
+def _sql_statements(script: str) -> list[str]:
+    """Split the small project SQL scripts without splitting quoted strings."""
+    statements, buffer = [], []
+    quote = None
+    for char in script:
+        if char in ("'", '"'):
+            if quote == char:
+                quote = None
+            elif quote is None:
+                quote = char
+        if char == ";" and quote is None:
+            statement = "".join(buffer).strip()
+            if statement:
+                statements.append(statement)
+            buffer = []
+        else:
+            buffer.append(char)
+    statement = "".join(buffer).strip()
+    if statement:
+        statements.append(statement)
+    return statements
+
+
+def _execute_postgres_script(db, script: str):
+    for statement in _sql_statements(_postgres_sql(script)):
+        db._connection.execute(statement)
+
+
 POSTGRES_ID_TABLES = (
     "destinations", "sources", "crawl_runs", "source_pages", "raw_place_records",
     "places", "place_sources", "tags", "opening_intervals", "opening_exceptions",
@@ -141,11 +169,11 @@ def initialize(path: Path):
         schema = (ROOT / "backend/data/YourTripYourTry_Places_Schema.sql").read_text(encoding="utf-8-sig")
         migrations = sorted((Path(__file__).resolve().parent / "migrations").glob("*.sql"))
         with connect(path) as db:
-            db._connection.execute(_postgres_sql(schema))
+            _execute_postgres_script(db, schema)
             db._connection.execute("CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY)")
             for file in migrations:
                 if not db.execute("SELECT 1 FROM schema_migrations WHERE version=?", (file.name,)).fetchone():
-                    db._connection.execute(_postgres_sql(file.read_text(encoding="utf-8")))
+                    _execute_postgres_script(db, file.read_text(encoding="utf-8"))
                     db.execute("INSERT INTO schema_migrations(version) VALUES (?) ON CONFLICT DO NOTHING", (file.name,))
             _ensure_postgres_id_sequences(db)
             db._connection.execute('ALTER TABLE destinations ALTER COLUMN enabled SET DEFAULT 1')
