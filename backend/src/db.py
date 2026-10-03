@@ -90,6 +90,43 @@ def _execute_postgres_script(db, script: str):
         db._connection.execute(statement)
 
 
+def _ensure_postgres_core_tables(db):
+    """Guarantee the two tables used during application startup exist."""
+    db._connection.execute("""
+        CREATE TABLE IF NOT EXISTS destinations (
+            id BIGSERIAL PRIMARY KEY,
+            slug TEXT NOT NULL UNIQUE,
+            display_name TEXT NOT NULL,
+            admin_name TEXT,
+            center_lat DOUBLE PRECISION,
+            center_lon DOUBLE PRECISION,
+            target_places INTEGER NOT NULL DEFAULT 300,
+            enabled INTEGER NOT NULL DEFAULT 1
+        )
+    """)
+    db._connection.execute("""
+        CREATE TABLE IF NOT EXISTS places (
+            id BIGSERIAL PRIMARY KEY,
+            destination_id BIGINT NOT NULL REFERENCES destinations(id) ON DELETE RESTRICT,
+            display_name TEXT NOT NULL,
+            normalized_name TEXT NOT NULL,
+            address TEXT,
+            latitude DOUBLE PRECISION NOT NULL,
+            longitude DOUBLE PRECISION NOT NULL,
+            kind TEXT NOT NULL DEFAULT 'other',
+            indoor_outdoor TEXT NOT NULL DEFAULT 'unknown',
+            rain_sensitivity INTEGER,
+            suggested_duration_min INTEGER,
+            quality_status TEXT NOT NULL DEFAULT 'discovered',
+            price_unknown INTEGER NOT NULL DEFAULT 1,
+            opening_hours_unknown INTEGER NOT NULL DEFAULT 1,
+            last_verified_at TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
 POSTGRES_ID_TABLES = (
     "destinations", "sources", "crawl_runs", "source_pages", "raw_place_records",
     "places", "place_sources", "tags", "opening_intervals", "opening_exceptions",
@@ -174,6 +211,7 @@ def initialize(path: Path):
         migrations = sorted((Path(__file__).resolve().parent / "migrations").glob("*.sql"))
         with connect(path) as db:
             _execute_postgres_script(db, schema)
+            _ensure_postgres_core_tables(db)
             db._connection.execute("CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY)")
             for file in migrations:
                 if not db.execute("SELECT 1 FROM schema_migrations WHERE version=?", (file.name,)).fetchone():
