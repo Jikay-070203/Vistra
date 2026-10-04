@@ -1,4 +1,5 @@
 import json
+import logging
 import secrets
 import sqlite3
 from contextlib import asynccontextmanager
@@ -22,6 +23,8 @@ from backend.recommendations import recommendations, candidates as place_candida
 from backend.services import ExternalServices
 from backend.catalog import ATTRIBUTION, DESTINATIONS, normalized
 
+logger = logging.getLogger(__name__)
+
 
 def create_app(settings=None, services=None, gemini_client=None):
     settings = settings or Settings()
@@ -29,7 +32,9 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     @asynccontextmanager
     async def lifespan(app):
+        logger.warning("Initializing database backend: %s", "postgresql" if settings.uses_postgres else "sqlite")
         initialize(settings.db_path)
+        logger.warning("Database schema initialization completed")
         with connect(settings.db_path) as db:
             for slug, config in DESTINATIONS.items():
                 db.execute("UPDATE destinations SET center_lat=?,center_lon=? WHERE slug=?", (*config["center"], slug))
