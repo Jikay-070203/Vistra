@@ -248,6 +248,11 @@ def connect(path: Path | str):
         db = PostgresConnection(psycopg.connect(path))
         try:
             yield db
+        except Exception:
+            db.rollback()
+            raise
+        else:
+            db.commit()
         finally:
             db.close()
         return
