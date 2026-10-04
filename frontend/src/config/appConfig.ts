@@ -3,64 +3,18 @@
  * File: frontend/src/config/appConfig.ts
  *
  * Single project-wide configuration source for landing page timings,
- * scroll thresholds, and demo metrics.
- * Every affected component imports its tunable parameters from here.
+ * scroll thresholds, admin settings, and demo metrics.
  */
 
 export interface MetricConfig {
   value: string;
-  label: string;
+  label?: string;
   subtext: string;
-  isMock: boolean;
+  isMock?: boolean;
   mockNotice: string;
 }
 
-export interface AppConfig {
-  hero: {
-    planningTimeOptimization: MetricConfig;
-    planAcceptanceRate: MetricConfig;
-  };
-  header: {
-    /** Scroll offset in pixels before morphing from full-width to floating (unit: px) */
-    morphScrollThresholdPx: number;
-    /** Background alpha for top full-width state (0.0 - 1.0) */
-    topBackgroundAlpha: number;
-    /** Background alpha for scrolled floating state (0.0 - 1.0) */
-    scrolledBackgroundAlpha: number;
-    /** Floating header width ratio (approx 60vw) */
-    floatingWidthVw: number;
-  };
-  overview: {
-    /** Auto-cycle duration per card in milliseconds (MANDATORY DEFAULT: exactly 20 seconds = 20000ms) */
-    cardDurationMs: number;
-    /** Inactivity delay before resuming auto-cycle after user interaction (unit: ms) */
-    inactivityResumeDelayMs: number;
-  };
-  draftGraph: {
-    /** Normalized scroll progress threshold to transition from Chaotic to PRUNE state (0.0 - 1.0) */
-    chaoticToPruneProgress: number;
-    /** Normalized scroll progress threshold to transition from PRUNE to DRAFT state (0.0 - 1.0) */
-    pruneToDraftProgress: number;
-    /** Maximum allowed degree per node in pruned / draft route line */
-    maxNodeDegree: number;
-  };
-  coCreate: {
-    /** Auto-loop duration between Before and After action-affect states (unit: ms) */
-    loopCycleMs: number;
-  };
-  confirm: {
-    /** Auto-loop duration per option reveal in Confirm section (unit: ms) */
-    optionCycleMs: number;
-  };
-  journey: {
-    /** Time spent highlighting each destination step in the confirmed journey preview (unit: ms) */
-    stepDurationMs: number;
-    /** Inactivity delay before resuming journey auto-progression after user hovers or inspects (unit: ms) */
-    inactivityResumeDelayMs: number;
-  };
-}
-
-export const appConfig: AppConfig = {
+export const appConfig = {
   hero: {
     planningTimeOptimization: {
       value: "85%",
@@ -100,9 +54,26 @@ export const appConfig: AppConfig = {
     optionCycleMs: 7500,
   },
   journey: {
-    // Reduced from 4000ms to 2200ms for faster, livelier presentation while maintaining clarity
     stepDurationMs: 2200,
     inactivityResumeDelayMs: 4000,
+  },
+  revenueGranularity: {
+    // If range in days <= dailyMaxDays, display daily data
+    dailyMaxDays: 31,
+    // If range in days <= weeklyMaxDays, display weekly data
+    weeklyMaxDays: 180,
+    // If range in days > weeklyMaxDays, display monthly data
+  },
+  adminAuth: {
+    cookieName: 'vistra_admin_session',
+    sessionDurationSeconds: 86400, // 24 hours
+  },
+  systemHealth: {
+    latencySpikeThresholdMs: 2500,
+  },
+  pagination: {
+    adminDefaultPageSize: 10,
+    travelerDefaultPageSize: 12,
   },
 };
 

@@ -39,9 +39,17 @@ yarn-error.log*
 # kilo worktrees & playwright
 .kilo
 .playwright-mcp
-docs
+
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
+# config Agent & document plans
+docs
+.agents
+.revisions
+workflow.md
+
+# personal skills used 
+skills-lock.json

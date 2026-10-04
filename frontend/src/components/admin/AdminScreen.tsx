@@ -13,8 +13,12 @@ export default function AdminScreen() {
     setFilterStatus,
     selectedLog,
     setSelectedLog,
-    filteredLogs,
+    paginatedLogs,
     totalLogsCount,
+    filteredCount,
+    currentPage,
+    totalPages,
+    setCurrentPage,
   } = useAdminController();
 
   return (
@@ -22,9 +26,13 @@ export default function AdminScreen() {
       <AdminKpiSummary />
       <BenchmarkPanel />
       <TraceTable
-        logs={filteredLogs}
+        logs={paginatedLogs}
         filterStatus={filterStatus}
         totalCount={totalLogsCount}
+        filteredCount={filteredCount}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
         onFilterChange={setFilterStatus}
         onSelectLog={setSelectedLog}
       />

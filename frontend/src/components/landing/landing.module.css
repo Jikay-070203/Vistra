@@ -313,7 +313,20 @@
   }
 }
 
-/* Fix Section navigation overlap (UX-01 / F06) */
+/* Fix Section navigation overlap (UX-01 / F06 / FIX-08) */
+.section {
+  position: relative;
+  width: 100%;
+  padding-top: 100px;
+  padding-bottom: 80px;
+  box-sizing: border-box;
+}
+
+.sectionSpacing {
+  padding-top: 112px;
+  padding-bottom: 88px;
+}
+
 #y-tuong,
 #tong-quan,
 #kham-pha,
@@ -321,7 +334,7 @@
 #xac-nhan,
 #trai-nghiem,
 #bat-dau {
-  scroll-margin-top: 104px;
+  scroll-margin-top: 112px;
 }
 
 .headerInner {

@@ -7,10 +7,13 @@ import Icon from '@/components/ui/Icon';
 import { useTripPlanController } from './useTripPlanController';
 import DayAccordion from './DayAccordion';
 import CostSummary from './CostSummary';
+import { getPlanDisplayCode } from '@/lib/planUtils';
 
 export default function TripPlanScreen() {
   const {
     activePlan,
+    isLoaded,
+    isNotFound,
     isConfirmed,
     expandedDays,
     toastMessage,
@@ -23,6 +26,37 @@ export default function TripPlanScreen() {
     handleConfirmNow,
     handleTogglePublish,
   } = useTripPlanController();
+
+  if (!isLoaded) {
+    return (
+      <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-20 text-center">
+        <div className="inline-block size-8 border-3 border-[#205BD6] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-xs text-[#4B5875] mt-3">Đang đồng bộ hồ sơ hành trình...</p>
+      </div>
+    );
+  }
+
+  if (isNotFound) {
+    return (
+      <div className="max-w-[720px] mx-auto w-full px-4 py-24 text-center flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#EBF1F0] flex items-center justify-center text-[#4B5875] mb-4 shadow-xs">
+          <Icon name="search_off" className="size-8" />
+        </div>
+        <h1 className="font-headline-lg text-2xl font-bold text-[#0E1D4F] mb-2">
+          Không tìm thấy chuyến đi
+        </h1>
+        <p className="text-sm text-[#4B5875] mb-6 max-w-md">
+          Mã hành trình được yêu cầu không tồn tại trong kho lưu trữ hoặc đã bị xóa.
+        </p>
+        <Link
+          href="/my-trips"
+          className="px-5 py-2.5 bg-[#205BD6] text-white text-sm font-semibold rounded-xl hover:bg-[#1847a8] transition-colors shadow-xs"
+        >
+          Quay lại Chuyến đi của tôi
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col w-full pb-20 print-page">
@@ -124,7 +158,7 @@ export default function TripPlanScreen() {
                 </span>
               )}
               <span className="text-xs text-[#4B5875] bg-[#EBF1F0] px-2.5 py-0.5 rounded-md font-mono">
-                Mã hồ sơ: VST-2026-{activePlan.id.toUpperCase().slice(0, 8)}
+                Mã hồ sơ: {getPlanDisplayCode(activePlan.id)}
               </span>
             </div>
 

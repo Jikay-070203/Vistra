@@ -11,7 +11,6 @@ interface TripGridProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  onOpenPlan: (plan: DemoPlan) => void;
   onClearFilters: () => void;
 }
 
@@ -21,7 +20,6 @@ export default function TripGrid({
   currentPage,
   totalPages,
   onPageChange,
-  onOpenPlan,
   onClearFilters,
 }: TripGridProps) {
   if (plans.length === 0) {
@@ -52,7 +50,7 @@ export default function TripGrid({
       {/* 4 Columns x 4 Rows Responsive Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 my-6">
         {plans.map((plan) => (
-          <TripCard key={plan.id} plan={plan} onOpenPlan={onOpenPlan} />
+          <TripCard key={plan.id} plan={plan} />
         ))}
       </div>
 

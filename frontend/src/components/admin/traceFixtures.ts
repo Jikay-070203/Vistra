@@ -9,9 +9,11 @@ export interface TraceLog {
   details: {
     inputSummary: string;
     retrievedSources: string[];
-    decisionImpact: string;
+    decisionImpact?: string;
   };
 }
+
+export const LATENCY_SPIKE_THRESHOLD_MS = 2500; // Common threshold for AI latency spikes (ADM-OV-03B)
 
 export const MOCK_TRACE_LOGS: TraceLog[] = [
   {

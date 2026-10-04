@@ -116,7 +116,7 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
             ...t,
             category,
             severity,
-            status: status || (t.status === 'unassigned' ? 'in_progress' : t.status),
+            status: status || t.status,
             updatedAt: now,
           };
         }

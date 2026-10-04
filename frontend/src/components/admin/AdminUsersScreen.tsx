@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import Icon from '@/components/ui/Icon';
+import ConfirmModal from './ConfirmModal';
 
 interface MockUser {
   id: string;
@@ -139,18 +140,18 @@ const INITIAL_USERS: MockUser[] = [
   },
 ];
 
-// Monthly user growth data
-const GROWTH_DATA = [
+// Monthly new users data (ADM-USR-01A: New users per month, not cumulative)
+const MONTHLY_NEW_USERS = [
   { month: 'T1', count: 120 },
-  { month: 'T2', count: 180 },
-  { month: 'T3', count: 240 },
-  { month: 'T4', count: 310 },
-  { month: 'T5', count: 420 },
-  { month: 'T6', count: 680 },
-  { month: 'T7', count: 950 },
-  { month: 'T8', count: 1420 },
-  { month: 'T9', count: 2150 },
-  { month: 'T10', count: 2840 },
+  { month: 'T2', count: 60 },
+  { month: 'T3', count: 60 },
+  { month: 'T4', count: 70 },
+  { month: 'T5', count: 110 },
+  { month: 'T6', count: 260 },
+  { month: 'T7', count: 270 },
+  { month: 'T8', count: 470 },
+  { month: 'T9', count: 730 },
+  { month: 'T10', count: 680, isCurrent: true },
 ];
 
 export default function AdminUsersScreen() {
@@ -160,6 +161,14 @@ export default function AdminUsersScreen() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<MockUser | null>(null);
+
+  // High-risk confirmation modal state (ADM-USR-02)
+  const [pendingAction, setPendingAction] = useState<{
+    user: MockUser;
+    action: 'suspend' | 'activate';
+  } | null>(null);
+
+  const triggerButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const PAGE_SIZE = 6;
 
@@ -186,129 +195,222 @@ export default function AdminUsersScreen() {
     currentPage * PAGE_SIZE
   );
 
-  const handleToggleStatus = (userId: string) => {
+  const maxNewUserCount = Math.max(...MONTHLY_NEW_USERS.map((d) => d.count));
+
+  // Request status toggle (opens confirmation modal)
+  const handleRequestToggleStatus = (user: MockUser) => {
+    const nextAction = user.status === 'active' ? 'suspend' : 'activate';
+    setPendingAction({ user, action: nextAction });
+  };
+
+  // Confirm status change
+  const handleConfirmToggle = () => {
+    if (!pendingAction) return;
+    const { user, action } = pendingAction;
+    const newStatus = action === 'suspend' ? 'suspended' : 'active';
+
     setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const nextStatus = u.status === 'active' ? 'suspended' : 'active';
-          return { ...u, status: nextStatus };
-        }
-        return u;
-      })
+      prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
     );
+
+    // Also update selectedUser if modal is open
+    if (selectedUser?.id === user.id) {
+      setSelectedUser((prev) => (prev ? { ...prev, status: newStatus } : null));
+    }
+
+    setPendingAction(null);
+  };
+
+  // Cancel status change (returns focus to trigger button)
+  const handleCancelToggle = () => {
+    const targetId = pendingAction?.user.id;
+    setPendingAction(null);
+    if (targetId && triggerButtonRefs.current[targetId]) {
+      triggerButtonRefs.current[targetId]?.focus();
+    }
   };
 
   return (
     <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-label-caps text-xs text-[#205BD6] uppercase font-bold tracking-wider">
-              QUẢN TRỊ THÀNH VIÊN VÀ DU KHÁCH
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#08B3C6]"></span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-[#0E1D4F]/10 text-[#0E1D4F] font-semibold">
-              SANDBOX DIRECTORY
-            </span>
-          </div>
-          <h2 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
-            Danh sách Người dùng &amp; Hồ sơ Cá nhân hóa
-          </h2>
-          <p className="text-xs sm:text-sm text-[#4B5875] mt-1 max-w-2xl leading-relaxed">
-            Tra cứu, phân loại tài khoản theo gói dịch vụ, giám sát số chuyến đi đã tạo và điều chỉnh quyền truy cập trong môi trường demo.
-          </p>
+      {/* Header Banner (ADM-USR-01B: Stats box moved down to membership section) */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="font-label-caps text-xs text-[#205BD6] uppercase font-bold tracking-wider">
+            QUẢN TRỊ THÀNH VIÊN VÀ DU KHÁCH
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#08B3C6]"></span>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-[#0E1D4F]/10 text-[#0E1D4F] font-semibold">
+            DIRECTORY
+          </span>
         </div>
-
-        <div className="flex items-center gap-4 bg-[#EBF1F0]/50 p-4 rounded-2xl border border-[#0E1D4F]/5">
-          <div className="text-center px-2">
-            <div className="text-2xl font-bold text-[#0E1D4F]">2,840</div>
-            <div className="text-[11px] text-[#4B5875]">Tổng tài khoản</div>
-          </div>
-          <div className="w-px h-8 bg-[#0E1D4F]/10"></div>
-          <div className="text-center px-2">
-            <div className="text-2xl font-bold text-emerald-600">2,385</div>
-            <div className="text-[11px] text-[#4B5875]">Hoạt động 30 ngày</div>
-          </div>
-          <div className="w-px h-8 bg-[#0E1D4F]/10"></div>
-          <div className="text-center px-2">
-            <div className="text-2xl font-bold text-[#205BD6]">412</div>
-            <div className="text-[11px] text-[#4B5875]">Gói Pro Explorer</div>
-          </div>
-        </div>
+        <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
+          Danh sách Người dùng &amp; Hồ sơ Cá nhân hóa
+        </h1>
+        <p className="text-xs sm:text-sm text-[#4B5875] mt-1 max-w-3xl leading-relaxed">
+          Tra cứu, phân loại tài khoản theo gói dịch vụ, giám sát số chuyến đi đã tạo và điều chỉnh quyền truy cập an toàn.
+        </p>
       </div>
 
-      {/* User Growth Chart & Quick Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        <div className="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-7 border border-[#0E1D4F]/10 shadow-sm space-y-4">
+      {/* User Growth Chart & Membership Donut Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left: Monthly New Users Chart (7 cols) (ADM-USR-01A, FIX-02) */}
+        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-[#0E1D4F]/10 shadow-sm flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between border-b border-[#0E1D4F]/10 pb-4">
             <div>
               <h3 className="font-headline-sm text-base text-[#0E1D4F] font-bold">
-                Tốc độ Tăng trưởng Người dùng Lũy kế (Năm 2026)
+                Số Người dùng Mới Mỗi Tháng (Năm 2026)
               </h3>
               <p className="text-xs text-[#4B5875] mt-0.5">
-                Quy mô người dùng tăng mạnh từ tháng 8 khi kích hoạt tính năng Vi khí hậu &amp; Travel DNA.
+                Đếm từng tài khoản mới đăng ký theo tháng, không tính cộng dồn lũy kế.
               </p>
             </div>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-              +18.4% Tháng 10
+              +680 Tháng 10
             </span>
           </div>
 
           <div className="pt-2">
-            <div className="h-32 flex items-end justify-between gap-2 px-1">
-              {GROWTH_DATA.map((item, idx) => {
-                const heightPercent = Math.max(12, Math.round((item.count / 2840) * 100));
+            <div className="h-44 flex items-end justify-between gap-2 px-1" aria-label="Biểu đồ người dùng mới theo tháng">
+              {MONTHLY_NEW_USERS.map((item, idx) => {
+                const heightPercent = Math.max(12, Math.round((item.count / maxNewUserCount) * 100));
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-7 px-2 py-0.5 rounded bg-[#0E1D4F] text-white text-[10px] whitespace-nowrap pointer-events-none z-10">
-                      {item.count} người
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 px-2 py-0.5 rounded bg-[#0E1D4F] text-white text-[10px] whitespace-nowrap pointer-events-none z-10">
+                      {item.count} người mới ({item.month})
                     </div>
-                    <div
-                      className="w-full rounded-t-lg bg-gradient-to-t from-[#205BD6] to-[#08B3C6] opacity-80 group-hover:opacity-100 transition-all duration-300"
-                      style={{ height: `${heightPercent}%` }}
-                    ></div>
-                    <span className="text-[10px] text-[#4B5875] font-mono">{item.month}</span>
+                    <div className="w-full h-36 flex items-end justify-center">
+                      <div
+                        className={`w-full rounded-t-lg transition-all duration-300 ${
+                          item.isCurrent
+                            ? 'bg-gradient-to-t from-[#205BD6] to-[#08B3C6]'
+                            : 'bg-[#C9D7F2] group-hover:bg-[#205BD6]/70'
+                        }`}
+                        style={{ height: `${heightPercent}%` }}
+                      ></div>
+                    </div>
+                    <span className={`text-[10px] font-mono ${item.isCurrent ? 'font-bold text-[#205BD6]' : 'text-[#4B5875]'}`}>
+                      {item.month}
+                    </span>
                   </div>
                 );
               })}
             </div>
           </div>
+
+          <div className="pt-3 border-t border-[#0E1D4F]/10 flex items-center justify-between text-xs text-[#4B5875]">
+            <span>Tổng cộng: <strong className="text-[#0E1D4F]">2,840 tài khoản</strong> đăng ký</span>
+            <span className="text-[11px] text-[#4B5875] italic">Tăng đột biến từ T8 (khi ra mắt Vi khí hậu)</span>
+          </div>
         </div>
 
-        <div className="lg:col-span-4 bg-white rounded-3xl p-6 sm:p-7 border border-[#0E1D4F]/10 shadow-sm space-y-4">
-          <h3 className="font-headline-sm text-base text-[#0E1D4F] font-bold">
-            Cơ cấu Hạng Thành viên
-          </h3>
-          <div className="space-y-3 pt-1">
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="font-medium text-[#0E1D4F]">Free Explorer</span>
-                <span className="font-bold text-[#4B5875]">2,342 (82.5%)</span>
-              </div>
-              <div className="w-full bg-[#0E1D4F]/10 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#4B5875] h-full rounded-full" style={{ width: '82.5%' }}></div>
-              </div>
+        {/* Right: Membership Donut Chart with Leader Lines & Stats Box (5 cols) (ADM-USR-01B, ADM-USR-01C) */}
+        <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-[#0E1D4F]/10 shadow-sm flex flex-col justify-between space-y-4">
+          <div className="border-b border-[#0E1D4F]/10 pb-3 flex items-center justify-between">
+            <div>
+              <h3 className="font-headline-sm text-base text-[#0E1D4F] font-bold">
+                Cơ cấu Hạng Thành viên
+              </h3>
+              <p className="text-xs text-[#4B5875] mt-0.5">
+                Phân bổ người dùng theo gói dịch vụ kích hoạt
+              </p>
             </div>
+            <span className="text-xs font-bold text-[#205BD6]">100% (2,840)</span>
+          </div>
 
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="font-medium text-[#205BD6]">Pro Explorer</span>
-                <span className="font-bold text-[#205BD6]">412 (14.5%)</span>
+          {/* SVG Donut Chart with Leader Lines (ADM-USR-01C) */}
+          <div className="py-2 flex items-center justify-center">
+            <svg viewBox="0 0 280 180" className="w-full max-w-[280px] h-[180px]" aria-label="Biểu đồ donut cơ cấu hạng">
+              {/* Donut Segments: circumference for r=50 is 314.16 */}
+              {/* Free Explorer: 82.5% = 259.2 */}
+              <circle
+                cx="140"
+                cy="90"
+                r="50"
+                fill="transparent"
+                stroke="#4B5875"
+                strokeWidth="24"
+                strokeDasharray="259.2 314.16"
+                strokeDashoffset="78.5"
+                className="transition-all"
+              />
+              {/* Pro Explorer: 14.5% = 45.6 */}
+              <circle
+                cx="140"
+                cy="90"
+                r="50"
+                fill="transparent"
+                stroke="#205BD6"
+                strokeWidth="24"
+                strokeDasharray="45.6 314.16"
+                strokeDashoffset="-180.7"
+                className="transition-all"
+              />
+              {/* Enterprise Agency: 3.0% = 9.4 */}
+              <circle
+                cx="140"
+                cy="90"
+                r="50"
+                fill="transparent"
+                stroke="#08B3C6"
+                strokeWidth="24"
+                strokeDasharray="9.4 314.16"
+                strokeDashoffset="-226.3"
+                className="transition-all"
+              />
+
+              {/* Center Total Count */}
+              <text x="140" y="86" textAnchor="middle" className="text-sm font-bold fill-[#0E1D4F]">
+                2,840
+              </text>
+              <text x="140" y="102" textAnchor="middle" className="text-[10px] fill-[#4B5875]">
+                Thành viên
+              </text>
+
+              {/* Leader Line for Free Explorer (Left) */}
+              <polyline points="92,90 40,90 20,90" fill="none" stroke="#4B5875" strokeWidth="1.2" />
+              <text x="18" y="85" textAnchor="start" className="text-[9px] font-bold fill-[#4B5875]">
+                Free: 82.5%
+              </text>
+
+              {/* Leader Line for Pro Explorer (Top Right) */}
+              <polyline points="175,55 220,40 250,40" fill="none" stroke="#205BD6" strokeWidth="1.2" />
+              <text x="252" y="38" textAnchor="end" className="text-[9px] font-bold fill-[#205BD6]">
+                Pro: 14.5%
+              </text>
+
+              {/* Leader Line for Enterprise (Bottom Right) */}
+              <polyline points="175,125 210,145 250,145" fill="none" stroke="#08B3C6" strokeWidth="1.2" />
+              <text x="252" y="157" textAnchor="end" className="text-[9px] font-bold fill-[#08B3C6]">
+                Agency: 3.0%
+              </text>
+            </svg>
+          </div>
+
+          {/* Stats Box Moved Here (ADM-USR-01B) */}
+          <div className="grid grid-cols-3 gap-2 bg-[#EBF1F0]/60 p-3 rounded-2xl border border-[#0E1D4F]/10 text-center">
+            <div>
+              <div className="flex items-center justify-center gap-1 text-[11px] font-medium text-[#4B5875]">
+                <span className="w-2 h-2 rounded-full bg-[#4B5875]"></span>
+                <span>Free</span>
               </div>
-              <div className="w-full bg-[#0E1D4F]/10 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#205BD6] h-full rounded-full" style={{ width: '14.5%' }}></div>
-              </div>
+              <div className="text-sm font-bold text-[#0E1D4F] mt-0.5">2,342</div>
+              <div className="text-[10px] text-[#4B5875]">82.5%</div>
             </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="font-medium text-[#08B3C6]">Enterprise Agency</span>
-                <span className="font-bold text-[#08B3C6]">86 (3.0%)</span>
+            <div className="border-x border-[#0E1D4F]/10">
+              <div className="flex items-center justify-center gap-1 text-[11px] font-medium text-[#205BD6]">
+                <span className="w-2 h-2 rounded-full bg-[#205BD6]"></span>
+                <span>Pro</span>
               </div>
-              <div className="w-full bg-[#0E1D4F]/10 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#08B3C6] h-full rounded-full" style={{ width: '3%' }}></div>
+              <div className="text-sm font-bold text-[#205BD6] mt-0.5">412</div>
+              <div className="text-[10px] text-[#4B5875]">14.5%</div>
+            </div>
+            <div>
+              <div className="flex items-center justify-center gap-1 text-[11px] font-medium text-[#08B3C6]">
+                <span className="w-2 h-2 rounded-full bg-[#08B3C6]"></span>
+                <span>Agency</span>
               </div>
+              <div className="text-sm font-bold text-[#08B3C6] mt-0.5">86</div>
+              <div className="text-[10px] text-[#4B5875]">3.0%</div>
             </div>
           </div>
         </div>
@@ -465,8 +567,11 @@ export default function AdminUsersScreen() {
                           Chi tiết
                         </button>
                         <button
+                          ref={(el) => {
+                            triggerButtonRefs.current[user.id] = el;
+                          }}
                           type="button"
-                          onClick={() => handleToggleStatus(user.id)}
+                          onClick={() => handleRequestToggleStatus(user)}
                           className={`px-2.5 py-1 rounded-lg border font-semibold text-[11px] transition-colors cursor-pointer ${
                             user.status === 'active'
                               ? 'bg-white hover:bg-red-50 text-red-600 border-red-200'
@@ -584,6 +689,33 @@ export default function AdminUsersScreen() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Confirmation Modal for Lock / Unlock (ADM-USR-02) */}
+      {pendingAction && (
+        <ConfirmModal
+          isOpen={Boolean(pendingAction)}
+          title={
+            pendingAction.action === 'suspend'
+              ? 'Xác nhận tạm khóa người dùng'
+              : 'Xác nhận mở khóa người dùng'
+          }
+          message={
+            pendingAction.action === 'suspend'
+              ? 'Bạn có chắc chắn muốn tạm khóa quyền truy cập của người dùng này? Tài khoản sẽ không thể thực hiện các thao tác trên hệ thống.'
+              : 'Bạn có chắc chắn muốn khôi phục quyền truy cập cho người dùng này?'
+          }
+          targetName={`${pendingAction.user.fullName} (${pendingAction.user.id} - ${pendingAction.user.email})`}
+          consequence={
+            pendingAction.action === 'suspend'
+              ? 'Hậu quả: Người dùng này sẽ không thể tạo hành trình mới hoặc gửi phản hồi cho đến khi được quản trị viên mở khóa lại.'
+              : undefined
+          }
+          confirmText={pendingAction.action === 'suspend' ? 'Tạm khóa tài khoản' : 'Mở khóa'}
+          confirmVariant={pendingAction.action === 'suspend' ? 'danger' : 'primary'}
+          onConfirm={handleConfirmToggle}
+          onCancel={handleCancelToggle}
+        />
       )}
     </div>
   );

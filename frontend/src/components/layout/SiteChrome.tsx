@@ -41,6 +41,24 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
     );
   }
 
+  if (pathname.startsWith('/admin')) {
+    return (
+      <DemoPlanProvider>
+        <FeedbackProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#0E1D4F] focus:text-white focus:rounded-lg focus:shadow-md"
+          >
+            Bỏ qua đến nội dung chính
+          </a>
+          <main id="main-content" tabIndex={-1} className="flex-1 w-full outline-none">
+            {children}
+          </main>
+        </FeedbackProvider>
+      </DemoPlanProvider>
+    );
+  }
+
   // Functional Routes Shell with shared paper canvas, functional navbar & footer
   return (
     <DemoPlanProvider>

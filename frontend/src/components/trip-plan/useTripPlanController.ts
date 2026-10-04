@@ -1,16 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useDemoPlan, DemoPlan } from '@/context/DemoPlanContext';
 
 export function useTripPlanController() {
-  const { getActivePlan, confirmPlan, publishPlan, unpublishPlan } = useDemoPlan();
-  const activePlan: DemoPlan = getActivePlan();
+  const searchParams = useSearchParams();
+  const requestedId = searchParams.get('id');
+
+  const {
+    getActivePlan,
+    getPlanById,
+    isLoaded,
+    confirmPlan,
+    publishPlan,
+    unpublishPlan,
+    setActivePlanId,
+  } = useDemoPlan();
 
   const [expandedDays, setExpandedDays] = useState<number[]>([1, 2]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const isConfirmed = activePlan.status === 'confirmed';
+  // Synchronize plan from query parameter or active plan (FIX-06)
+  const activePlan: DemoPlan | undefined = useMemo(() => {
+    if (requestedId) {
+      return getPlanById(requestedId);
+    }
+    return getActivePlan();
+  }, [requestedId, getPlanById, getActivePlan]);
+
+  const isNotFound = isLoaded && Boolean(requestedId) && !activePlan;
+
+  useEffect(() => {
+    if (activePlan && activePlan.id !== getActivePlan().id) {
+      setActivePlanId(activePlan.id);
+    }
+  }, [activePlan, setActivePlanId, getActivePlan]);
+
+  const isConfirmed = activePlan?.status === 'confirmed';
 
   const toggleDay = (dayNum: number) => {
     if (expandedDays.includes(dayNum)) {
@@ -20,7 +47,12 @@ export function useTripPlanController() {
     }
   };
 
-  const expandAll = () => setExpandedDays(activePlan.days.map((d) => d.dayNumber));
+  const expandAll = () => {
+    if (activePlan) {
+      setExpandedDays(activePlan.days.map((d) => d.dayNumber));
+    }
+  };
+
   const collapseAll = () => setExpandedDays([]);
 
   const handlePrint = () => {
@@ -46,11 +78,14 @@ export function useTripPlanController() {
   };
 
   const handleConfirmNow = () => {
-    confirmPlan(activePlan.id);
-    setToastMessage('Đã chuyển bản nháp thành Kế hoạch chính thức!');
+    if (activePlan) {
+      confirmPlan(activePlan.id);
+      setToastMessage('Đã chuyển bản nháp thành Kế hoạch chính thức!');
+    }
   };
 
   const handleTogglePublish = () => {
+    if (!activePlan) return;
     if (activePlan.isPublished) {
       unpublishPlan(activePlan.id);
       setToastMessage('Đã hủy xuất bản hành trình khỏi Cộng đồng.');
@@ -61,7 +96,9 @@ export function useTripPlanController() {
   };
 
   return {
-    activePlan,
+    activePlan: activePlan || getActivePlan(),
+    isLoaded,
+    isNotFound,
     isConfirmed,
     expandedDays,
     toastMessage,

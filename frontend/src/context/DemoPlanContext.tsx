@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { DayItinerary, MOCK_PLANNER_DAYS } from '@/data/mockData';
+import { getNowFormattedVN, formatDateTimeVN } from '@/lib/dateUtils';
 
 export interface ChatSource {
   id: string;
@@ -43,6 +44,9 @@ export interface DemoPlan {
   days: DayItinerary[];
   chatMessages: ChatMessage[];
   sources: ChatSource[];
+  provinces: string[];
+  createdAt?: string;
+  confirmedAt?: string;
 }
 
 interface DemoPlanContextType {
@@ -159,6 +163,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         location: 'Sân bay Liên Khương → Trung tâm Đà Lạt (30 km)',
         tags: ['Xe đón riêng', 'Ngắm đèo Prenn'],
         isLocked: true,
+        coordinates: { lat: 11.7516, lng: 108.3735 },
       },
       {
         isTransit: true,
@@ -178,6 +183,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Thưởng thức cơm niêu và canh bông Atiso hầm sườn heo thanh mát, đặc sản bồi bổ khí huyết vùng ôn đới.',
         location: 'Nhà hàng Le Petit, Lê Lai, Đà Lạt',
         tags: ['Đặc sản Đà Lạt', 'Canh Atiso'],
+        coordinates: { lat: 11.9392, lng: 108.4285 },
       },
       {
         id: 'dl-d1-a3',
@@ -188,6 +194,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Tản bộ ven hồ đón làn gió se lạnh, ghé quán Cà phê Tùng thưởng thức ly cà phê phin đậm đà trong điệu nhạc Trịnh hoài niệm.',
         location: 'Khu Hòa Bình, Phường 1, Đà Lạt',
         tags: ['Cà phê phố cổ', 'Dạo ven hồ'],
+        coordinates: { lat: 11.9424, lng: 108.4377 },
       },
     ],
   },
@@ -210,6 +217,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         location: 'Đồi chè Cầu Đất, Trạm Hành, Đà Lạt',
         tags: ['Săn mây bình minh', 'Đồi chè 100 tuổi'],
         isLocked: true,
+        coordinates: { lat: 11.8587, lng: 108.5375 },
       },
       {
         isTransit: true,
@@ -229,6 +237,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Thưởng thức chén xíu mại thơm phức cay ấm cùng bánh mì giòn rụm và ly sữa đậu nành nóng giữa tiết trời sớm mai se lạnh.',
         location: '26 Hoàng Diệu, Đà Lạt',
         tags: ['Điểm tâm bản địa', 'Sữa đậu nành nóng'],
+        coordinates: { lat: 11.9442, lng: 108.4321 },
       },
       {
         id: 'dl-d2-a3',
@@ -239,6 +248,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Chiêm ngưỡng kiến trúc Art Deco độc đáo mô phỏng đỉnh núi Lang Biang tại nhà ga cổ nhất Đông Dương và thăm Dinh I tráng lệ.',
         location: 'Đường Quang Trung & Trần Quang Diệu, Đà Lạt',
         tags: ['Kiến trúc Pháp cổ', 'Đầu máy hơi nước'],
+        coordinates: { lat: 11.9416, lng: 108.4552 },
       },
     ],
   },
@@ -260,6 +270,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Cảm nhận sự tĩnh lặng tuyệt đối khi mặt hồ phủ sương khói mờ ảo, chèo thuyền giữa làn nước xanh ngọc bích ven rừng thông râm mát.',
         location: 'Khu du lịch Hồ Tuyền Lâm, Đà Lạt',
         tags: ['Chèo SUP', 'Mặt hồ tĩnh mịch'],
+        coordinates: { lat: 11.8906, lng: 108.4372 },
       },
       {
         id: 'dl-d3-a2',
@@ -270,6 +281,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Đi cáp treo ngắm toàn cảnh đồi thông, dạo bước trong khuôn viên thanh tịnh ngát hương hoa trà và ngắm nhìn hồ từ trên cao.',
         location: 'Đồi Phụng Hoàng, Đà Lạt',
         tags: ['Cáp treo', 'Vườn hoa thiền viện'],
+        coordinates: { lat: 11.9038, lng: 108.4354 },
       },
       {
         id: 'dl-d3-a3',
@@ -280,6 +292,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Nồi lẩu gà nghi ngút khói với vị chua thanh thơm đặc trưng của lá é, ớt xiêm xanh cay nồng xua tan cái lạnh đêm cao nguyên.',
         location: 'Số 5 đường 3 Tháng 4, Đà Lạt',
         tags: ['Lẩu gà lá é', 'Ấm áp đêm đông'],
+        coordinates: { lat: 11.9298, lng: 108.4446 },
       },
     ],
   },
@@ -301,6 +314,7 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Dạo giữa thảm hoa tú cầu bạt ngàn muôn màu sắc nép mình bên sườn đồi bậc thang đặc trưng của vùng Trại Mát.',
         location: 'Tổ 1, Thôn Lộc Quý, Trại Mát, Đà Lạt',
         tags: ['Hoa cẩm tú cầu', 'Nhiếp ảnh lưu niệm'],
+        coordinates: { lat: 11.9378, lng: 108.5086 },
       },
       {
         id: 'dl-d4-a2',
@@ -311,12 +325,13 @@ export const DALAT_DAYS: DayItinerary[] = [
         description: 'Ghé các sạp hàng uy tín chọn dâu tây New Zealand hái tươi tại vườn, trà oolong hương hoa sói và mứt hồng sấy dẻo truyền thống.',
         location: 'Chợ Đà Lạt, Đường Nguyễn Thị Minh Khai',
         tags: ['Dâu tây tươi', 'Đặc sản làm quà'],
+        coordinates: { lat: 11.9424, lng: 108.4377 },
       },
     ],
   },
 ];
 
-export const INITIAL_PLANS: DemoPlan[] = [
+const RAW_INITIAL_PLANS = [
   {
     id: 'sapa-cloud-hunt',
     conversationId: 'conv-sapa-01',
@@ -893,6 +908,42 @@ export const INITIAL_PLANS: DemoPlan[] = [
   },
 ];
 
+const PROVINCE_MAP: Record<string, string[]> = {
+  'sapa-cloud-hunt': ['Lào Cai'],
+  'moc-chau-autumn': ['Sơn La'],
+  'dalat-pine-hills': ['Lâm Đồng'],
+  'ninh-binh-heritage': ['Ninh Bình'],
+  'ha-giang-loop': ['Hà Giang'],
+  'phu-quoc-sunset': ['Kiên Giang'],
+  'hoi-an-heritage': ['Quảng Nam'],
+  'mu-cang-chai-rice': ['Yên Bái'],
+  'hue-ancient-citadel': ['Thừa Thiên Huế'],
+  'quy-nhon-coastal': ['Bình Định'],
+  'tam-dao-mist': ['Vĩnh Phúc'],
+  'ba-be-lake': ['Bắc Kạn', 'Cao Bằng'],
+  'phong-nha-caves': ['Quảng Bình'],
+  'can-tho-floating': ['Cần Thơ'],
+  'con-dao-heritage': ['Bà Rịa - Vũng Tàu'],
+  'da-lat-tea-plantation': ['Lâm Đồng'],
+  'pu-luong-retreat': ['Thanh Hóa'],
+  'ta-xua-cloud-paradise': ['Sơn La'],
+  'ly-son-volcano': ['Quảng Ngãi'],
+  'y-ty-cloud-hunter': ['Lào Cai'],
+  'an-giang-tra-su': ['An Giang'],
+  'bac-ha-market': ['Lào Cai'],
+  'lang-co-bay': ['Thừa Thiên Huế'],
+  'ba-na-hills-clouds': ['Đà Nẵng'],
+  'mang-den-pine': ['Kon Tum'],
+};
+
+export const INITIAL_PLANS: DemoPlan[] = (RAW_INITIAL_PLANS as unknown as DemoPlan[]).map((p) => ({
+  ...p,
+  status: p.status as 'draft' | 'confirmed',
+  provinces: PROVINCE_MAP[p.id] || (p.destination.includes('Đà Lạt') || p.destination.includes('Lâm Đồng') ? ['Lâm Đồng'] : [p.destination.split(',').pop()?.trim() || 'Việt Nam']),
+  createdAt: p.lastUpdated,
+  confirmedAt: p.status === 'confirmed' ? p.lastUpdated : undefined,
+}));
+
 const DemoPlanContext = createContext<DemoPlanContextType | undefined>(undefined);
 
 export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
@@ -911,7 +962,16 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
           if (savedPlans) {
             const parsed = JSON.parse(savedPlans);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setPlans(parsed);
+              const normalized = parsed.map((p: DemoPlan) => ({
+                ...p,
+                lastUpdated: formatDateTimeVN(p.lastUpdated),
+                provinces: Array.isArray(p.provinces) && p.provinces.length > 0
+                  ? p.provinces
+                  : (p.destination?.includes('Đà Lạt') || p.destination?.includes('Lâm Đồng') ? ['Lâm Đồng'] : [p.destination?.split(',').pop()?.trim() || 'Việt Nam']),
+                createdAt: p.createdAt ? formatDateTimeVN(p.createdAt) : formatDateTimeVN(p.lastUpdated),
+                confirmedAt: p.confirmedAt ? formatDateTimeVN(p.confirmedAt) : (p.status === 'confirmed' ? formatDateTimeVN(p.lastUpdated) : undefined),
+              }));
+              setPlans(normalized);
             }
           }
           if (savedActiveId) {
@@ -950,7 +1010,7 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
     return plans.find((p) => p.id === id);
   };
 
-  // Add chat message in Planner: updates the same draft plan and truly transforms timeline activities (F02)
+  // Add chat message in Planner: updates the same draft plan and truly transforms timeline activities (F02, FIX-03)
   const addChatMessage = (planId: string, userText: string) => {
     const timestamp = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     const userMsg: ChatMessage = {
@@ -960,6 +1020,10 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
       timestamp,
     };
 
+    const targetPlan = plans.find((p) => p.id === planId);
+    const destLower = targetPlan ? targetPlan.destination.toLowerCase() : '';
+    const isDalat = destLower.includes('đà lạt') || destLower.includes('da lat') || destLower.includes('lâm đồng');
+
     const lower = userText.toLowerCase();
 
     // Determine context-aware response for the demo
@@ -967,31 +1031,56 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
     let affected = 'Điều chỉnh nhịp độ hành trình';
     let newSources: ChatSource[] = [];
 
-    const mentionsPhoGa = lower.includes('phở gà') || (lower.includes('phở') && lower.includes('gà'));
+    const mentionsPhoGa = lower.includes('phở gà') || (lower.includes('phở') && lower.includes('gà')) || lower.includes('bánh ướt') || lower.includes('bữa sáng');
     const mentionsElderlyRest = lower.includes('nghỉ trưa') || lower.includes('người lớn tuổi') || lower.includes('người già');
     const mentionsCloud = lower.includes('mây') || lower.includes('05:15') || lower.includes('sớm');
 
-    if (mentionsPhoGa && mentionsElderlyRest) {
-      aiResponseText = 'Đã cập nhật Ngày 2: Đổi bữa sáng sang Phở gà đồi nghệ nhân ấm nóng và bổ sung trạm nghỉ trưa 90 phút tại không gian tĩnh lặng của Ecolodge để người lớn tuổi phục hồi thể lực.';
-      affected = 'Đổi phở gà đồi & Thêm trạm nghỉ trưa người lớn tuổi';
-      newSources = [INITIAL_SOURCES[1]];
-    } else if (mentionsPhoGa) {
-      aiResponseText = 'Đã cập nhật Ngày 2: Bữa sáng được chuyển sang Phở gà đồi nghệ nhân bắp giòn thơm hương thảo quả Tây Bắc.';
-      affected = 'Cập nhật món ăn sáng: Phở gà đồi nghệ nhân';
-      newSources = [INITIAL_SOURCES[1]];
-    } else if (mentionsElderlyRest) {
-      aiResponseText = 'Đã bổ sung trạm nghỉ trưa 90 phút dành riêng cho người lớn tuổi tại Ecolodge tĩnh lặng trước khi tiếp tục các hoạt động chiều.';
-      affected = 'Thêm điểm nghỉ trưa cho người lớn tuổi (13:00 - 14:30)';
-    } else if (mentionsCloud) {
-      aiResponseText = 'Planning Agent đã dời giờ xuất phát lên 05:15 sáng tại đèo Ô Quy Hồ để bạn đón trọn vẹn khoảnh khắc biển mây bồng bềnh lúc bình minh.';
-      affected = 'Tối ưu khung giờ săn mây 05:15 – 07:15';
-      newSources = [INITIAL_SOURCES[0]];
-    } else if (lower.includes('nghỉ') || lower.includes('thong thả') || lower.includes('chậm')) {
-      aiResponseText = 'Đã chuyển nhịp độ sang "Thư thái": giãn cách giữa các chặng thêm 45 phút để bạn thoải mái nhâm nhi cà phê ngắm cảnh.';
-      affected = 'Chuyển nhịp độ ngày sang Thư thái (+45p)';
+    if (isDalat) {
+      if (mentionsPhoGa && mentionsElderlyRest) {
+        aiResponseText = 'Đã cập nhật Ngày 2: Đổi bữa sáng sang Bánh ướt lòng gà Long ấm nóng và bổ sung trạm nghỉ trưa 90 phút tại khuôn viên Ana Mandara Villas để người lớn tuổi phục hồi thể lực.';
+        affected = 'Đổi bánh ướt lòng gà & Thêm trạm nghỉ trưa người lớn tuổi';
+        newSources = [DALAT_SOURCES[2]];
+      } else if (mentionsPhoGa) {
+        aiResponseText = 'Đã cập nhật Ngày 2: Bữa sáng được chuyển sang Bánh ướt lòng gà Long đậm đà và Cà phê Tùng hoài niệm tại khu Hòa Bình.';
+        affected = 'Cập nhật món ăn sáng: Bánh ướt lòng gà Long & Cà phê Tùng';
+        newSources = [DALAT_SOURCES[2]];
+      } else if (mentionsElderlyRest) {
+        aiResponseText = 'Đã bổ sung trạm nghỉ trưa 90 phút dành riêng cho người lớn tuổi tại khuôn viên tĩnh lặng của Biệt thự Ana Mandara trước khi tiếp tục các hoạt động chiều.';
+        affected = 'Thêm điểm nghỉ trưa cho người lớn tuổi (13:00 - 14:30)';
+      } else if (mentionsCloud) {
+        aiResponseText = 'Planning Agent đã dời giờ xuất phát lên 05:15 sáng tại Đồi chè Cầu Đất để bạn đón trọn vẹn khoảnh khắc biển mây bồng bềnh phủ trên những luống chè xanh.';
+        affected = 'Tối ưu khung giờ săn mây Cầu Đất 05:15 – 07:15';
+        newSources = [DALAT_SOURCES[0]];
+      } else if (lower.includes('nghỉ') || lower.includes('thong thả') || lower.includes('chậm')) {
+        aiResponseText = 'Đã chuyển nhịp độ sang "Thư thái": giãn cách giữa các chặng thêm 45 phút để bạn thoải mái nhâm nhi cà phê ngắm đồi thông.';
+        affected = 'Chuyển nhịp độ ngày sang Thư thái (+45p)';
+      } else {
+        aiResponseText = `Vistra Atelier đã tiếp thu: "${userText}". Chúng tôi đã phân tích lại cung đường cao nguyên và tinh chỉnh các điểm dừng phù hợp với yêu cầu mới.`;
+        affected = 'Tinh chỉnh thứ tự các điểm dừng trong bản nháp';
+      }
     } else {
-      aiResponseText = `Vistra Atelier đã tiếp thu: "${userText}". Chúng tôi đã phân tích lại cung đường và tinh chỉnh các điểm dừng phù hợp với yêu cầu mới.`;
-      affected = 'Tinh chỉnh thứ tự các điểm dừng trong bản nháp';
+      if (mentionsPhoGa && mentionsElderlyRest) {
+        aiResponseText = 'Đã cập nhật Ngày 2: Đổi bữa sáng sang Phở gà đồi nghệ nhân ấm nóng và bổ sung trạm nghỉ trưa 90 phút tại không gian tĩnh lặng của Ecolodge để người lớn tuổi phục hồi thể lực.';
+        affected = 'Đổi phở gà đồi & Thêm trạm nghỉ trưa người lớn tuổi';
+        newSources = [INITIAL_SOURCES[1]];
+      } else if (mentionsPhoGa) {
+        aiResponseText = 'Đã cập nhật Ngày 2: Bữa sáng được chuyển sang Phở gà đồi nghệ nhân bắp giòn thơm hương thảo quả Tây Bắc.';
+        affected = 'Cập nhật món ăn sáng: Phở gà đồi nghệ nhân';
+        newSources = [INITIAL_SOURCES[1]];
+      } else if (mentionsElderlyRest) {
+        aiResponseText = 'Đã bổ sung trạm nghỉ trưa 90 phút dành riêng cho người lớn tuổi tại Ecolodge tĩnh lặng trước khi tiếp tục các hoạt động chiều.';
+        affected = 'Thêm điểm nghỉ trưa cho người lớn tuổi (13:00 - 14:30)';
+      } else if (mentionsCloud) {
+        aiResponseText = 'Planning Agent đã dời giờ xuất phát lên 05:15 sáng tại đèo Ô Quy Hồ để bạn đón trọn vẹn khoảnh khắc biển mây bồng bềnh lúc bình minh.';
+        affected = 'Tối ưu khung giờ săn mây 05:15 – 07:15';
+        newSources = [INITIAL_SOURCES[0]];
+      } else if (lower.includes('nghỉ') || lower.includes('thong thả') || lower.includes('chậm')) {
+        aiResponseText = 'Đã chuyển nhịp độ sang "Thư thái": giãn cách giữa các chặng thêm 45 phút để bạn thoải mái nhâm nhi cà phê ngắm cảnh.';
+        affected = 'Chuyển nhịp độ ngày sang Thư thái (+45p)';
+      } else {
+        aiResponseText = `Vistra Atelier đã tiếp thu: "${userText}". Chúng tôi đã phân tích lại cung đường và tinh chỉnh các điểm dừng phù hợp với yêu cầu mới.`;
+        affected = 'Tinh chỉnh thứ tự các điểm dừng trong bản nháp';
+      }
     }
 
     const aiMsg: ChatMessage = {
@@ -1011,22 +1100,44 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
             if (d.dayNumber === 2) {
               const updatedActivities = d.activities.map((act) => {
                 if ('isTransit' in act) return act;
-                // If user requested pho ga doi, update breakfast
-                if (mentionsPhoGa && (act.id === 'd2-a2' || act.category === 'Ẩm thực')) {
+                // If user requested food update
+                if (mentionsPhoGa && (act.id.includes('a2') || act.category === 'Ẩm thực')) {
+                  if (isDalat) {
+                    return {
+                      ...act,
+                      title: 'Bữa sáng Bánh ướt lòng gà Long & Cà phê Tùng',
+                      description: 'Thưởng thức bánh ướt lòng gà nóng hổi dẻo mềm với nước mắm pha gia truyền, sau đó ghé Cà phê Tùng lắng nghe giai điệu xưa.',
+                      location: 'Số 6 Khu Hòa Bình, Đà Lạt',
+                      tags: ['Bánh ướt lòng gà', 'Cà phê Tùng', 'Yêu cầu tùy biến'],
+                      coordinates: { lat: 11.9424, lng: 108.4377 },
+                    };
+                  }
                   return {
                     ...act,
                     title: 'Bữa sáng phở gà đồi nghệ nhân & Cà phê bên suối',
                     description: 'Thưởng thức phở gà đồi bản địa ngọt thịt thơm nồng thảo quả và nhâm nhi cà phê ngắm sương sớm tan dần bên suối Mường Hoa.',
                     tags: ['Phở gà đồi bản địa', 'Cà phê đặc sản', 'Yêu cầu tùy biến'],
+                    coordinates: { lat: 22.3021, lng: 103.8931 },
                   };
                 }
                 // If user requested cloud hunt 05:15
-                if (mentionsCloud && act.id === 'd2-a1') {
+                if (mentionsCloud && act.id.includes('a1')) {
+                  if (isDalat) {
+                    return {
+                      ...act,
+                      timeStart: '05:15',
+                      timeEnd: '07:15',
+                      title: 'Săn biển mây sớm lúc 05:15 tại Đồi Chè Cầu Đất & Tuabin Gió',
+                      location: 'Đồi chè Cầu Đất, Trạm Hành, Đà Lạt',
+                      coordinates: { lat: 11.8587, lng: 108.5375 },
+                    };
+                  }
                   return {
                     ...act,
                     timeStart: '05:15',
                     timeEnd: '07:15',
                     title: 'Săn biển mây sớm lúc 05:15 tại Đèo Ô Quy Hồ & Cổng Trời',
+                    coordinates: { lat: 22.3551, lng: 103.7744 },
                   };
                 }
                 return act;
@@ -1034,23 +1145,38 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
 
               // If user requested rest for elderly, insert or update rest activity
               if (mentionsElderlyRest && !updatedActivities.some((a) => !('isTransit' in a) && a.title.includes('người lớn tuổi'))) {
-                updatedActivities.push({
-                  id: 'd2-rest-elderly',
-                  timeStart: '13:00',
-                  timeEnd: '14:30',
-                  title: 'Nghỉ trưa & Thưởng trà thảo mộc phục hồi thể lực cho người lớn tuổi',
-                  category: 'Thư giãn & Sức khỏe',
-                  description: 'Không gian yên tĩnh tại Ecolodge với giường nằm êm ái, trà thảo mộc atiso ấm giúp người cao tuổi lấy lại năng lượng trước chặng chiều.',
-                  location: 'Phòng trà & Nghỉ dưỡng Topas Ecolodge',
-                  tags: ['Thân thiện người cao tuổi', 'Trạm nghỉ tĩnh lặng', 'Trà thảo mộc'],
-                });
+                if (isDalat) {
+                  updatedActivities.push({
+                    id: 'dl-d2-rest-elderly',
+                    timeStart: '13:00',
+                    timeEnd: '14:30',
+                    title: 'Nghỉ trưa & Thưởng trà thảo mộc hoa atiso cho người lớn tuổi',
+                    category: 'Thư giãn & Sức khỏe',
+                    description: 'Không gian yên bình giữa rừng thông cổ thụ tại Biệt thự Ana Mandara với trà atiso ấm giúp người cao tuổi thư giãn và phục hồi năng lượng.',
+                    location: 'Khu biệt thự Ana Mandara Villas Dalat',
+                    tags: ['Thân thiện người cao tuổi', 'Trạm nghỉ tĩnh lặng', 'Trà atiso'],
+                    coordinates: { lat: 11.9392, lng: 108.4285 },
+                  });
+                } else {
+                  updatedActivities.push({
+                    id: 'd2-rest-elderly',
+                    timeStart: '13:00',
+                    timeEnd: '14:30',
+                    title: 'Nghỉ trưa & Thưởng trà thảo mộc phục hồi thể lực cho người lớn tuổi',
+                    category: 'Thư giãn & Sức khỏe',
+                    description: 'Không gian yên tĩnh tại Ecolodge với giường nằm êm ái, trà thảo mộc atiso ấm giúp người cao tuổi lấy lại năng lượng trước chặng chiều.',
+                    location: 'Phòng trà & Nghỉ dưỡng Topas Ecolodge',
+                    tags: ['Thân thiện người cao tuổi', 'Trạm nghỉ tĩnh lặng', 'Trà thảo mộc'],
+                    coordinates: { lat: 22.2592, lng: 103.9317 },
+                  });
+                }
               }
 
               return {
                 ...d,
                 pace: (mentionsElderlyRest || lower.includes('thong thả')) ? ('Thư thái' as const) : d.pace,
                 highlight: mentionsPhoGa
-                  ? 'Phở gà đồi & Đèo Ô Quy Hồ săn mây'
+                  ? (isDalat ? 'Bánh ướt lòng gà & Đồi chè Cầu Đất săn mây' : 'Phở gà đồi & Đèo Ô Quy Hồ săn mây')
                   : d.highlight,
                 activities: updatedActivities,
               };
@@ -1060,7 +1186,7 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
 
           return {
             ...plan,
-            lastUpdated: `Hôm nay lúc ${timestamp}`,
+            lastUpdated: getNowFormattedVN(),
             chatMessages: [...plan.chatMessages, userMsg, aiMsg],
             days: updatedDays,
             sources: newSources.length > 0 && !plan.sources.some((s) => s.id === newSources[0].id)
@@ -1075,14 +1201,15 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
 
   // Explicit confirmation: changes status from 'draft' to 'confirmed'
   const confirmPlan = (planId: string) => {
-    const timestamp = new Date().toLocaleDateString('vi-VN');
+    const now = getNowFormattedVN();
     setPlans((prev) =>
       prev.map((plan) =>
         plan.id === planId
           ? {
               ...plan,
               status: 'confirmed',
-              lastUpdated: `Đã chốt ngày ${timestamp}`,
+              lastUpdated: now,
+              confirmedAt: now,
             }
           : plan
       )
@@ -1091,14 +1218,14 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
 
   // Publish confirmed plan to community
   const publishPlan = (planId: string) => {
-    const timestamp = new Date().toLocaleDateString('vi-VN');
+    const now = getNowFormattedVN();
     setPlans((prev) =>
       prev.map((plan) =>
         plan.id === planId
           ? {
               ...plan,
               isPublished: true,
-              publishedAt: timestamp,
+              publishedAt: now.split(' ')[0],
               authorName: plan.authorName || 'Du khách Vistra (Tôi)',
               authorAvatar: plan.authorAvatar || 'VS',
               likesCount: plan.likesCount || 1,
@@ -1136,8 +1263,8 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
   }): string => {
     const newId = `draft-${Date.now()}`;
     const destination = input.selectedDestination || 'Sa Pa, Lào Cai';
-    const isDalat = destination.includes('Đà Lạt') || destination.toLowerCase().includes('da lat');
-    const nowStr = new Date().toLocaleString('vi-VN');
+    const isDalat = destination.includes('Đà Lạt') || destination.toLowerCase().includes('da lat') || destination.includes('Lâm Đồng');
+    const nowStr = getNowFormattedVN();
 
     const assignedDays = input.clonedDays
       ? JSON.parse(JSON.stringify(input.clonedDays))
@@ -1157,6 +1284,8 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
         ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBId3SEsE_eVNlUFOMkPBrr_5xjm109Sz2r1nwrXTj0qPo7JBw9hsO6oDiqXIu6jUtUaQNQJBK6SfYQa7VM1sHJrRP-o1vM3Ud7XiDtuXAgiwaroG9tY39vYc0qYLfHE3bvMCsfBj-XqjjUiDC2-Eh7BTFWd8wxt0OI-tbivDsgE9eCjh6vZpCKblKWVXoBt2LBNwLdwXHYYlRfnDcqqttso7lj42EIWC0lCGkLtkhsErLA-RIr5YyqBg'
         : 'https://lh3.googleusercontent.com/aida-public/AB6AXuAPN5yjZ4_2ddr4jbSd40ZJyTlXybQh97VY5fXwC9yQZpYjZ2_OlrtKKKKlSTVAs8kGb29CSu_0FD9TT3XtpN8DS3eOGJIEc8Hfolwsv9NJNBg-fzNCTXMRC6XepNBLp8jiMOgU_B9pbUx7sdT2Zxbt-kZIfGDM3xsW5DCkglFVtg0GHPtF1vDWrjiK2F08F5ALXUGVOKJcyVXvEG2YRY9IIwmeU5ynP7wjBVOShMLL7u70IDnT5eozVw');
 
+    const derivedProvince = isDalat ? ['Lâm Đồng'] : [destination.split(',')[destination.split(',').length - 1].trim()];
+
     const newDraft: DemoPlan = {
       id: newId,
       conversationId: `conv-${newId}`,
@@ -1169,6 +1298,7 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
       budget: input.budget || '15.000.000 VND',
       coverImage: assignedCover,
       lastUpdated: nowStr,
+      createdAt: nowStr,
       status: 'draft',
       isPublished: false,
       tags: ['Tùy chỉnh', 'DNA Du lịch', 'Mới tạo'],
@@ -1189,6 +1319,7 @@ export function DemoPlanProvider({ children }: { children: React.ReactNode }) {
         },
       ],
       sources: assignedSources,
+      provinces: derivedProvince,
     };
 
     setPlans((prev) => [newDraft, ...prev]);

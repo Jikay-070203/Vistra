@@ -134,7 +134,7 @@ export default function DayAccordion({
                           </span>
                           <span className="text-xs text-[#08B3C6] font-medium flex items-center gap-1">
                             <Icon name="location_on" className="size-[14px]" />
-                            <span>{act.location}</span>
+                            <span>{act.location ? act.location.replaceAll('&rarr;', '→') : ''}</span>
                           </span>
                         </div>
 

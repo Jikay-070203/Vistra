@@ -33,6 +33,7 @@ export default function App() {
   function toggleSave(id: number) { setSaved(previous => {const next = previous.includes(id) ? previous.filter(x => x !== id) : [...previous, id]; try {localStorage.setItem('ytyt-saved', JSON.stringify(next))} catch {setToast('Bộ nhớ trình duyệt đầy. Danh sách chỉ được giữ trong phiên này.')} return next}) }
   const current = destinations.find(d => d.slug === destination)
   return <div className="app-shell">
+    <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
     <aside className="sidebar">
       <a className="brand" href="#explore" aria-label="YourTripYourTry — trang khám phá"><span className="brand-mark">y<span>↗</span></span><span>YourTrip<span>YourTry<span className="brand-dot">.</span></span></span></a>
       <div className="nav-caption">KHÔNG GIAN CỦA BẠN</div>

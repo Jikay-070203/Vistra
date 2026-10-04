@@ -1,21 +1,21 @@
 import type { SVGProps } from 'react';
-
 type IconName =
-  | 'add' | 'add_location_alt' | 'add_photo_alternate' | 'alt_route' | 'arrow_back'
+  | 'add' | 'add_location_alt' | 'add_photo_alternate' | 'admin_panel_settings' | 'alt_route' | 'arrow_back'
   | 'arrow_forward' | 'auto_fix_high' | 'balance' | 'calendar_month' | 'calendar_today'
-  | 'check_circle' | 'close' | 'cloud' | 'cloud_queue' | 'compare_arrows' | 'description'
-  | 'diamond' | 'directions_car' | 'directions_walk' | 'download' | 'drag_indicator'
-  | 'edit_calendar' | 'expand_more' | 'explore' | 'fingerprint' | 'flight_takeoff' | 'forest' | 'group'
-  | 'groups' | 'handshake' | 'info' | 'insights' | 'keyboard_arrow_down' | 'landscape' | 'location_on' | 'lock' | 'map'
+  | 'check_circle' | 'close' | 'cloud' | 'cloud_queue' | 'compare_arrows' | 'dashboard' | 'description'
+  | 'diamond' | 'directions_car' | 'directions_walk' | 'dns' | 'download' | 'drag_indicator'
+  | 'edit_calendar' | 'error' | 'expand_more' | 'explore' | 'feedback' | 'fingerprint' | 'flight_takeoff' | 'forest' | 'group'
+  | 'groups' | 'handshake' | 'info' | 'insights' | 'keyboard_arrow_down' | 'landscape' | 'location_on' | 'lock' | 'login' | 'logout' | 'map'
   | 'menu' | 'mic' | 'nightlife' | 'nordic_walking' | 'payments' | 'photo_camera' | 'photo_library'
-  | 'print' | 'psychology' | 'receipt_long' | 'replay' | 'schedule' | 'search' | 'share'
-  | 'swap_driving_apps' | 'swap_vert' | 'terrain' | 'thermostat' | 'timeline' | 'travel_explore'
-  | 'verified' | 'verified_user' | 'visibility' | 'volume_off' | 'wb_twilight';
+  | 'print' | 'psychology' | 'receipt_long' | 'replay' | 'schedule' | 'search' | 'send' | 'share'
+  | 'swap_driving_apps' | 'swap_vert' | 'sync' | 'terrain' | 'thermostat' | 'timeline' | 'travel_explore'
+  | 'verified' | 'verified_user' | 'visibility' | 'visibility_off' | 'volume_off' | 'wb_twilight';
 
 const paths: Record<IconName, string> = {
   add: 'M12 5v14M5 12h14',
   add_location_alt: 'M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Zm0-8.5A2.5 2.5 0 1 0 12 7a2.5 2.5 0 0 0 0 5.5Z',
   add_photo_alternate: 'M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5Zm4 3h.01M4 17l4-4 3 3 2-2 5 5',
+  admin_panel_settings: 'M12 2 4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3Zm0 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm0 2c-2.67 0-4 1.34-4 2.5V17h8v-1.5c0-1.16-1.33-2.5-4-2.5Z',
   alt_route: 'M6 19c4 0 4-6 8-6s4 6 8 6M6 5c4 0 4 6 8 6s4-6 8-6',
   arrow_back: 'M19 12H5m7 7-7-7 7-7',
   arrow_forward: 'M5 12h14m-7-7 7 7-7 7',
@@ -28,15 +28,19 @@ const paths: Record<IconName, string> = {
   cloud: 'M7 18h10a4 4 0 0 0 .7-7.9A6 6 0 0 0 6 11a3.5 3.5 0 0 0 1 7Z',
   cloud_queue: 'M7 18h10a4 4 0 0 0 .7-7.9A6 6 0 0 0 6 11a3.5 3.5 0 0 0 1 7Z',
   compare_arrows: 'M7 7h13m0 0-3-3m3 3-3 3M17 17H4m0 0 3 3m-3-3 3-3',
+  dashboard: 'M3 3h8v8H3V3Zm10 0h8v5h-8V3Zm0 9h8v9h-8v-9ZM3 15h8v6H3v-6Z',
   description: 'M6 3h9l4 4v14H6V3Zm9 0v5h4M9 12h6m-6 4h6',
   diamond: 'm12 3 8 6-8 12L4 9l8-6Zm-8 6h16M9 6l3 15 3-15',
   directions_car: 'm5 16 1.5-6h11l1.5 6M7 16v2m10-2v2M6.5 13h11M8 10l1-3h6l1 3M6 16h.01m12 0h.01',
   directions_walk: 'M13 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2Zm-3 17 2-7 2 2v5m-2-7-3-3 1-5 4 1 2 3',
+  dns: 'M4 4h16v6H4V4zm0 10h16v6H4v-6zm6-8h.01M6 6h.01M6 16h.01M10 16h.01',
   download: 'M12 3v12m0 0 5-5m-5 5-5-5M5 21h14',
   drag_indicator: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01',
   edit_calendar: 'M5 4h14a2 2 0 0 1 2 2v13H3V6a2 2 0 0 1 2-2Zm3-2v4m8-4v4M7 10h3m-3 4h2m4-1 4-4 2 2-4 4-3 1 1-3Z',
+  error: 'M12 8v4m0 4h.01M21 12a9 9 0 1 0-18 0 9 9 0 0 0 18 0Z',
   expand_more: 'm6 9 6 6 6-6',
   explore: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm3.5-12.5-2 4-4 2 2-4 4-2Z',
+  feedback: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
   fingerprint: 'M12 11a3 3 0 0 0-3 3v7m3-13a6 6 0 0 0-6 6v4m6-14a10 10 0 0 0-10 10m10 4v3m0-17a10 10 0 0 1 10 10v4m-4-4v-1a6 6 0 0 0-6-6m6 7v4m-12-3v-2a6 6 0 0 1 6-6',
   flight_takeoff: 'M2 16h20M5 16l3-5-2-2 1-1 4 2 4-6 2 1 1 5-1 4 2 3-1-1-2 3-3 3-1-4-1-3 1-2-2-2-1-1Z',
   forest: 'M8 21h8M12 17v4m0-4 5-5h-3l3-5h-3l2-3-4 2-2-3-2 3-4-2 2 3H5l3 5H5l7 5Z',
@@ -49,6 +53,8 @@ const paths: Record<IconName, string> = {
   landscape: 'M3 19l5-7 4 5 3-4 6 6H3Zm9-10h.01',
   location_on: 'M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Zm0-8.5A2.5 2.5 0 1 0 12 7a2.5 2.5 0 0 0 0 5.5Z',
   lock: 'M6 10h12v10H6V10Zm3 0V7a3 3 0 0 1 6 0v3',
+  login: 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3',
+  logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
   map: 'M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15',
   menu: 'M4 6h16M4 12h16M4 18h16',
   mic: 'M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm-6-3a6 6 0 0 0 12 0m-6 6v3m-4 0h8',
@@ -63,9 +69,11 @@ const paths: Record<IconName, string> = {
   replay: 'M4 12a8 8 0 1 0 2.3-5.7L4 9m0-5v5h5',
   schedule: 'M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   search: 'm21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z',
+  send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
   share: 'M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm12 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8.6 13.5l6.8 4M15.4 6.5l-6.8 4',
   swap_driving_apps: 'M7 7h13m0 0-3-3m3 3-3 3M17 17H4m0 0 3 3m-3-3 3-3',
   swap_vert: 'M8 17V3m0 0-4 4m4-4 4 4m4 0v14m0 0-4-4m4 4 4-4',
+  sync: 'M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67',
   terrain: 'm3 19 6-8 4 5 3-4 5 7H3Zm7-10h.01',
   thermostat: 'M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0ZM12 5v10',
   timeline: 'M3 17h4l3-6 4 4 4-8 3 2',
@@ -73,6 +81,7 @@ const paths: Record<IconName, string> = {
   verified: 'm9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   verified_user: 'm12 3 7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z',
   visibility: 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
+  visibility_off: 'M2 2l20 20M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61',
   volume_off: 'm3 10 4-4h3l4-3v18l-4-3H7l-4-4m14-1 4 4m0-8-4 4',
   wb_twilight: 'M4 18h16M6 14a6 6 0 0 1 12 0M12 2v3M4.9 4.9 7 7m12.1-2.1L17 7',
 };

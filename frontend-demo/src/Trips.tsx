@@ -20,7 +20,7 @@ export default function Trips({destinations,selectedId,onCreate,onSelect,onExplo
    <button className="secondary" onClick={()=>setDeleted(v=>!v)}>{deleted?<CalendarDays size={16}/>:<Trash2 size={16}/>} {deleted?'Xem chuyến đi':'Chuyến đi đã xóa'}</button>
    {error&&<Notice error>{error}<button className="text-button" onClick={()=>setRevision(n=>n+1)}>Thử lại</button></Notice>}
    {loading?<div className="loading"><Spinner/>Đang tải chuyến đi…</div>:items.length?<div className="place-grid trip-list">{items.map(t=><article className="trip-card" key={t.id}>
-     <CalendarDays size={26}/><h3>{destinations.find(d=>d.id===t.destination_id)?.display_name||'Chuyến đi'}</h3><p>Tạo ngày {dateLabel(t.created_at)}</p><p>{t.current_version?'Đã có lịch trình':'Bản nháp'}</p>
+     <CalendarDays size={26}/><h3>{destinations.find(d=>d.id===t.destination_id)?.display_name||'Chuyến đi'}</h3><p>Tạo ngày {dateLabel(t.created_at)}</p><span className={`trip-status-badge ${t.current_version?'confirmed':'draft'}`}>{t.current_version?'Đã có lịch trình':'Bản nháp'}</span>
      <div className="trip-card-actions">{!deleted&&<button className="text-button" onClick={()=>onSelect(t.id)}>Xem chuyến đi<ArrowUpRight size={18}/></button>}
        <button className="secondary small" disabled={busy!==null} onClick={()=>changeTrip(t.id,deleted)}>{busy===t.id?<Spinner/>:deleted?<Undo2 size={16}/>:<Trash2 size={16}/>} {deleted?'Khôi phục':'Xóa'}</button></div>
    </article>)}</div>:<div className="empty-state"><CalendarDays size={38}/><h2>{deleted?'Không có chuyến đi đã xóa':'Chuyến đi đầu tiên bắt đầu từ đây.'}</h2>{!deleted&&<button className="primary" onClick={onCreate}><Plus size={18}/>Lên kế hoạch</button>}</div>}

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Preserve the AI-log pre-push flow on Windows and Git Bash.
+sh scripts/_pyrun.sh scripts/log_antigravity.py --auto || true
+sh scripts/_pyrun.sh scripts/submit_log.py || true
+exit 0

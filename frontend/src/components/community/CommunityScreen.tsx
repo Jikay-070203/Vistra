@@ -8,11 +8,19 @@ import CommunityGrid from './CommunityGrid';
 export default function CommunityScreen() {
   const {
     searchQuery,
-    setSearchQuery,
+    onSearchChange,
     selectedDuration,
-    setSelectedDuration,
+    onSelectDuration,
     selectedTag,
-    setSelectedTag,
+    onSelectTag,
+    selectedProvince,
+    onSelectProvince,
+    allProvinces,
+    budgetMin,
+    budgetMax,
+    onBudgetChange,
+    budgetValidationWarning,
+    excludedBudgetMissingCount,
     currentPage,
     setCurrentPage,
     likedPlans,
@@ -47,20 +55,28 @@ export default function CommunityScreen() {
         <div className="text-right hidden sm:block">
           <span className="text-xs text-[#4B5875] block">Tuyển tập cộng đồng:</span>
           <span className="font-label-caps text-xs font-bold text-[#205BD6]">
-            24 HÀNH TRÌNH CHỌN LỌC / TRANG
+            12 HÀNH TRÌNH CHỌN LỌC / TRANG
           </span>
         </div>
       </div>
 
-      {/* 2-Column Layout: Left Filters + Right 4x6 Grid */}
+      {/* 2-Column Layout: Left Filters + Right 4x3 Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8 items-start">
         <CommunityFilters
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={onSearchChange}
           selectedDuration={selectedDuration}
-          onSelectDuration={setSelectedDuration}
+          onSelectDuration={onSelectDuration}
           selectedTag={selectedTag}
-          onSelectTag={setSelectedTag}
+          onSelectTag={onSelectTag}
+          selectedProvince={selectedProvince}
+          onSelectProvince={onSelectProvince}
+          allProvinces={allProvinces}
+          budgetMin={budgetMin}
+          budgetMax={budgetMax}
+          onBudgetChange={onBudgetChange}
+          budgetValidationWarning={budgetValidationWarning}
+          excludedBudgetMissingCount={excludedBudgetMissingCount}
           totalFilteredCount={filteredPlans.length}
           totalPages={totalPages}
           onResetFilters={handleResetFilters}

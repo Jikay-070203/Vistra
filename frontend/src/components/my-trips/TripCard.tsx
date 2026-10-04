@@ -1,31 +1,26 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import Icon from '@/components/ui/Icon';
 import { DemoPlan } from '@/context/DemoPlanContext';
 
 interface TripCardProps {
   plan: DemoPlan;
-  onOpenPlan: (plan: DemoPlan) => void;
 }
 
-export default function TripCard({ plan, onOpenPlan }: TripCardProps) {
+export default function TripCard({ plan }: TripCardProps) {
   const isDraft = plan.status === 'draft';
+  const targetUrl = isDraft
+    ? `/planner?id=${encodeURIComponent(plan.id)}`
+    : `/trip-plan?id=${encodeURIComponent(plan.id)}`;
 
   return (
-    <article
-      tabIndex={0}
-      role="link"
+    <Link
+      href={targetUrl}
       aria-label={`Mở ${isDraft ? 'bàn làm việc' : 'hồ sơ hành trình'}: ${plan.title}`}
-      onClick={() => onOpenPlan(plan)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpenPlan(plan);
-        }
-      }}
-      className="bg-white/85 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 overflow-hidden shadow-xs hover:shadow-md hover:border-[#205BD6]/50 focus-visible:outline-2 focus-visible:outline-[#205BD6] focus-visible:outline-offset-2 transition-all flex flex-col justify-between group cursor-pointer"
+      className="bg-white/85 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 overflow-hidden shadow-xs hover:shadow-md hover:border-[#205BD6]/50 focus-visible:outline-2 focus-visible:outline-[#205BD6] focus-visible:outline-offset-2 transition-all flex flex-col justify-between group cursor-pointer block"
     >
       {/* Photo Header */}
       <div className="relative h-44 w-full overflow-hidden bg-[#EBF1F0]">
@@ -84,8 +79,7 @@ export default function TripCard({ plan, onOpenPlan }: TripCardProps) {
             <span className="font-semibold text-[#0E1D4F] truncate max-w-[120px]">{plan.budget}</span>
           </div>
 
-          <button
-            type="button"
+          <span
             className={`px-3 py-1.5 rounded-xl font-label-md text-xs font-semibold flex items-center gap-1 transition-all ${
               isDraft
                 ? 'bg-[#205BD6]/10 text-[#205BD6] group-hover:bg-[#205BD6] group-hover:text-white'
@@ -94,9 +88,9 @@ export default function TripCard({ plan, onOpenPlan }: TripCardProps) {
           >
             <span>{isDraft ? 'Mở bàn làm việc' : 'Xem hồ sơ'}</span>
             <Icon name="arrow_forward" className="size-3" />
-          </button>
+          </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

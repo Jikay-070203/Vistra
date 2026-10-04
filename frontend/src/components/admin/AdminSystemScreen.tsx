@@ -10,38 +10,48 @@ import TraceDetailDialog from './TraceDetailDialog';
 import GoldenDatasetPanel from './system/GoldenDatasetPanel';
 import SafetyGuardrailPanel from './system/SafetyGuardrailPanel';
 import SchemaMapViewer from './system/SchemaMapViewer';
-import JsonImportModal from './system/JsonImportModal';
 
 export default function AdminSystemScreen() {
   const [activeSystemTab, setActiveSystemTab] = useState<'health' | 'management'>('health');
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [importNotice, setImportNotice] = useState<string | null>(null);
 
   const {
     filterStatus,
     setFilterStatus,
     selectedLog,
     setSelectedLog,
-    filteredLogs,
+    notFoundTraceId,
+    setNotFoundTraceId,
+    paginatedLogs,
     totalLogsCount,
+    filteredCount,
+    currentPage,
+    setCurrentPage,
+    totalPages,
   } = useAdminController();
-
-  const handleImportSuccess = (count: number) => {
-    setImportNotice(`Nhập thành công ${count} bản ghi dữ liệu vào cơ sở dữ liệu VISTRA.`);
-    setTimeout(() => setImportNotice(null), 4000);
-  };
 
   return (
     <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 space-y-8">
-      {/* Toast Notification */}
-      {importNotice && (
-        <div className="fixed top-20 right-6 z-50 p-4 rounded-2xl bg-[#0E1D4F] text-white shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-          <Icon name="check_circle" className="size-5 text-[#08B3C6]" />
-          <span className="text-xs font-semibold">{importNotice}</span>
+      {/* Not Found Trace Alert (ADM-SYS-01D, ADM-OV-03C) */}
+      {notFoundTraceId && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-[#0E1D4F] flex items-center justify-between gap-4 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <Icon name="warning" className="size-5 text-amber-600 shrink-0" />
+            <div className="text-xs">
+              <strong>Không tìm thấy bản ghi Trace:</strong> Mã <code>{notFoundTraceId}</code> không tồn tại
+              hoặc đã hết hạn lưu vết trong phiên làm việc hiện tại.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setNotFoundTraceId(null)}
+            className="text-xs text-[#4B5875] hover:text-[#0E1D4F] font-bold p-1"
+          >
+            ✕
+          </button>
         </div>
       )}
 
-      {/* Header Banner */}
+      {/* Header Banner (ADM-SYS-01A: No JSON import button in header title) */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
@@ -57,24 +67,20 @@ export default function AdminSystemScreen() {
             Hạ tầng Agent AI &amp; Quản trị Dữ liệu Thực thể
           </h2>
           <p className="text-xs sm:text-sm text-[#4B5875] mt-1 max-w-2xl leading-relaxed">
-            Giám sát độ trễ vi khí hậu RAG, nhật ký trace agent, bộ dữ liệu chuẩn (Golden Dataset), kiểm thử phòng thủ injection và quản trị cấu trúc bảng.
+            Giám sát độ trễ vi khí hậu RAG, nhật ký trace agent, bộ dữ liệu chuẩn (Golden Dataset), kiểm thử phòng thủ injection và quản trị cấu trúc 5 bảng thực thể.
           </p>
         </div>
 
-        {/* Action Button for JSON Import (ADM-10) */}
+        {/* Status Pills */}
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsImportModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#205BD6] hover:bg-[#1847a8] text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
-          >
-            <Icon name="file_upload" className="size-4" />
-            <span>Nhập dữ liệu JSON chuẩn hóa</span>
-          </button>
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Hệ thống Thử nghiệm: Sẵn sàng
+          </span>
         </div>
       </div>
 
-      {/* Primary Tab Navigation between System Health & System Management */}
+      {/* Primary Tab Navigation between System Health & System Management (ADM-SYS-01C) */}
       <div className="flex items-center gap-2 p-1.5 bg-white rounded-2xl border border-[#0E1D4F]/10 w-fit shadow-2xs">
         <button
           type="button"
@@ -103,26 +109,21 @@ export default function AdminSystemScreen() {
         </button>
       </div>
 
-      {/* Tab 1: System Health (ADM-06, ADM-07, ADM-08) */}
+      {/* Tab 1: System Health (ADM-SYS-01B: Trace directly below stats cards) */}
       {activeSystemTab === 'health' && (
         <div className="space-y-8 animate-in fade-in duration-200">
-          {/* Real-time KPI summary */}
+          {/* 1. Real-time KPI summary (Stats Cards) */}
           <AdminKpiSummary />
 
-          {/* Benchmarks & Latency breakdown */}
-          <BenchmarkPanel />
-
-          {/* Golden Dataset Evaluation Panel (ADM-07) */}
-          <GoldenDatasetPanel />
-
-          {/* Adversarial Prompt & Safety Guardrail Test Bench (ADM-08) */}
-          <SafetyGuardrailPanel />
-
-          {/* Trace Logs Table & Detail (ADM-06) */}
+          {/* 2. Trace Logs Table & Detail (ADM-SYS-01B: Placed immediately below KPI stats cards) */}
           <TraceTable
-            logs={filteredLogs}
+            logs={paginatedLogs}
             filterStatus={filterStatus}
             totalCount={totalLogsCount}
+            filteredCount={filteredCount}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
             onFilterChange={setFilterStatus}
             onSelectLog={setSelectedLog}
           />
@@ -130,22 +131,24 @@ export default function AdminSystemScreen() {
             log={selectedLog}
             onClose={() => setSelectedLog(null)}
           />
+
+          {/* 3. Benchmarks & Latency breakdown (Stacked vertically) */}
+          <BenchmarkPanel />
+
+          {/* 4. Golden Dataset Evaluation Panel (ADM-SYS-02) */}
+          <GoldenDatasetPanel />
+
+          {/* 5. Adversarial Prompt & Safety Guardrail Test Bench (ADM-SYS-03) */}
+          <SafetyGuardrailPanel />
         </div>
       )}
 
-      {/* Tab 2: System Management (ADM-09, ADM-10) */}
+      {/* Tab 2: System Management (ADM-SYS-04, ADM-DATA-01..07) */}
       {activeSystemTab === 'management' && (
         <div className="space-y-8 animate-in fade-in duration-200">
           <SchemaMapViewer />
         </div>
       )}
-
-      {/* Schema-aware JSON Import Modal (ADM-10) */}
-      <JsonImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={handleImportSuccess}
-      />
     </div>
   );
 }

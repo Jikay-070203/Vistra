@@ -6,13 +6,14 @@ import { DemoPlan } from '@/context/DemoPlanContext';
 
 interface ChatPanelProps {
   activePlan: DemoPlan;
-  showSources: boolean;
-  mobileTab: 'chat' | 'itinerary' | 'sources';
+  mobileTab: 'chat' | 'itinerary';
   inputText: string;
   onInputChange: (val: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSendMessage: (e?: React.FormEvent) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  chatContainerRef: React.RefObject<HTMLDivElement | null>;
+  hasNewMessages?: boolean;
+  onScrollToBottom?: () => void;
 }
 
 const BRAINSTORM_STEPS = [
@@ -47,13 +48,14 @@ const QUICK_PROMPTS = [
 
 export default function ChatPanel({
   activePlan,
-  showSources,
   mobileTab,
   inputText,
   onInputChange,
   onKeyDown,
   onSendMessage,
-  messagesEndRef,
+  chatContainerRef,
+  hasNewMessages = false,
+  onScrollToBottom,
 }: ChatPanelProps) {
   const [showBrainstorm, setShowBrainstorm] = useState(false);
 
@@ -63,9 +65,7 @@ export default function ChatPanel({
 
   return (
     <section
-      className={`${
-        showSources ? 'lg:col-span-4' : 'lg:col-span-5'
-      } ${
+      className={`lg:col-span-5 ${
         mobileTab === 'chat' ? 'flex' : 'hidden lg:flex'
       } bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 shadow-xs flex-col h-[calc(100vh-210px)] min-h-[480px] max-h-[820px] overflow-hidden transition-all`}
     >
@@ -121,7 +121,7 @@ export default function ChatPanel({
       )}
 
       {/* Message Stream */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+      <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto space-y-4 relative">
         {activePlan.chatMessages.map((msg) => {
           const isUser = msg.sender === 'user';
           return (
@@ -155,7 +155,20 @@ export default function ChatPanel({
             </div>
           );
         })}
-        <div ref={messagesEndRef} />
+
+        {/* Floating New Messages Indicator (UX-PL-02) */}
+        {hasNewMessages && onScrollToBottom && (
+          <div className="sticky bottom-2 flex justify-center z-10 pointer-events-auto">
+            <button
+              type="button"
+              onClick={onScrollToBottom}
+              className="px-3 py-1.5 rounded-full bg-[#205BD6] text-white text-xs font-semibold shadow-md hover:bg-[#1847a8] transition-all flex items-center gap-1.5 cursor-pointer animate-bounce"
+            >
+              <span>Tin nhắn mới</span>
+              <Icon name="arrow_downward" className="size-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Quick Prompt Suggestions Chips (F02) */}

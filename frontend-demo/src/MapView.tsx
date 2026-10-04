@@ -19,11 +19,12 @@ export default function MapView({ points, center, lines = emptyLines, selectedId
       const location: L.LatLngTuple = [p.latitude, p.longitude]
       locations.push(location)
       const text = document.createElement('span'); text.textContent = p.name
-      const marker = L.marker(location, { title:p.name, icon: L.divIcon({ className: 'map-pin', html: `<span>${i + 1}</span>`, iconSize: [30, 36], iconAnchor: [15, 36] }) }).bindPopup(text).addTo(map)
+      const isSelected = p.id === selectedId
+      const marker = L.marker(location, { title:p.name, icon: L.divIcon({ className: `map-pin ${isSelected ? 'selected' : ''}`, html: `<span>${i + 1}</span>`, iconSize: [30, 36], iconAnchor: [15, 36] }) }).bindPopup(text).addTo(map)
       marker.on('click',()=>selectRef.current?.(p.id))
       markers.current.set(p.id,marker)
     })
-    lines.forEach(line => {const coords=line.map(c => [c[1], c[0]] as L.LatLngTuple); locations.push(...coords); L.polyline(coords, {color: '#16716d', weight: 4}).addTo(map)})
+    lines.forEach(line => {const coords=line.map(c => [c[1], c[0]] as L.LatLngTuple); locations.push(...coords); L.polyline(coords, {color: '#08B3C6', weight: 4, opacity: 0.9, lineJoin: 'round'}).addTo(map)})
     if (locations.length > 1) map.fitBounds(L.latLngBounds(locations), {padding: [35, 35], maxZoom: 14})
     else if (locations.length) map.setView(locations[0], 14)
     const resize = new ResizeObserver(() => map.invalidateSize()); resize.observe(container.current)

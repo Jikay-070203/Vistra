@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function BenchmarkPanel() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <div className="space-y-6 mb-8">
       {/* Group 1: Visual Travel DNA & Retrieval Quality */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm">
         <div className="flex items-center justify-between pb-4 border-b border-[#0E1D4F]/10 mb-6">

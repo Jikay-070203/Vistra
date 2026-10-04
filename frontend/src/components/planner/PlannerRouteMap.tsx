@@ -43,7 +43,7 @@ export default function PlannerRouteMap({ day, destinationName }: PlannerRouteMa
           </div>
           <div>
             <h3 className="font-headline-sm text-xs font-bold text-[#0E1D4F]">
-              Sơ đồ cung đường ngày {day.dayNumber} · {destinationName}
+              Tóm tắt tuyến điểm dừng ngày {day.dayNumber} · {destinationName}
             </h3>
             <p className="text-[10px] text-[#4B5875]">{stops.length} điểm dừng theo trình tự di chuyển</p>
           </div>

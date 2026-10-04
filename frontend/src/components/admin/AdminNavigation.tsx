@@ -1,22 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Icon from '@/components/ui/Icon';
 import { useFeedback } from '@/context/FeedbackContext';
+import { logoutAdmin } from '@/services/adminAuthService';
 
 interface AdminNavItem {
   id: string;
   label: string;
   href: string;
   icon: string;
-  badge?: string | number;
+  badge?: number;
 }
 
 export default function AdminNavigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const { tickets } = useFeedback();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const toggleBtnRef = useRef<HTMLButtonElement>(null);
 
   const unassignedCount = tickets.filter((t) => t.status === 'unassigned').length;
 
@@ -48,7 +54,7 @@ export default function AdminNavigation() {
     },
     {
       id: 'system',
-      label: 'Hạ tầng & Kiểm thử AI',
+      label: 'Hạ tầng & Dữ liệu',
       href: '/admin/system',
       icon: 'dns',
     },
@@ -61,64 +67,239 @@ export default function AdminNavigation() {
     return pathname.startsWith(itemHref);
   };
 
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logoutAdmin();
+      router.push('/admin/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout error:', error);
+      setIsLoggingOut(false);
+    }
+  };
+
+  // Close mobile drawer on route change (render adjustment pattern)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setIsMobileOpen(false);
+  }
+
+  // Handle Escape key and body scroll lock for mobile drawer
+  useEffect(() => {
+    if (!isMobileOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileOpen(false);
+        toggleBtnRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobileOpen]);
+
+  const renderNavList = () => (
+    <nav className="flex flex-col gap-1.5 flex-1" aria-label="Điều hướng Quản trị">
+      {navItems.map((item) => {
+        const active = isActive(item.href);
+        return (
+          <Link
+            key={item.id}
+            href={item.href}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              active
+                ? 'bg-[#205BD6] text-white shadow-xs'
+                : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/70'
+            }`}
+            aria-current={active ? 'page' : undefined}
+          >
+            <div className="flex items-center gap-3">
+              <Icon name={item.icon} className="size-4 shrink-0" />
+              <span>{item.label}</span>
+            </div>
+            {item.badge !== undefined && (
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                  active ? 'bg-white text-[#205BD6]' : 'bg-[#E7AD2E] text-white'
+                }`}
+                title={`${item.badge} phản hồi chưa phân loại`}
+              >
+                {item.badge}
+              </span>
+            )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
   return (
-    <div className="w-full bg-white/80 backdrop-blur-md border-b border-[#0E1D4F]/10 sticky top-[76px] z-30 shadow-2xs">
-      <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-12 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Title and Scope Banner */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#0E1D4F] text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Icon name="monitoring" className="size-5" />
+    <>
+      {/* Mobile Top Header */}
+      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#0E1D4F] text-white flex items-center justify-center shrink-0">
+            <Icon name="admin_panel_settings" className="size-4" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-label-caps text-[11px] text-[#205BD6] uppercase font-bold tracking-wider">
-                VISTRA OPERATOR WORKBENCH
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#08B3C6]"></span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-[#0E1D4F]/10 text-[#0E1D4F] font-semibold">
-                DEMO SANDBOX · MỞ CHO KHÁCH THĂM
-              </span>
+            <span className="font-label-caps text-[10px] text-[#205BD6] uppercase font-bold tracking-wider">
+              VISTRA OPERATOR
+            </span>
+            <div className="font-headline-sm text-sm text-[#0E1D4F] font-bold">
+              Quản trị hệ thống
             </div>
-            <h1 className="font-headline-sm text-base sm:text-lg text-[#0E1D4F] font-bold">
-              Bảng điều khiển &amp; Vận hành Hệ thống
-            </h1>
           </div>
         </div>
 
-        {/* Secondary Navigation Tabs */}
-        <nav
-          className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none"
-          aria-label="Điều hướng Quản trị"
+        <button
+          ref={toggleBtnRef}
+          type="button"
+          onClick={() => setIsMobileOpen(true)}
+          className="p-2 rounded-xl text-[#0E1D4F] hover:bg-[#EBF1F0] transition-colors cursor-pointer"
+          aria-label="Mở menu quản trị"
+          aria-expanded={isMobileOpen}
         >
-          {navItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 border ${
-                  active
-                    ? 'bg-[#205BD6] text-white border-[#205BD6] shadow-xs'
-                    : 'bg-white/60 hover:bg-white text-[#4B5875] hover:text-[#0E1D4F] border-[#0E1D4F]/10'
-                }`}
-                aria-current={active ? 'page' : undefined}
-              >
-                <Icon name={item.icon} className="size-4" />
-                <span>{item.label}</span>
-                {item.badge !== undefined && (
-                  <span
-                    className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      active ? 'bg-white text-[#205BD6]' : 'bg-[#E7AD2E] text-white'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+          <Icon name="menu" className="size-5" />
+        </button>
+      </header>
+
+      {/* Mobile Drawer Backdrop & Drawer */}
+      {isMobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setIsMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu quản trị"
+        className={`md:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white flex flex-col shadow-2xl transition-transform duration-200 ease-in-out ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-4 border-b border-[#0E1D4F]/10 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#0E1D4F] text-white flex items-center justify-center shrink-0">
+              <Icon name="admin_panel_settings" className="size-4" />
+            </div>
+            <div>
+              <span className="font-label-caps text-[10px] text-[#205BD6] uppercase font-bold tracking-wider">
+                VISTRA OPERATOR
+              </span>
+              <div className="font-headline-sm text-sm text-[#0E1D4F] font-bold">
+                Quản trị hệ thống
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileOpen(false);
+              toggleBtnRef.current?.focus();
+            }}
+            className="p-1.5 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] cursor-pointer"
+            aria-label="Đóng menu quản trị"
+          >
+            <Icon name="close" className="size-5" />
+          </button>
+        </div>
+
+        <div className="p-4 flex-1 overflow-y-auto">
+          {renderNavList()}
+        </div>
+
+        <div className="p-4 border-t border-[#0E1D4F]/10 space-y-2">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/70 transition-all"
+          >
+            <Icon name="arrow_back" className="size-4" />
+            <span>Về trang du khách</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#ba1a1a] hover:bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {isLoggingOut ? (
+              <Icon name="sync" className="size-4 animate-spin" />
+            ) : (
+              <Icon name="logout" className="size-4" />
+            )}
+            <span>{isLoggingOut ? 'Đang thoát...' : 'Đăng xuất'}</span>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Desktop Sidebar */}
+      <aside
+        className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-white border-r border-[#0E1D4F]/10 flex-col sticky top-0 h-screen z-20 shadow-xs"
+        aria-label="Thanh bên Quản trị"
+      >
+        {/* Brand Header */}
+        <div className="p-5 border-b border-[#0E1D4F]/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#0E1D4F] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Icon name="admin_panel_settings" className="size-5" />
+            </div>
+            <div>
+              <span className="font-label-caps text-[10px] text-[#205BD6] uppercase font-bold tracking-wider block">
+                VISTRA OPERATOR
+              </span>
+              <h2 className="font-headline-sm text-base text-[#0E1D4F] font-bold">
+                Quản trị hệ thống
+              </h2>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Links */}
+        <div className="p-4 flex-1 overflow-y-auto">
+          {renderNavList()}
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="p-4 border-t border-[#0E1D4F]/10 space-y-2">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/70 transition-all"
+            title="Quay lại giao diện dành cho du khách"
+          >
+            <Icon name="arrow_back" className="size-4" />
+            <span>Về trang du khách</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#ba1a1a] hover:bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 transition-all cursor-pointer disabled:opacity-50"
+            title="Đăng xuất khỏi phiên Quản trị viên"
+            aria-label="Đăng xuất"
+          >
+            {isLoggingOut ? (
+              <Icon name="sync" className="size-4 animate-spin" />
+            ) : (
+              <Icon name="logout" className="size-4" />
+            )}
+            <span>{isLoggingOut ? 'Đang thoát...' : 'Đăng xuất'}</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

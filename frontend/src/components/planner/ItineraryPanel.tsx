@@ -11,8 +11,8 @@ interface ItineraryPanelProps {
   currentDay: DayItinerary;
   selectedDayNumber: number;
   onSelectDayNumber: (dayNum: number) => void;
-  showSources: boolean;
-  mobileTab: 'chat' | 'itinerary' | 'sources';
+  isCollapsedDesktopMap?: boolean;
+  mobileTab: 'chat' | 'itinerary';
 }
 
 export default function ItineraryPanel({
@@ -20,13 +20,13 @@ export default function ItineraryPanel({
   currentDay,
   selectedDayNumber,
   onSelectDayNumber,
-  showSources,
+  isCollapsedDesktopMap = false,
   mobileTab,
 }: ItineraryPanelProps) {
   return (
     <main
       className={`${
-        showSources ? 'lg:col-span-5' : 'lg:col-span-7'
+        isCollapsedDesktopMap ? 'lg:col-span-7' : 'lg:col-span-4'
       } ${
         mobileTab === 'itinerary' ? 'flex' : 'hidden lg:flex'
       } bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 shadow-xs flex-col h-[calc(100vh-210px)] min-h-[480px] max-h-[820px] overflow-hidden transition-all`}

@@ -10,6 +10,14 @@ interface CommunityFiltersProps {
   onSelectDuration: (duration: string) => void;
   selectedTag: string;
   onSelectTag: (tag: string) => void;
+  selectedProvince: string;
+  onSelectProvince: (prov: string) => void;
+  allProvinces: string[];
+  budgetMin: number | '';
+  budgetMax: number | '';
+  onBudgetChange: (min: number | '', max: number | '') => void;
+  budgetValidationWarning: string | null;
+  excludedBudgetMissingCount: number;
   totalFilteredCount: number;
   totalPages: number;
   onResetFilters: () => void;
@@ -22,11 +30,26 @@ export default function CommunityFilters({
   onSelectDuration,
   selectedTag,
   onSelectTag,
+  selectedProvince,
+  onSelectProvince,
+  allProvinces,
+  budgetMin,
+  budgetMax,
+  onBudgetChange,
+  budgetValidationWarning,
+  excludedBudgetMissingCount,
   totalFilteredCount,
   totalPages,
   onResetFilters,
 }: CommunityFiltersProps) {
-  const isFiltered = Boolean(searchQuery || selectedDuration !== 'all' || selectedTag !== 'all');
+  const isBudgetActive = budgetMin !== '' || budgetMax !== '';
+  const isFiltered = Boolean(
+    searchQuery ||
+      selectedDuration !== 'all' ||
+      selectedTag !== 'all' ||
+      selectedProvince !== 'all' ||
+      isBudgetActive
+  );
 
   return (
     <aside className="lg:col-span-3 bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-5 space-y-6 shadow-xs lg:sticky lg:top-24">
@@ -41,7 +64,7 @@ export default function CommunityFilters({
             onClick={onResetFilters}
             className="text-[11px] text-[#205BD6] hover:underline cursor-pointer"
           >
-            Đặt lại
+            Đặt lại tất cả
           </button>
         )}
       </div>
@@ -62,6 +85,80 @@ export default function CommunityFilters({
             className="w-full bg-[#EBF1F0] text-[#0E1D4F] placeholder:text-[#4B5875]/60 text-xs pl-9 pr-3 py-2.5 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6] transition-all"
           />
         </div>
+      </div>
+
+      {/* Province Filter (UX-COM-01B) */}
+      <div className="space-y-2">
+        <label htmlFor="comm-province" className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
+          TỈNH / THÀNH PHỐ
+        </label>
+        <select
+          id="comm-province"
+          value={selectedProvince}
+          onChange={(e) => onSelectProvince(e.target.value)}
+          className="w-full bg-[#EBF1F0] text-[#0E1D4F] text-xs px-3 py-2.5 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6] cursor-pointer"
+        >
+          <option value="all">Tất cả tỉnh / thành</option>
+          {allProvinces.map((prov) => (
+            <option key={prov} value={prov}>
+              {prov}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Budget Range Filter (UX-COM-01C) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
+            NGÂN SÁCH (VNĐ)
+          </label>
+          {isBudgetActive && (
+            <button
+              type="button"
+              onClick={() => onBudgetChange('', '')}
+              className="text-[10px] text-[#205BD6] hover:underline"
+            >
+              Xóa khoảng
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <input
+              type="number"
+              min={0}
+              step={500000}
+              placeholder="Từ (VNĐ)"
+              value={budgetMin}
+              onChange={(e) =>
+                onBudgetChange(e.target.value === '' ? '' : Number(e.target.value), budgetMax)
+              }
+              className="w-full bg-[#EBF1F0] text-[#0E1D4F] placeholder:text-[#4B5875]/60 text-xs px-3 py-2 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
+            />
+          </div>
+          <div>
+            <input
+              type="number"
+              min={0}
+              step={500000}
+              placeholder="Đến (VNĐ)"
+              value={budgetMax}
+              onChange={(e) =>
+                onBudgetChange(budgetMin, e.target.value === '' ? '' : Number(e.target.value))
+              }
+              className="w-full bg-[#EBF1F0] text-[#0E1D4F] placeholder:text-[#4B5875]/60 text-xs px-3 py-2 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
+            />
+          </div>
+        </div>
+        {budgetValidationWarning && (
+          <p className="text-[11px] text-red-500 font-medium">{budgetValidationWarning}</p>
+        )}
+        {isBudgetActive && excludedBudgetMissingCount > 0 && (
+          <p className="text-[10px] text-[#4B5875]">
+            Đã loại {excludedBudgetMissingCount} hành trình không có thông tin chi phí.
+          </p>
+        )}
       </div>
 
       {/* Duration Filter */}
@@ -123,7 +220,7 @@ export default function CommunityFilters({
         </div>
       </div>
 
-      {/* Active summary */}
+      {/* Active summary (UX-COM-01D) */}
       <div className="p-3 bg-[#EBF1F0] rounded-xl text-xs text-[#4B5875] space-y-1">
         <div className="flex justify-between">
           <span>Đang khớp:</span>

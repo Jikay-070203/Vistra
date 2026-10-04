@@ -7,16 +7,20 @@ import { DemoPlan } from '@/context/DemoPlanContext';
 
 interface PlannerCommandBarProps {
   activePlan: DemoPlan;
-  showSources: boolean;
-  onToggleSources: () => void;
+  onOpenSourcesModal: () => void;
+  onOpenMobileMap: () => void;
   onOpenConfirmModal: () => void;
+  sourcesTriggerRef?: React.RefObject<HTMLButtonElement | null>;
+  mobileMapTriggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export default function PlannerCommandBar({
   activePlan,
-  showSources,
-  onToggleSources,
+  onOpenSourcesModal,
+  onOpenMobileMap,
   onOpenConfirmModal,
+  sourcesTriggerRef,
+  mobileMapTriggerRef,
 }: PlannerCommandBarProps) {
   return (
     <section className="bg-white/90 backdrop-blur-md border-b border-[#0E1D4F]/10 py-3.5 px-4 sm:px-6 lg:px-12 relative md:sticky md:top-[76px] z-20 shadow-2xs">
@@ -48,20 +52,28 @@ export default function PlannerCommandBar({
         </div>
 
         <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap sm:flex-nowrap">
-          {/* Toggle Sources button */}
+          {/* Mobile Map Button (< 1024px) */}
           <button
+            ref={mobileMapTriggerRef}
             type="button"
-            onClick={onToggleSources}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border shrink-0 ${
-              showSources
-                ? 'bg-white border-[#0E1D4F]/15 text-[#0E1D4F] hover:bg-[#EBF1F0]'
-                : 'bg-[#205BD6]/10 border-[#205BD6]/30 text-[#205BD6]'
-            }`}
-            title="Ẩn hoặc hiện bảng nguồn trích dẫn"
+            onClick={onOpenMobileMap}
+            className="lg:hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-[#0E1D4F]/15 text-[#0E1D4F] hover:bg-[#EBF1F0] transition-all shrink-0 cursor-pointer"
+            title="Mở bản đồ địa lý thực tế"
           >
-            <Icon name={showSources ? 'visibility_off' : 'menu_book'} className="size-4 text-[#205BD6]" />
-            <span className="hidden xl:inline">{showSources ? 'Ẩn nguồn đối chiếu' : 'Hiện nguồn đối chiếu'}</span>
-            <span className="xl:hidden">Nguồn đối chiếu</span>
+            <Icon name="explore" className="size-4 text-[#205BD6]" />
+            <span>Bản đồ</span>
+          </button>
+
+          {/* Sources Modal Button (UX-PL-01C) */}
+          <button
+            ref={sourcesTriggerRef}
+            type="button"
+            onClick={onOpenSourcesModal}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-[#0E1D4F]/15 text-[#0E1D4F] hover:bg-[#EBF1F0] transition-all shrink-0 cursor-pointer"
+            title="Mở tài liệu nguồn đối chiếu thực tế"
+          >
+            <Icon name="menu_book" className="size-4 text-[#205BD6]" />
+            <span>Nguồn đối chiếu ({activePlan.sources.length})</span>
           </button>
 
           {/* Explicit Confirm Plan Button */}

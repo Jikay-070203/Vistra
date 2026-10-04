@@ -8,9 +8,18 @@ export function Spinner() { return <LoaderCircle size={18} className="spin" aria
 export function Notice({children, error = false}: {children: ReactNode; error?: boolean}) { return <div className={`notice ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'}>{children}</div> }
 export function Modal({title, children, onClose, locked = false}: {title: string; children: ReactNode; onClose: () => void; locked?: boolean}) {
   const ref = useRef<HTMLDialogElement>(null)
-  useEffect(() => { ref.current?.showModal(); const old = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = old } }, [])
+  useEffect(() => {
+    const prevFocus = document.activeElement as HTMLElement | null
+    ref.current?.showModal()
+    const old = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = old
+      prevFocus?.focus?.()
+    }
+  }, [])
   return <dialog ref={ref} className="modal" onCancel={e => {e.preventDefault(); if (!locked) onClose()}} onClick={e => {if (e.target === e.currentTarget && !locked) onClose()}} aria-label={title}>
-    <div className="modal-inner"><header><h2>{title}</h2><button className="icon-button" onClick={onClose} disabled={locked} aria-label="Đóng"><X /></button></header>{children}</div>
+    <div className="modal-inner"><header><h2>{title}</h2><button className="icon-button" onClick={onClose} disabled={locked} aria-label="Đóng"><X size={20} /></button></header>{children}</div>
   </dialog>
 }
 export const qualityLabel = (quality: string) => quality === 'verified' ? 'Đã kiểm chứng' : quality === 'schedulable' ? 'Có thể lập lịch' : 'Chờ kiểm chứng'

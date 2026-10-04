@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import { appConfig } from '@/config/appConfig';
@@ -24,6 +24,29 @@ export default function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const toggleBtnRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  // Handle Escape key and body scroll lock for mobile menu
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        toggleBtnRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     // 1. Throttled scroll listener using appConfig threshold
@@ -130,9 +153,10 @@ export default function LandingHeader() {
 
           {/* Mobile menu button */}
           <button
+            ref={toggleBtnRef}
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#20312B] hover:bg-[#DCE7D8] transition-colors shrink-0"
+            className="md:hidden min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#20312B] hover:bg-[#DCE7D8] transition-colors shrink-0 cursor-pointer"
             aria-label={mobileMenuOpen ? 'Đóng danh mục điều hướng' : 'Mở danh mục điều hướng'}
             aria-expanded={mobileMenuOpen}
           >
@@ -141,9 +165,45 @@ export default function LandingHeader() {
         </div>
       </div>
 
+      {/* Mobile Drawer Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => {
+            setMobileMenuOpen(false);
+            toggleBtnRef.current?.focus();
+          }}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-5 py-4 shadow-xl animate-in fade-in duration-200">
+        <div
+          ref={drawerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Danh mục điều hướng di động"
+          className="md:hidden fixed top-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-5 py-4 shadow-2xl animate-in slide-in-from-top duration-200"
+        >
+          {/* Drawer Header with Close Button */}
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#0E1D4F]/10">
+            <span className="font-headline-sm text-sm text-[#0E1D4F] font-bold">
+              Menu điều hướng
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                toggleBtnRef.current?.focus();
+              }}
+              className="p-1.5 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] cursor-pointer"
+              aria-label="Đóng danh mục điều hướng"
+            >
+              <Icon name="close" className="size-5" />
+            </button>
+          </div>
+
           {/* Primary Product Routes (UX-02 / F07) */}
           <div className="mb-3 pb-3 border-b border-[#0E1D4F]/10">
             <span className="text-[11px] font-label-caps uppercase font-bold tracking-wider text-[#205BD6] block mb-2 px-1">
@@ -180,7 +240,7 @@ export default function LandingHeader() {
                 className="min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-white bg-[#205BD6] hover:bg-[#1847a8] transition-colors mt-1 shadow-xs"
               >
                 <Icon name="add" className="size-4" />
-                <span>+ Lên kế hoạch</span>
+                <span>Lên kế hoạch</span>
               </Link>
             </nav>
           </div>

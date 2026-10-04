@@ -69,19 +69,6 @@ export default function Navbar() {
 
         {/* Action Controls & Utilities */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-          {/* Admin link badge */}
-          <Link
-            href="/admin"
-            className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-label-md transition-all ${
-              pathname.startsWith('/admin')
-                ? 'bg-[#0E1D4F] text-white font-semibold'
-                : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-white/60'
-            }`}
-            title="Bảng điều khiển Quản trị viên"
-          >
-            <Icon name="monitoring" className="size-3.5" />
-            <span>Admin</span>
-          </Link>
 
           {/* Login / Auth link */}
           <Link
@@ -102,7 +89,7 @@ export default function Navbar() {
             className="inline-flex items-center justify-center gap-1.5 bg-[#205BD6] hover:bg-[#1847a8] text-white font-label-lg text-xs sm:text-sm px-3.5 sm:px-4 py-2 rounded-xl transition-all active:scale-[0.98] shadow-[0_4px_14px_rgba(32,91,214,0.22)] font-semibold"
           >
             <Icon name="add" className="size-4" />
-            <span>+ Lên kế hoạch</span>
+            <span>Lên kế hoạch</span>
           </Link>
 
           {/* Profile Avatar Button */}
@@ -160,7 +147,7 @@ export default function Navbar() {
               className="text-sm px-3 py-2.5 rounded-lg transition-all font-semibold text-white bg-[#205BD6] hover:bg-[#1847a8] flex items-center gap-1.5 mt-1"
             >
               <Icon name="add" className="size-4" />
-              <span>+ Lên kế hoạch</span>
+              <span>Lên kế hoạch</span>
             </Link>
 
             <div className="pt-2 mt-1 border-t border-[#0E1D4F]/10 flex flex-col gap-1">
@@ -171,14 +158,6 @@ export default function Navbar() {
               >
                 <Icon name="person" className="size-4 text-[#205BD6]" />
                 <span>Hồ sơ du khách &amp; Tùy chọn</span>
-              </Link>
-              <Link
-                href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] flex items-center gap-2"
-              >
-                <Icon name="monitoring" className="size-4 text-[#08B3C6]" />
-                <span>Bảng điều khiển Quản trị (Admin)</span>
               </Link>
               <Link
                 href="/login"

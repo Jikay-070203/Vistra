@@ -63,43 +63,49 @@ export default function CommunityGrid({
         </div>
       )}
 
-      {/* 24-CARD PAGINATION CONTROLS */}
+      {/* 12-CARD PAGINATION CONTROLS (UX-COM-01D) */}
       {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-2" aria-label="Phân trang cộng đồng">
-          <button
-            type="button"
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer flex items-center gap-1"
-          >
-            <Icon name="arrow_back" className="size-3.5" />
-            <span>Trang trước</span>
-          </button>
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#0E1D4F]/10" aria-label="Phân trang cộng đồng">
+          <span className="text-xs text-[#4B5875]">
+            Đang xem trang <strong className="text-[#0E1D4F]">{currentPage}</strong> / {totalPages}
+          </span>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <div className="flex items-center gap-1.5">
             <button
-              key={page}
               type="button"
-              onClick={() => onPageChange(page)}
-              className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                currentPage === page
-                  ? 'bg-[#205BD6] text-white shadow-xs'
-                  : 'bg-white border border-[#0E1D4F]/15 text-[#0E1D4F] hover:bg-[#EBF1F0]'
-              }`}
+              disabled={currentPage === 1}
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer flex items-center gap-1"
             >
-              {page}
+              <Icon name="arrow_back" className="size-3.5" />
+              <span>Trước</span>
             </button>
-          ))}
 
-          <button
-            type="button"
-            disabled={currentPage === totalPages}
-            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer flex items-center gap-1"
-          >
-            <span>Trang sau</span>
-            <Icon name="arrow_forward" className="size-3.5" />
-          </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                type="button"
+                onClick={() => onPageChange(page)}
+                className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  currentPage === page
+                    ? 'bg-[#205BD6] text-white shadow-xs'
+                    : 'bg-white border border-[#0E1D4F]/15 text-[#0E1D4F] hover:bg-[#EBF1F0]'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <span>Sau</span>
+              <Icon name="arrow_forward" className="size-3.5" />
+            </button>
+          </div>
         </div>
       )}
     </main>

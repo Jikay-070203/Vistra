@@ -17,9 +17,19 @@ export default function MyTripsScreen() {
     paginatedPlans,
     counts,
     totalPages,
+    durationMin,
+    durationMax,
+    budgetMin,
+    budgetMax,
+    durationValidationWarning,
+    budgetValidationWarning,
+    excludedMissingCount,
+    isAnyRangeFilterActive,
     handleFilterChange,
     handleSearchChange,
-    handleOpenPlan,
+    handleDurationChange,
+    handleBudgetChange,
+    clearAllFilters,
   } = useMyTripsController();
 
   return (
@@ -47,7 +57,7 @@ export default function MyTripsScreen() {
             className="inline-flex items-center gap-2 bg-[#205BD6] hover:bg-[#1847a8] text-white font-label-lg text-sm px-5 py-2.5 rounded-xl transition-all active:scale-[0.99] shadow-[0_4px_14px_rgba(32,91,214,0.22)] font-semibold"
           >
             <Icon name="add" className="size-[18px]" />
-            <span>+ Lên kế hoạch mới</span>
+            <span>Lên kế hoạch mới</span>
           </Link>
         </div>
       </div>
@@ -57,22 +67,29 @@ export default function MyTripsScreen() {
         activeFilter={activeFilter}
         counts={counts}
         searchQuery={searchQuery}
+        durationMin={durationMin}
+        durationMax={durationMax}
+        budgetMin={budgetMin}
+        budgetMax={budgetMax}
+        durationValidationWarning={durationValidationWarning}
+        budgetValidationWarning={budgetValidationWarning}
+        excludedMissingCount={excludedMissingCount}
+        isAnyRangeFilterActive={isAnyRangeFilterActive}
         onFilterChange={handleFilterChange}
         onSearchChange={handleSearchChange}
+        onDurationChange={handleDurationChange}
+        onBudgetChange={handleBudgetChange}
+        onClearAll={clearAllFilters}
       />
 
-      {/* 4x4 Grid with Pagination */}
+      {/* 4x3 Grid with Pagination */}
       <TripGrid
         plans={paginatedPlans}
         totalFilteredCount={filteredPlans.length}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        onOpenPlan={handleOpenPlan}
-        onClearFilters={() => {
-          handleFilterChange('all');
-          handleSearchChange('');
-        }}
+        onClearFilters={clearAllFilters}
       />
 
       {/* Educational Footer Note */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Icon from '@/components/ui/Icon';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -19,6 +19,7 @@ export default function FeedbackLauncher() {
   const [userName, setUserName] = useState('Du khách VISTRA');
   const [userEmail, setUserEmail] = useState('traveler@vistra.vn');
   const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null);
+  const toggleBtnRef = useRef<HTMLButtonElement>(null);
 
   // Hidden on landing page, auth routes, and admin pages
   const isExcluded =
@@ -27,6 +28,26 @@ export default function FeedbackLauncher() {
     pathname.startsWith('/admin') ||
     pathname.includes('login') ||
     pathname.includes('register');
+
+  const handleResetAndClose = () => {
+    setIsOpen(false);
+    setSubmittedTicketId(null);
+    setSubject('');
+    setDescription('');
+    toggleBtnRef.current?.focus();
+  };
+
+  // Handle Escape key to close dialog
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleResetAndClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (isExcluded) {
     return null;
@@ -49,13 +70,6 @@ export default function FeedbackLauncher() {
     setSubmittedTicketId(newTicket.id);
   };
 
-  const handleResetAndClose = () => {
-    setIsOpen(false);
-    setSubmittedTicketId(null);
-    setSubject('');
-    setDescription('');
-  };
-
   const handleGoToProfile = () => {
     handleResetAndClose();
     router.push('/profile?tab=feedback');
@@ -63,18 +77,30 @@ export default function FeedbackLauncher() {
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      <div className="fixed bottom-6 right-6 z-40 print:hidden">
+      {/* Floating Trigger Button (FIX-04 & UX-FB-01):
+          Compact icon circle by default; expands label on hover or keyboard focus;
+          contextually positioned so it never overlaps chat composer on /planner or comparison bar on /destinations */}
+      <div
+        className={`fixed z-40 print:hidden transition-all duration-200 ${
+          pathname === '/planner'
+            ? 'bottom-24 right-4 sm:bottom-6 sm:right-6'
+            : pathname === '/destinations'
+            ? 'bottom-20 right-4 sm:bottom-6 sm:right-6'
+            : 'bottom-6 right-4 sm:right-6'
+        }`}
+      >
         <button
+          ref={toggleBtnRef}
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group flex items-center gap-2.5 px-4 py-3 bg-[#0E1D4F] hover:bg-[#205BD6] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border border-white/20 active:scale-95"
-          aria-label="Mở hộp thoại đóng góp ý kiến & phản hồi"
+          className="group flex items-center justify-center h-12 w-12 hover:w-auto focus-visible:w-auto p-3 bg-[#0E1D4F] hover:bg-[#205BD6] focus-visible:bg-[#205BD6] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-white/20 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#205BD6]"
+          aria-label="Phản hồi & Báo lỗi"
+          title="Phản hồi & Báo lỗi"
         >
-          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <Icon name="rate_review" className="size-4 text-white" />
-          </div>
-          <span className="text-xs font-semibold tracking-wide pr-1">Phản hồi & Báo lỗi</span>
+          <Icon name="feedback" className="size-5 text-white shrink-0" />
+          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2.5 group-focus-visible:max-w-xs group-focus-visible:opacity-100 group-focus-visible:ml-2.5 text-xs font-semibold tracking-wide transition-all duration-300">
+            Phản hồi & Báo lỗi
+          </span>
         </button>
       </div>
 
