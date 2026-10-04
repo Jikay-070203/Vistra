@@ -184,7 +184,7 @@ def _repair_mojibake(db):
 
 def _seed_postgres_places_from_sqlite(db):
     """Seed PostgreSQL once from the checked-in demo SQLite catalog."""
-    seed_path = ROOT / "backend/data/yourtripyourtry.db"
+    seed_path = ROOT / "backend/seed/places_seed.seed"
     if not seed_path.exists():
         logger.warning("SQLite seed database not found: %s", seed_path)
         return
