@@ -1,7 +1,8 @@
 FROM php:8.3-cli
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev \
+    && apt-get install -y --no-install-recommends libpq-dev libpq5 \
+    && apt-mark manual libpq5 \
     && docker-php-ext-install pdo_pgsql \
     && docker-php-ext-enable pdo_pgsql \
     && php -m | grep -q '^pdo_pgsql$' \
