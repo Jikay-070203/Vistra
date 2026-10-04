@@ -250,6 +250,16 @@ def initialize(path: Path):
                 "ON CONFLICT DO NOTHING"
             )
             _repair_mojibake(db)
+            table_rows = db._connection.execute(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema='public' ORDER BY table_name"
+            ).fetchall()
+            table_names = [row[0] for row in table_rows]
+            logger.warning("PostgreSQL public tables after bootstrap: %s", ", ".join(table_names))
+            required_tables = {"destinations", "places", "sources", "trips", "expenses"}
+            missing_tables = sorted(required_tables.difference(table_names))
+            if missing_tables:
+                raise RuntimeError("PostgreSQL schema incomplete; missing tables: " + ", ".join(missing_tables))
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     with connect(path) as db:
