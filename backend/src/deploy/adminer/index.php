@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-$dbPath = '/data/yourtripyourtry.db';
 $error = null;
 $rows = [];
 $columns = [];
@@ -9,15 +8,29 @@ $selectedTable = $_GET['table'] ?? '';
 $sql = trim($_POST['sql'] ?? '');
 
 try {
-    if (!is_file($dbPath)) {
-        throw new RuntimeException('Database not found: ' . $dbPath);
+    $databaseUrl = getenv('DATABASE_URL') ?: '';
+    if ($databaseUrl === '') {
+        throw new RuntimeException('DATABASE_URL is not configured. Reference the Railway Postgres service.');
     }
-    $db = new PDO('sqlite:' . $dbPath, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $db->exec('PRAGMA busy_timeout = 5000');
+    $parts = parse_url($databaseUrl);
+    if (!$parts || empty($parts['host'])) {
+        throw new RuntimeException('Invalid PostgreSQL DATABASE_URL.');
+    }
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    if (!in_array($scheme, ['postgres', 'postgresql'], true)) {
+        throw new RuntimeException('DATABASE_URL must use PostgreSQL.');
+    }
+    $host = $parts['host'];
+    $port = $parts['port'] ?? 5432;
+    $name = ltrim($parts['path'] ?? '', '/');
+    $user = urldecode($parts['user'] ?? '');
+    $password = urldecode($parts['pass'] ?? '');
+    $dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode=require";
+    $db = new PDO($dsn, $user, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
     if ($sql !== '') {
-        if (!preg_match('/^(select|pragma|explain)\b/i', $sql)) {
-            throw new RuntimeException('Only SELECT, PRAGMA and EXPLAIN queries are allowed.');
+        if (!preg_match('/^(select|explain)\b/i', $sql)) {
+            throw new RuntimeException('Only SELECT and EXPLAIN queries are allowed.');
         }
         $statement = $db->query($sql);
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -31,7 +44,7 @@ try {
         $columns = $rows ? array_keys($rows[0]) : [];
     }
 
-    $tables = $db->query("SELECT name, type FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY name")
+    $tables = $db->query("SELECT table_name AS name, 'table' AS type FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name")
         ->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $exception) {
     $error = $exception->getMessage();
@@ -47,13 +60,13 @@ function h(mixed $value): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SQLite Admin</title>
+  <title>PostgreSQL Read-only Admin</title>
   <style>
     body{font:14px system-ui;margin:0;background:#f5f7fb;color:#172033} header{background:#172033;color:white;padding:16px 24px} main{display:grid;grid-template-columns:240px 1fr;gap:20px;padding:20px} aside,section{background:white;border:1px solid #dce2ed;border-radius:8px;padding:16px} a{display:block;padding:7px 4px;color:#1558b0;text-decoration:none} a:hover{background:#eef4ff} textarea{width:100%;height:100px;font:13px monospace;box-sizing:border-box} button{margin:8px 0;padding:8px 14px;cursor:pointer} table{border-collapse:collapse;width:100%;font-size:13px} th,td{border:1px solid #dce2ed;padding:7px;text-align:left;vertical-align:top;max-width:360px;overflow-wrap:anywhere} th{background:#eef2f7}.error{color:#a40000;background:#fff0f0;padding:10px;border-radius:5px;margin-bottom:12px}.muted{color:#667085}
   </style>
 </head>
 <body>
-<header><strong>SQLite Admin</strong> <span class="muted">/data/yourtripyourtry.db</span></header>
+<header><strong>PostgreSQL Read-only Admin</strong> <span class="muted">Railway Postgres</span></header>
 <main>
   <aside>
     <strong>Tables / views</strong>
@@ -80,5 +93,4 @@ function h(mixed $value): string {
 </main>
 </body>
 </html>
-
 
