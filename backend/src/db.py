@@ -167,7 +167,7 @@ def _fix_mojibake(value):
     """Repair legacy UTF-8 text accidentally decoded as Latin-1."""
     if not isinstance(value, str):
         return value
-    markers = ("Ã", "Â", "â", "�")
+    markers = ("Ã", "Â", "Ä", "Å", "Æ", "á»", "áº", "â", "�")
     current = value
     for _ in range(3):
         score = sum(current.count(marker) for marker in markers)
