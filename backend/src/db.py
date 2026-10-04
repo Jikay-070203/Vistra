@@ -254,7 +254,7 @@ def connect(path: Path | str):
 
 def initialize(path: Path):
     if isinstance(path, str) and path.startswith(("postgres://", "postgresql://")):
-        schema_path = ROOT / "backend/data/YourTripYourTry_Places_Schema.sql"
+        schema_path = ROOT / "backend/seed/YourTripYourTry_Places_Schema.sql"
         logger.warning("PostgreSQL schema path: %s (exists=%s)", schema_path, schema_path.exists())
         schema = schema_path.read_text(encoding="utf-8-sig")
         migrations = sorted((Path(__file__).resolve().parent / "migrations").glob("*.sql"))
