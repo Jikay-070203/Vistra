@@ -6,6 +6,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./backend
 COPY data/YourTripYourTry_Places_Schema.sql ./backend/data/YourTripYourTry_Places_Schema.sql
+COPY data/yourtripyourtry.db ./backend/data/yourtripyourtry.db
 RUN mkdir -p /app/data
 ENV PATH="/app/.venv/bin:${PATH}"
 EXPOSE 8000

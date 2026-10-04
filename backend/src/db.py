@@ -182,6 +182,36 @@ def _repair_mojibake(db):
                     db.execute(f"UPDATE {table} SET {column}=? WHERE id=?", (fixed, item["id"]))
 
 
+def _seed_postgres_places_from_sqlite(db):
+    """Seed PostgreSQL once from the checked-in demo SQLite catalog."""
+    seed_path = ROOT / "backend/data/yourtripyourtry.db"
+    if not seed_path.exists():
+        logger.warning("SQLite seed database not found: %s", seed_path)
+        return
+    existing = db._connection.execute("SELECT COUNT(*) FROM places").fetchone()[0]
+    if existing:
+        logger.warning("Skipping SQLite place seed; PostgreSQL already has %s places", existing)
+        return
+    source = sqlite3.connect(seed_path)
+    source.row_factory = sqlite3.Row
+    try:
+        columns = [row[1] for row in source.execute("PRAGMA table_info(places)").fetchall()]
+        rows_to_seed = source.execute(
+            "SELECT " + ",".join(columns) + " FROM places ORDER BY id"
+        ).fetchall()
+        if not rows_to_seed:
+            logger.warning("SQLite seed database contains no places")
+            return
+        quoted = ",".join(f'"{column}"' for column in columns)
+        placeholders = ",".join(["%s"] * len(columns))
+        statement = f"INSERT INTO places ({quoted}) VALUES ({placeholders}) ON CONFLICT (id) DO NOTHING"
+        for item in rows_to_seed:
+            db._connection.execute(statement, tuple(item[column] for column in columns))
+        logger.warning("Seeded %s places from SQLite into PostgreSQL", len(rows_to_seed))
+    finally:
+        source.close()
+
+
 def _ensure_postgres_id_sequences(db):
     for table in POSTGRES_ID_TABLES:
         sequence = f"{table}_id_seq"
@@ -236,6 +266,7 @@ def initialize(path: Path):
                 if not db.execute("SELECT 1 FROM schema_migrations WHERE version=?", (file.name,)).fetchone():
                     _execute_postgres_script(db, file.read_text(encoding="utf-8"))
                     db.execute("INSERT INTO schema_migrations(version) VALUES (?) ON CONFLICT DO NOTHING", (file.name,))
+            _seed_postgres_places_from_sqlite(db)
             _ensure_postgres_id_sequences(db)
             db._connection.execute('ALTER TABLE destinations ALTER COLUMN enabled SET DEFAULT 1')
             db._connection.execute('UPDATE destinations SET enabled=1 WHERE enabled IS NULL')
