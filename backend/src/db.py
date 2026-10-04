@@ -89,8 +89,10 @@ def _sql_statements(script: str) -> list[str]:
 
 
 def _execute_postgres_script(db, script: str):
+    statements = _sql_statements(_postgres_sql(script))
+    logger.warning("PostgreSQL schema contains %s statements", len(statements))
     failed = []
-    for index, statement in enumerate(_sql_statements(_postgres_sql(script)), start=1):
+    for index, statement in enumerate(statements, start=1):
         savepoint = f"schema_statement_{index}"
         try:
             db._connection.execute(f"SAVEPOINT {savepoint}")
@@ -222,7 +224,9 @@ def connect(path: Path | str):
 
 def initialize(path: Path):
     if isinstance(path, str) and path.startswith(("postgres://", "postgresql://")):
-        schema = (ROOT / "backend/data/YourTripYourTry_Places_Schema.sql").read_text(encoding="utf-8-sig")
+        schema_path = ROOT / "backend/data/YourTripYourTry_Places_Schema.sql"
+        logger.warning("PostgreSQL schema path: %s (exists=%s)", schema_path, schema_path.exists())
+        schema = schema_path.read_text(encoding="utf-8-sig")
         migrations = sorted((Path(__file__).resolve().parent / "migrations").glob("*.sql"))
         with connect(path) as db:
             _execute_postgres_script(db, schema)
