@@ -142,6 +142,18 @@ def _ensure_postgres_core_tables(db):
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # The production database may contain the earlier minimal bootstrap table.
+    # CREATE TABLE IF NOT EXISTS does not add columns to an existing table.
+    for column, definition in {
+        "rain_sensitivity": "INTEGER",
+        "suggested_duration_min": "INTEGER",
+        "last_verified_at": "TEXT",
+        "created_at": "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    }.items():
+        db._connection.execute(
+            f'ALTER TABLE places ADD COLUMN IF NOT EXISTS "{column}" {definition}'
+        )
 
 
 POSTGRES_ID_TABLES = (
