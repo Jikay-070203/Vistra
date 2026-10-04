@@ -11,4 +11,4 @@ COPY index.php /app/index.php
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "exec php -S 0.0.0.0:${PORT:-8080} -t /app /app/index.php"]
+CMD ["sh", "-c", "exec php -S 0.0.0.0:${PORT:-8080} -t /app"]
