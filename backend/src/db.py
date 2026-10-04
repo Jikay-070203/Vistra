@@ -1,10 +1,13 @@
 import sqlite3
 import re
+import logging
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
 from backend.config import ROOT
+
+logger = logging.getLogger(__name__)
 
 
 class PostgresConnection:
@@ -86,8 +89,20 @@ def _sql_statements(script: str) -> list[str]:
 
 
 def _execute_postgres_script(db, script: str):
-    for statement in _sql_statements(_postgres_sql(script)):
-        db._connection.execute(statement)
+    failed = []
+    for index, statement in enumerate(_sql_statements(_postgres_sql(script)), start=1):
+        savepoint = f"schema_statement_{index}"
+        try:
+            db._connection.execute(f"SAVEPOINT {savepoint}")
+            db._connection.execute(statement)
+            db._connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+        except Exception as error:
+            db._connection.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+            db._connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+            failed.append((index, str(error), statement[:180]))
+            logger.warning("Skipping PostgreSQL schema statement %s: %s | %s", index, error, statement[:180])
+    if failed:
+        logger.warning("PostgreSQL schema completed with %s skipped statements", len(failed))
 
 
 def _ensure_postgres_core_tables(db):
