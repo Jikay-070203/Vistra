@@ -10,8 +10,12 @@ services:
       API_TOKEN: ${API_TOKEN:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
     ports:
       - "${HOST_PORT:-8000}:${PORT:-8000}"
+    # Production currently runs backend only; cap it to leave host overhead.
+    mem_limit: 384m
+    mem_reservation: 192m
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.getenv('PORT','8000') + '/health', timeout=5)"]

@@ -11,6 +11,19 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
+class RegisterRequest(StrictModel):
+    full_name: str = Field(min_length=2, max_length=120)
+    date_of_birth: date | None = None
+    email: str = Field(min_length=5, max_length=320)
+    password: str = Field(min_length=8, max_length=128)
+    accepted_terms_version: str | None = Field(default=None, max_length=40)
+
+
+class LoginRequest(StrictModel):
+    email: str = Field(min_length=5, max_length=320)
+    password: str = Field(min_length=1, max_length=128)
+
+
 class Coordinates(StrictModel):
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)

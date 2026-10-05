@@ -1,6 +1,21 @@
 services:
   postgres:
     image: postgres:17-alpine
+    # Keep the complete local stack below an 800 MB Docker limit.
+    mem_limit: 192m
+    mem_reservation: 96m
+    command:
+      - postgres
+      - -c
+      - shared_buffers=32MB
+      - -c
+      - max_connections=15
+      - -c
+      - effective_cache_size=96MB
+      - -c
+      - work_mem=2MB
+      - -c
+      - maintenance_work_mem=16MB
     environment:
       POSTGRES_DB: yourtripyourtry_local
       POSTGRES_USER: app
@@ -27,8 +42,11 @@ services:
       API_TOKEN: ""
       GEMINI_API_KEY: ""
       GEMINI_MODEL: ""
+      AUTH_COOKIE_SECURE: "false"
     ports:
       - "8000:8000"
+    mem_limit: 320m
+    mem_reservation: 160m
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,6 +67,8 @@ services:
       NODE_ENV: production
     ports:
       - "3000:3000"
+    mem_limit: 128m
+    mem_reservation: 64m
     depends_on:
       backend:
         condition: service_healthy

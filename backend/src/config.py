@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     weather_enabled: bool = True
     gemini_api_key: str = Field(default="", validation_alias=AliasChoices("GEMINI_API_KEY", "Geminai_API_KEY"))
     gemini_model: str = ""
+    auth_cookie_secure: bool = False
+    auth_session_days: int = Field(default=30, ge=1, le=365)
 
     @field_validator("overpass_url")
     @classmethod

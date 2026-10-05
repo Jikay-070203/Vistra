@@ -1,5 +1,7 @@
 import json
+import hashlib
 import logging
+import hmac
 import secrets
 import sqlite3
 from contextlib import asynccontextmanager
@@ -7,7 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -16,7 +18,8 @@ from backend.agents.orchestrator import ChatRequest, chat
 from backend.agents.agent import IntentRequest
 from backend.agents.gemini import create_client
 from backend.db import connect, initialize, now, row, rows
-from backend.models import CommitRequest, ExpenseCreate, GenerateSelection, Kind, PlaceReview, PreviewRequest, TripCreate
+from backend.models import (CommitRequest, ExpenseCreate, GenerateSelection, Kind, LoginRequest,
+                            PlaceReview, PreviewRequest, RegisterRequest, TripCreate)
 from backend.places import detail, resolve_duplicate, review
 from backend.planner import build
 from backend.recommendations import recommendations, candidates as place_candidates
@@ -24,6 +27,28 @@ from backend.services import ExternalServices
 from backend.catalog import ATTRIBUTION, DESTINATIONS, normalized
 
 logger = logging.getLogger(__name__)
+
+
+def _password_hash(password: str, salt: bytes | None = None) -> str:
+    salt = salt or secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 210_000)
+    return f"pbkdf2_sha256$210000${salt.hex()}${digest.hex()}"
+
+
+def _password_matches(password: str, encoded: str) -> bool:
+    try:
+        algorithm, rounds, salt_hex, digest_hex = encoded.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        candidate = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt_hex), int(rounds))
+        return hmac.compare_digest(candidate.hex(), digest_hex)
+    except (ValueError, TypeError):
+        return False
+
+
+def _public_user(user: dict) -> dict:
+    return {"id": user["id"], "fullName": user["full_name"], "email": user["email"],
+            "role": user["role"], "avatarUrl": user.get("avatar_url")}
 
 
 def create_app(settings=None, services=None, gemini_client=None):
@@ -51,8 +76,9 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     app = FastAPI(title="YourTripYourTry API", version="0.1.0", lifespan=lifespan,
                   description="Local single-user MVP. All amounts are integer VND; times include timezone.")
-    app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=False,
-                       allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["Content-Type", "X-API-Key"])
+    app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True,
+                       allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+                       allow_headers=["Content-Type", "X-API-Key"])
 
     def authenticate(x_api_key: str | None = Header(default=None)):
         if settings.api_token and not secrets.compare_digest(x_api_key or "", settings.api_token):
@@ -103,6 +129,72 @@ def create_app(settings=None, services=None, gemini_client=None):
     def health(db=Depends(database)):
         db.execute("SELECT 1")
         return {"status": "ok", "version": "0.1.0"}
+
+    def session_user(db, session_token: str | None):
+        if not session_token:
+            return None
+        item = row(db, """SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id
+            WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? AND u.status='active'""",
+                   (hashlib.sha256(session_token.encode()).hexdigest(), now()))
+        return item
+
+    def issue_session(db, user_id: str, response: Response):
+        raw = secrets.token_urlsafe(48)
+        created = datetime.now(UTC)
+        expires = created + timedelta(days=settings.auth_session_days)
+        db.execute("INSERT INTO sessions(id,user_id,token_hash,expires_at,created_at) VALUES (?,?,?,?,?)",
+                   (str(uuid4()), user_id, hashlib.sha256(raw.encode()).hexdigest(),
+                    expires.isoformat(), created.isoformat()))
+        response.set_cookie("vistra_session", raw, httponly=True, secure=settings.auth_cookie_secure,
+                            samesite="lax", max_age=settings.auth_session_days * 86400, path="/")
+        return expires.isoformat()
+
+    @app.post("/auth/register", status_code=201)
+    def register(data: RegisterRequest, response: Response, db=Depends(database)):
+        email = data.email.lower()
+        if row(db, "SELECT id FROM users WHERE email=?", (email,)):
+            raise HTTPException(409, detail={"code": "EMAIL_IN_USE", "message": "Email is already registered"})
+        user_id = str(uuid4())
+        timestamp = now()
+        db.execute("""INSERT INTO users(id,full_name,date_of_birth,email,password_hash,role,status,created_at,updated_at)
+            VALUES (?,?,?,?,?,'traveler','active',?,?)""",
+                   (user_id, data.full_name, data.date_of_birth.isoformat() if data.date_of_birth else None,
+                    email, _password_hash(data.password), timestamp, timestamp))
+        user = row(db, "SELECT * FROM users WHERE id=?", (user_id,))
+        expires = issue_session(db, user_id, response)
+        return {"user": _public_user(user), "session": {"expiresAt": expires}}
+
+    @app.post("/auth/login")
+    def login(data: LoginRequest, response: Response, db=Depends(database)):
+        user = row(db, "SELECT * FROM users WHERE email=?", (data.email.lower(),))
+        if not user or not _password_matches(data.password, user["password_hash"]):
+            raise HTTPException(401, detail={"code": "INVALID_CREDENTIALS", "message": "Invalid email or password"})
+        if user["status"] != "active":
+            raise HTTPException(403, detail={"code": "ACCOUNT_SUSPENDED", "message": "Account is suspended"})
+        expires = issue_session(db, user["id"], response)
+        return {"user": _public_user(user), "session": {"expiresAt": expires}}
+
+    @app.get("/auth/me")
+    def auth_me(response: Response, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = session_user(db, vistra_session)
+        if not user:
+            raise HTTPException(401, detail={"code": "UNAUTHENTICATED", "message": "Sign in required"})
+        session = row(db, "SELECT expires_at FROM sessions WHERE token_hash=? AND revoked_at IS NULL",
+                      (hashlib.sha256(vistra_session.encode()).hexdigest(),))
+        return {"user": _public_user(user), "session": {"expiresAt": session["expires_at"]}}
+
+    @app.post("/auth/logout")
+    def logout(response: Response, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        if vistra_session:
+            db.execute("UPDATE sessions SET revoked_at=? WHERE token_hash=? AND revoked_at IS NULL",
+                       (now(), hashlib.sha256(vistra_session.encode()).hexdigest()))
+        response.delete_cookie("vistra_session", path="/")
+        return {"success": True}
+
+    @app.get("/auth/oauth/{provider}/start")
+    def oauth_start(provider: Literal["google", "facebook"], return_to: str = "/"):
+        raise HTTPException(501, detail={"code": "OAUTH_NOT_CONFIGURED",
+                                         "message": f"{provider} OAuth is not configured"})
 
     @app.api_route("/admin/fix-destinations", methods=["GET", "POST"])
     def fix_destinations(db=Depends(database)):
@@ -301,6 +393,62 @@ def create_app(settings=None, services=None, gemini_client=None):
         return {"enabled": bool(settings.gemini_api_key and settings.gemini_model),
                 "model": settings.gemini_model or None, "provider": "google-genai",
                 "capabilities": ["trip_draft", "trip_context", "itinerary_preview"]}
+
+    @app.get("/api/v1/status")
+    def api_status():
+        """Versioned health alias used by the frontend smoke checks."""
+        return {"status": "ok", "version": "0.1.0"}
+
+    @app.get("/public/content")
+    def public_content(db=Depends(database)):
+        """Public landing content backed by the canonical destination catalog.
+
+        Until the admin content tables are introduced, destinations are exposed
+        as stable, cache-friendly intro cards rather than returning mock data.
+        """
+        destinations_data = rows(db, """SELECT id, slug, display_name, admin_name,
+            target_places FROM destinations WHERE enabled=1 ORDER BY id""")
+        intro = [{"id": str(item["id"]), "active": True, "order": item["id"],
+                  "label": item["display_name"], "provinceCode": item["slug"],
+                  "imageUrl": None, "tagline": None} for item in destinations_data]
+        allergies = [
+            {"id": "seafood", "active": True, "label": "Hải sản"},
+            {"id": "peanut", "active": True, "label": "Đậu phộng"},
+            {"id": "dairy", "active": True, "label": "Sữa"},
+            {"id": "gluten", "active": True, "label": "Gluten"},
+        ]
+        return {"heroPlans": [], "introDestinations": intro, "allergyOptions": allergies}
+
+    @app.get("/recommendations/destinations", dependencies=auth)
+    def destination_recommendations(
+        start_date: str | None = None,
+        end_date: str | None = None,
+        budget_max_vnd: int | None = Query(default=None, ge=0),
+        travelers: int = Query(default=1, ge=1, le=50),
+        style: str | None = None,
+        dna_focus: str | None = None,
+        db=Depends(database),
+    ):
+        """Return deterministic destination suggestions from live catalog data.
+
+        This endpoint intentionally does not invent weather, prices, or images;
+        unavailable facts are represented as null as required by the contract.
+        """
+        data = rows(db, "SELECT id,slug,display_name,admin_name FROM destinations "
+                     "WHERE enabled=1 ORDER BY id LIMIT 5")
+        items = []
+        for item in data:
+            items.append({"id": item["slug"], "name": item["display_name"],
+                          "region": item["admin_name"], "country": "Vietnam",
+                          "imageUrl": None, "durationDays": None,
+                          "estimatedCostVnd": None, "visualMatchPct": None,
+                          "budgetMatchPct": None, "seasonMatchPct": None,
+                          "vibe": None, "tags": [], "goldenHour": None,
+                          "transportSummary": None,
+                          "rationale": "Đề xuất từ danh mục điểm đến đang hoạt động.",
+                          "realityCheck": None, "bestMoments": None, "details": None})
+        return {"period": {"from": start_date, "to": end_date}, "items": items,
+                "generatedAt": now()}
 
     @app.post("/trips/{trip_id}/agent", dependencies=auth)
     def travel_agent(trip_id: str, data: ChatRequest, db=Depends(database)):
