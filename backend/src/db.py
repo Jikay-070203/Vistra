@@ -283,6 +283,16 @@ def initialize(path: Path):
                 if not db.execute("SELECT 1 FROM schema_migrations WHERE version=?", (file.name,)).fetchone():
                     _execute_postgres_script(db, file.read_text(encoding="utf-8"))
                     db.execute("INSERT INTO schema_migrations(version) VALUES (?) ON CONFLICT DO NOTHING", (file.name,))
+            # Parent rows must exist before seeding places because PostgreSQL
+            # enforces places.destination_id as a foreign key.
+            db._connection.execute(
+                "INSERT INTO destinations (slug, display_name, target_places, enabled) VALUES "
+                "('ha-noi', 'H\u00e0 N\u1ed9i', 300, 1), "
+                "('ninh-binh', 'Ninh B\u00ecnh', 300, 1), "
+                "('tp-ho-chi-minh', 'TP. H\u1ed3 Ch\u00ed Minh', 300, 1), "
+                "('da-lat', '\u0110\u00e0 L\u1ea1t', 300, 1) "
+                "ON CONFLICT DO NOTHING"
+            )
             _seed_postgres_places_from_sqlite(db)
             _ensure_postgres_id_sequences(db)
             db._connection.execute('ALTER TABLE destinations ALTER COLUMN enabled SET DEFAULT 1')

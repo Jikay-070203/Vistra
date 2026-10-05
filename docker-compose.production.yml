@@ -1,0 +1,38 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: src/deploy/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      PORT: ${PORT:-8000}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
+      API_TOKEN: ${API_TOKEN:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+    ports:
+      - "${HOST_PORT:-8000}:${PORT:-8000}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.getenv('PORT','8000') + '/health', timeout=5)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+
+  # Frontend production is deployed separately on Vercel.
+  # Keep this service commented out so production Compose only builds the backend.
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #     args:
+  #       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+  #   environment:
+  #     NODE_ENV: production
+  #   ports:
+  #     - "${FRONTEND_HOST_PORT:-3000}:3000"
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
+  #   restart: unless-stopped
