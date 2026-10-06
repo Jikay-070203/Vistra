@@ -1,5 +1,5 @@
 {
-  "base": "http://localhost:8000",
+  "base": "https://vistra-backend-production.up.railway.app",
   "results": [
     {
       "case": "health",
@@ -270,7 +270,7 @@
             "details": null
           }
         ],
-        "generatedAt": "2026-10-06T03:45:31.743662+00:00"
+        "generatedAt": "2026-10-06T04:05:55.728894+00:00"
       }
     },
     {
@@ -285,14 +285,14 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+          "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
           "fullName": "API Test User",
-          "email": "api-test-1791258331@example.com",
+          "email": "api-test-1791259556@example.com",
           "role": "traveler",
           "avatarUrl": null
         },
         "session": {
-          "expiresAt": "2026-11-05T03:45:31.866656+00:00"
+          "expiresAt": "2026-11-05T04:05:56.121278+00:00"
         }
       }
     },
@@ -308,14 +308,14 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+          "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
           "fullName": "API Test User",
-          "email": "api-test-1791258331@example.com",
+          "email": "api-test-1791259556@example.com",
           "role": "traveler",
           "avatarUrl": null
         },
         "session": {
-          "expiresAt": "2026-11-05T03:45:31.866656+00:00"
+          "expiresAt": "2026-11-05T04:05:56.121278+00:00"
         }
       }
     },
@@ -330,9 +330,9 @@
       ],
       "passed": true,
       "response": {
-        "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+        "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
         "fullName": "API Test User",
-        "email": "api-test-1791258331@example.com",
+        "email": "api-test-1791259556@example.com",
         "phone": null,
         "defaultOrigin": null,
         "bio": null,
@@ -340,7 +340,7 @@
         "preferredStay": null,
         "dietaryPreference": null,
         "avatarUrl": null,
-        "joinedAt": "2026-10-06T03:45:31.775202+00:00"
+        "joinedAt": "2026-10-06T04:05:56.064400+00:00"
       }
     },
     {
@@ -355,9 +355,9 @@
       "passed": true,
       "response": {
         "profile": {
-          "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+          "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
           "fullName": "API Test User",
-          "email": "api-test-1791258331@example.com",
+          "email": "api-test-1791259556@example.com",
           "phone": null,
           "defaultOrigin": null,
           "bio": "API smoke test",
@@ -365,7 +365,7 @@
           "preferredStay": null,
           "dietaryPreference": null,
           "avatarUrl": null,
-          "joinedAt": "2026-10-06T03:45:31.775202+00:00"
+          "joinedAt": "2026-10-06T04:05:56.064400+00:00"
         },
         "emailChangePending": false
       }
@@ -414,7 +414,7 @@
           "sceneryFocus": null,
           "cuisinePriority": null
         },
-        "updatedAt": "2026-10-06T03:45:32.018562+00:00"
+        "updatedAt": "2026-10-06T04:05:57.776600+00:00"
       }
     },
     {
@@ -427,13 +427,13 @@
       ],
       "passed": true,
       "response": {
-        "id": "0b23ce4d-e911-4dec-975d-7262be7771e7",
+        "id": "0aa5f504-8add-411a-9d73-90ad897ce249",
         "destination_id": 2,
         "current_version": 0,
-        "created_at": "2026-10-06T03:45:32.052413+00:00",
+        "created_at": "2026-10-06T04:05:58.104280+00:00",
         "deleted_at": null,
         "generation_error": null,
-        "owner_user_id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+        "owner_user_id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
         "status": "draft",
         "is_published": 0,
         "confirmed_at": null,
@@ -493,15 +493,15 @@
       "passed": true,
       "response": {
         "ticket": {
-          "id": "0d3097df-fe9d-4b2c-b2ee-4603e2c19f8d",
+          "id": "10102228-0d06-446a-bd75-e3f36b2bd860",
           "subject": "API smoke test",
           "description": "Created by test script",
           "routeOrigin": "/test",
           "category": null,
           "severity": null,
           "status": "unassigned",
-          "createdAt": "2026-10-06T03:45:32.126265+00:00",
-          "updatedAt": "2026-10-06T03:45:32.126265+00:00",
+          "createdAt": "2026-10-06T04:05:58.874714+00:00",
+          "updatedAt": "2026-10-06T04:05:58.874714+00:00",
           "userAnswerRating": null,
           "ratingComment": null,
           "replies": []
@@ -521,15 +521,15 @@
       "response": {
         "items": [
           {
-            "id": "0d3097df-fe9d-4b2c-b2ee-4603e2c19f8d",
+            "id": "10102228-0d06-446a-bd75-e3f36b2bd860",
             "subject": "API smoke test",
             "description": "Created by test script",
             "routeOrigin": "/test",
             "category": null,
             "severity": null,
             "status": "unassigned",
-            "createdAt": "2026-10-06T03:45:32.126265+00:00",
-            "updatedAt": "2026-10-06T03:45:32.126265+00:00",
+            "createdAt": "2026-10-06T04:05:58.874714+00:00",
+            "updatedAt": "2026-10-06T04:05:58.874714+00:00",
             "userAnswerRating": null,
             "ratingComment": null,
             "replies": []
@@ -542,10 +542,171 @@
       }
     },
     {
-      "case": "admin/evaluation tests",
-      "passed": null,
-      "skipped": true,
-      "reason": "set ADMIN_EMAIL and ADMIN_PASSWORD to run staff/admin cases"
+      "case": "admin login",
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "user": {
+          "id": "c288cbbe-e0dd-4b21-a9e0-12cea8d71501",
+          "fullName": "Project Admin",
+          "email": "admin@vistral.com",
+          "role": "admin",
+          "avatarUrl": null
+        },
+        "session": {
+          "expiresAt": "2026-11-05T04:05:59.528219+00:00"
+        }
+      }
+    },
+    {
+      "case": "admin content",
+      "method": "GET",
+      "path": "/admin/content",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "heroPlans": [],
+        "introDestinations": [],
+        "allergyOptions": []
+      }
+    },
+    {
+      "case": "admin feedback",
+      "method": "GET",
+      "path": "/admin/feedback/tickets",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [
+          {
+            "id": "10102228-0d06-446a-bd75-e3f36b2bd860",
+            "subject": "API smoke test",
+            "description": "Created by test script",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-06T04:05:58.874714+00:00",
+            "updatedAt": "2026-10-06T04:05:58.874714+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
+          {
+            "id": "6613e696-b05c-48cc-98f4-0d3fc411e1b9",
+            "subject": "API smoke test",
+            "description": "Created by test script",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-06T04:04:41.911378+00:00",
+            "updatedAt": "2026-10-06T04:04:41.911378+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
+          {
+            "id": "f771afeb-5b4b-41ba-991a-473f0ae7e420",
+            "subject": "API smoke test",
+            "description": "Created by test script",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-06T04:00:25.051048+00:00",
+            "updatedAt": "2026-10-06T04:00:25.051048+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          }
+        ],
+        "page": 1,
+        "pageSize": 5,
+        "total": 3,
+        "totalPages": 1,
+        "counts": {
+          "unassigned": 3,
+          "in_progress": 0,
+          "answered": 0,
+          "resolved": 0
+        }
+      }
+    },
+    {
+      "case": "evaluation datasets",
+      "method": "GET",
+      "path": "/admin/evaluation/datasets",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [],
+        "page": 1,
+        "pageSize": 20,
+        "total": 0,
+        "totalPages": 0
+      }
+    },
+    {
+      "case": "system summary",
+      "method": "GET",
+      "path": "/admin/system/summary",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "availabilityPct": null,
+        "aiResponseLatencyMs": {
+          "avg": null,
+          "p95": null
+        },
+        "apiLatencyMs": {
+          "avg": null,
+          "p95": null
+        },
+        "planAcceptancePct": null,
+        "checkedAt": "2026-10-06T04:06:00.811704+00:00",
+        "benchmarkGroups": []
+      }
+    },
+    {
+      "case": "traces",
+      "method": "GET",
+      "path": "/admin/traces",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [],
+        "page": 1,
+        "pageSize": 5,
+        "total": 0,
+        "totalPages": 0
+      }
     },
     {
       "case": "logout",

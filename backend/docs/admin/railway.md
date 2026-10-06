@@ -46,7 +46,7 @@ Trong Railway Console chạy:
 
 ```bash
 python /app/backend/scripts/create_admin.py \
-  --email admin@example.com \
+  --email admin@vistral.com \
   --name "Project Admin"
 ```
 
