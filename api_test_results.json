@@ -1,0 +1,565 @@
+{
+  "base": "http://localhost:8000",
+  "results": [
+    {
+      "case": "health",
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "status": "ok",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "case": "versioned status",
+      "method": "GET",
+      "path": "/api/v1/status",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "status": "ok",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "case": "destinations",
+      "method": "GET",
+      "path": "/destinations",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [
+          {
+            "id": 1,
+            "slug": "ha-noi",
+            "display_name": "Hà Nội",
+            "admin_name": null,
+            "center_lat": 21.0285,
+            "center_lon": 105.8542,
+            "target_places": 300,
+            "enabled": 1,
+            "places": 0,
+            "schedulable": 0
+          },
+          {
+            "id": 2,
+            "slug": "ninh-binh",
+            "display_name": "Ninh Bình",
+            "admin_name": null,
+            "center_lat": 20.2506,
+            "center_lon": 105.9745,
+            "target_places": 300,
+            "enabled": 1,
+            "places": 300,
+            "schedulable": 0
+          },
+          {
+            "id": 3,
+            "slug": "tp-ho-chi-minh",
+            "display_name": "TP. Hồ Chí Minh",
+            "admin_name": null,
+            "center_lat": 10.7769,
+            "center_lon": 106.7009,
+            "target_places": 300,
+            "enabled": 1,
+            "places": 0,
+            "schedulable": 0
+          },
+          {
+            "id": 4,
+            "slug": "da-lat",
+            "display_name": "Đà Lạt",
+            "admin_name": null,
+            "center_lat": 11.9404,
+            "center_lon": 108.4583,
+            "target_places": 300,
+            "enabled": 1,
+            "places": 0,
+            "schedulable": 0
+          }
+        ],
+        "attribution": {
+          "text": "© OpenStreetMap contributors",
+          "url": "https://www.openstreetmap.org/copyright",
+          "license": "ODbL-1.0"
+        }
+      }
+    },
+    {
+      "case": "public content",
+      "method": "GET",
+      "path": "/public/content",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "heroPlans": [],
+        "introDestinations": [
+          {
+            "id": "1",
+            "active": true,
+            "order": 1,
+            "label": "Hà Nội",
+            "provinceCode": "ha-noi",
+            "imageUrl": null,
+            "tagline": null
+          },
+          {
+            "id": "2",
+            "active": true,
+            "order": 2,
+            "label": "Ninh Bình",
+            "provinceCode": "ninh-binh",
+            "imageUrl": null,
+            "tagline": null
+          },
+          {
+            "id": "3",
+            "active": true,
+            "order": 3,
+            "label": "TP. Hồ Chí Minh",
+            "provinceCode": "tp-ho-chi-minh",
+            "imageUrl": null,
+            "tagline": null
+          },
+          {
+            "id": "4",
+            "active": true,
+            "order": 4,
+            "label": "Đà Lạt",
+            "provinceCode": "da-lat",
+            "imageUrl": null,
+            "tagline": null
+          }
+        ],
+        "allergyOptions": [
+          {
+            "id": "seafood",
+            "active": true,
+            "label": "Hải sản"
+          },
+          {
+            "id": "peanut",
+            "active": true,
+            "label": "Đậu phộng"
+          },
+          {
+            "id": "dairy",
+            "active": true,
+            "label": "Sữa"
+          },
+          {
+            "id": "gluten",
+            "active": true,
+            "label": "Gluten"
+          }
+        ]
+      }
+    },
+    {
+      "case": "destination recommendations",
+      "method": "GET",
+      "path": "/recommendations/destinations",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "period": {
+          "from": null,
+          "to": null
+        },
+        "items": [
+          {
+            "id": "ha-noi",
+            "name": "Hà Nội",
+            "region": null,
+            "country": "Vietnam",
+            "imageUrl": null,
+            "durationDays": null,
+            "estimatedCostVnd": null,
+            "visualMatchPct": null,
+            "budgetMatchPct": null,
+            "seasonMatchPct": null,
+            "vibe": null,
+            "tags": [],
+            "goldenHour": null,
+            "transportSummary": null,
+            "rationale": "Đề xuất từ danh mục điểm đến đang hoạt động.",
+            "realityCheck": null,
+            "bestMoments": null,
+            "details": null
+          },
+          {
+            "id": "ninh-binh",
+            "name": "Ninh Bình",
+            "region": null,
+            "country": "Vietnam",
+            "imageUrl": null,
+            "durationDays": null,
+            "estimatedCostVnd": null,
+            "visualMatchPct": null,
+            "budgetMatchPct": null,
+            "seasonMatchPct": null,
+            "vibe": null,
+            "tags": [],
+            "goldenHour": null,
+            "transportSummary": null,
+            "rationale": "Đề xuất từ danh mục điểm đến đang hoạt động.",
+            "realityCheck": null,
+            "bestMoments": null,
+            "details": null
+          },
+          {
+            "id": "tp-ho-chi-minh",
+            "name": "TP. Hồ Chí Minh",
+            "region": null,
+            "country": "Vietnam",
+            "imageUrl": null,
+            "durationDays": null,
+            "estimatedCostVnd": null,
+            "visualMatchPct": null,
+            "budgetMatchPct": null,
+            "seasonMatchPct": null,
+            "vibe": null,
+            "tags": [],
+            "goldenHour": null,
+            "transportSummary": null,
+            "rationale": "Đề xuất từ danh mục điểm đến đang hoạt động.",
+            "realityCheck": null,
+            "bestMoments": null,
+            "details": null
+          },
+          {
+            "id": "da-lat",
+            "name": "Đà Lạt",
+            "region": null,
+            "country": "Vietnam",
+            "imageUrl": null,
+            "durationDays": null,
+            "estimatedCostVnd": null,
+            "visualMatchPct": null,
+            "budgetMatchPct": null,
+            "seasonMatchPct": null,
+            "vibe": null,
+            "tags": [],
+            "goldenHour": null,
+            "transportSummary": null,
+            "rationale": "Đề xuất từ danh mục điểm đến đang hoạt động.",
+            "realityCheck": null,
+            "bestMoments": null,
+            "details": null
+          }
+        ],
+        "generatedAt": "2026-10-06T03:45:31.743662+00:00"
+      }
+    },
+    {
+      "case": "register",
+      "method": "POST",
+      "path": "/auth/register",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "user": {
+          "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+          "fullName": "API Test User",
+          "email": "api-test-1791258331@example.com",
+          "role": "traveler",
+          "avatarUrl": null
+        },
+        "session": {
+          "expiresAt": "2026-11-05T03:45:31.866656+00:00"
+        }
+      }
+    },
+    {
+      "case": "auth me",
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "user": {
+          "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+          "fullName": "API Test User",
+          "email": "api-test-1791258331@example.com",
+          "role": "traveler",
+          "avatarUrl": null
+        },
+        "session": {
+          "expiresAt": "2026-11-05T03:45:31.866656+00:00"
+        }
+      }
+    },
+    {
+      "case": "get profile",
+      "method": "GET",
+      "path": "/me/profile",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+        "fullName": "API Test User",
+        "email": "api-test-1791258331@example.com",
+        "phone": null,
+        "defaultOrigin": null,
+        "bio": null,
+        "preferredPace": null,
+        "preferredStay": null,
+        "dietaryPreference": null,
+        "avatarUrl": null,
+        "joinedAt": "2026-10-06T03:45:31.775202+00:00"
+      }
+    },
+    {
+      "case": "update profile",
+      "method": "PATCH",
+      "path": "/me/profile",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "profile": {
+          "id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+          "fullName": "API Test User",
+          "email": "api-test-1791258331@example.com",
+          "phone": null,
+          "defaultOrigin": null,
+          "bio": "API smoke test",
+          "preferredPace": null,
+          "preferredStay": null,
+          "dietaryPreference": null,
+          "avatarUrl": null,
+          "joinedAt": "2026-10-06T03:45:31.775202+00:00"
+        },
+        "emailChangePending": false
+      }
+    },
+    {
+      "case": "get travel dna",
+      "method": "GET",
+      "path": "/me/travel-dna",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "metrics": [],
+        "signalSources": [],
+        "preferences": {
+          "pace": null,
+          "sceneryFocus": null,
+          "cuisinePriority": null
+        },
+        "summary": null,
+        "updatedAt": null
+      }
+    },
+    {
+      "case": "update travel dna",
+      "method": "PATCH",
+      "path": "/me/travel-dna/preferences",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "metrics": [
+          {
+            "key": "nature",
+            "score": 80.0
+          }
+        ],
+        "preferences": {
+          "pace": "relaxed",
+          "sceneryFocus": null,
+          "cuisinePriority": null
+        },
+        "updatedAt": "2026-10-06T03:45:32.018562+00:00"
+      }
+    },
+    {
+      "case": "create trip",
+      "method": "POST",
+      "path": "/trips",
+      "status": 201,
+      "expected": [
+        201
+      ],
+      "passed": true,
+      "response": {
+        "id": "0b23ce4d-e911-4dec-975d-7262be7771e7",
+        "destination_id": 2,
+        "current_version": 0,
+        "created_at": "2026-10-06T03:45:32.052413+00:00",
+        "deleted_at": null,
+        "generation_error": null,
+        "owner_user_id": "a2769e9f-7a14-43b8-8fe2-1bdf4fe06992",
+        "status": "draft",
+        "is_published": 0,
+        "confirmed_at": null,
+        "published_at": null,
+        "request": {
+          "destination": "ninh-binh",
+          "start_date": "2026-11-01",
+          "days": 2,
+          "people": 1,
+          "budget_vnd": 1500000,
+          "budget_scope": "per_person",
+          "transport": "car",
+          "origin": null,
+          "pace": "normal",
+          "interests": [
+            "attraction"
+          ],
+          "must_visit": [],
+          "allow_unverified": false,
+          "lodging_total_vnd": null,
+          "transport_total_vnd": null
+        },
+        "itinerary": null,
+        "recommendations": {
+          "attraction": [],
+          "food": [],
+          "stay": []
+        }
+      }
+    },
+    {
+      "case": "community plans",
+      "method": "GET",
+      "path": "/community/plans",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [],
+        "page": 1,
+        "pageSize": 9,
+        "total": 0,
+        "totalPages": 0
+      }
+    },
+    {
+      "case": "create feedback ticket",
+      "method": "POST",
+      "path": "/feedback/tickets",
+      "status": 201,
+      "expected": [
+        201
+      ],
+      "passed": true,
+      "response": {
+        "ticket": {
+          "id": "0d3097df-fe9d-4b2c-b2ee-4603e2c19f8d",
+          "subject": "API smoke test",
+          "description": "Created by test script",
+          "routeOrigin": "/test",
+          "category": null,
+          "severity": null,
+          "status": "unassigned",
+          "createdAt": "2026-10-06T03:45:32.126265+00:00",
+          "updatedAt": "2026-10-06T03:45:32.126265+00:00",
+          "userAnswerRating": null,
+          "ratingComment": null,
+          "replies": []
+        }
+      }
+    },
+    {
+      "case": "my feedback tickets",
+      "method": "GET",
+      "path": "/me/feedback/tickets",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [
+          {
+            "id": "0d3097df-fe9d-4b2c-b2ee-4603e2c19f8d",
+            "subject": "API smoke test",
+            "description": "Created by test script",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-06T03:45:32.126265+00:00",
+            "updatedAt": "2026-10-06T03:45:32.126265+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          }
+        ],
+        "page": 1,
+        "pageSize": 10,
+        "total": 1,
+        "totalPages": 1
+      }
+    },
+    {
+      "case": "admin/evaluation tests",
+      "passed": null,
+      "skipped": true,
+      "reason": "set ADMIN_EMAIL and ADMIN_PASSWORD to run staff/admin cases"
+    },
+    {
+      "case": "logout",
+      "method": "POST",
+      "path": "/auth/logout",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "success": true
+      }
+    }
+  ]
+}

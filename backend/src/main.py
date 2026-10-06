@@ -18,8 +18,10 @@ from backend.agents.orchestrator import ChatRequest, chat
 from backend.agents.agent import IntentRequest
 from backend.agents.gemini import create_client
 from backend.db import connect, initialize, now, row, rows
-from backend.models import (CommitRequest, ExpenseCreate, GenerateSelection, Kind, LoginRequest,
-                            PlaceReview, PreviewRequest, RegisterRequest, TripCreate)
+from backend.models import (CommitRequest, ExpenseCreate, GenerateSelection, Kind, LikeRequest, LoginRequest,
+                            AdminFeedbackPatch, DatasetCreate, FeedbackCreate, FeedbackRating, FeedbackReply,
+                            PlaceReview, PreviewRequest, ProfilePatch, PublicationRequest, RegisterRequest,
+                            TravelDnaPatch, TripCreate, VersionRequest)
 from backend.places import detail, resolve_duplicate, review
 from backend.planner import build
 from backend.recommendations import recommendations, candidates as place_candidates
@@ -138,6 +140,30 @@ def create_app(settings=None, services=None, gemini_client=None):
                    (hashlib.sha256(session_token.encode()).hexdigest(), now()))
         return item
 
+    def require_session(vistra_session: str | None, db):
+        user = session_user(db, vistra_session)
+        if not user:
+            raise HTTPException(401, detail={"code": "UNAUTHENTICATED", "message": "Sign in required"})
+        return user
+
+    def require_admin(vistra_session: str | None, db):
+        user = require_session(vistra_session, db)
+        if user["role"] not in ("staff", "admin"):
+            raise HTTPException(403, detail={"code": "FORBIDDEN", "message": "Staff role required"})
+        return user
+
+    def feedback_payload(db, ticket):
+        replies = rows(db, """SELECT r.id,r.message,r.created_at,u.role AS sender_role
+            FROM feedback_replies r JOIN users u ON u.id=r.sender_user_id
+            WHERE r.ticket_id=? ORDER BY r.created_at""", (ticket["id"],))
+        return {"id": ticket["id"], "subject": ticket["subject"], "description": ticket["description"],
+                "routeOrigin": ticket["route_origin"], "category": ticket["category"],
+                "severity": ticket["severity"], "status": ticket["status"],
+                "createdAt": ticket["created_at"], "updatedAt": ticket["updated_at"],
+                "userAnswerRating": ticket["user_answer_rating"], "ratingComment": ticket["rating_comment"],
+                "replies": [{"id": r["id"], "senderRole": r["sender_role"],
+                             "message": r["message"], "createdAt": r["created_at"]} for r in replies]}
+
     def issue_session(db, user_id: str, response: Response):
         raw = secrets.token_urlsafe(48)
         created = datetime.now(UTC)
@@ -190,6 +216,77 @@ def create_app(settings=None, services=None, gemini_client=None):
                        (now(), hashlib.sha256(vistra_session.encode()).hexdigest()))
         response.delete_cookie("vistra_session", path="/")
         return {"success": True}
+
+    @app.get("/me/profile")
+    def get_profile(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        return {"id": user["id"], "fullName": user["full_name"], "email": user["email"],
+                "phone": user.get("phone"), "defaultOrigin": user.get("default_origin"),
+                "bio": user.get("bio"), "preferredPace": user.get("preferred_pace"),
+                "preferredStay": user.get("preferred_stay"),
+                "dietaryPreference": user.get("dietary_preference"),
+                "avatarUrl": user.get("avatar_url"),
+                "joinedAt": user.get("joined_at") or user.get("created_at")}
+
+    @app.patch("/me/profile")
+    def update_profile(data: ProfilePatch, response: Response,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        values = data.model_dump(exclude_unset=True)
+        if "email" in values:
+            values["email"] = values["email"].lower() if values["email"] else values["email"]
+            duplicate = row(db, "SELECT id FROM users WHERE email=? AND id<>?", (values["email"], user["id"]))
+            if duplicate:
+                raise HTTPException(409, detail={"code": "EMAIL_IN_USE", "message": "Email is already registered"})
+        columns = {"full_name", "email", "phone", "default_origin", "bio", "preferred_pace",
+                   "preferred_stay", "dietary_preference"}
+        updates = [(key, value) for key, value in values.items() if key in columns]
+        if updates:
+            assignments = ",".join(f"{key}=?" for key, _ in updates)
+            db.execute(f"UPDATE users SET {assignments},updated_at=? WHERE id=?",
+                       (*[value for _, value in updates], now(), user["id"]))
+        updated = row(db, "SELECT * FROM users WHERE id=?", (user["id"],))
+        return {"profile": {"id": updated["id"], "fullName": updated["full_name"],
+                             "email": updated["email"], "phone": updated.get("phone"),
+                             "defaultOrigin": updated.get("default_origin"), "bio": updated.get("bio"),
+                             "preferredPace": updated.get("preferred_pace"),
+                             "preferredStay": updated.get("preferred_stay"),
+                             "dietaryPreference": updated.get("dietary_preference"),
+                             "avatarUrl": updated.get("avatar_url"),
+                             "joinedAt": updated.get("joined_at") or updated.get("created_at")},
+                "emailChangePending": False}
+
+    @app.get("/me/travel-dna")
+    def get_travel_dna(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        dna = row(db, "SELECT * FROM travel_dna_preferences WHERE user_id=?", (user["id"],))
+        metrics = json.loads(dna["metrics_json"]) if dna else []
+        return {"metrics": metrics, "signalSources": [],
+                "preferences": {"pace": dna.get("pace") if dna else None,
+                                "sceneryFocus": dna.get("scenery_focus") if dna else None,
+                                "cuisinePriority": dna.get("cuisine_priority") if dna else None},
+                "summary": None, "updatedAt": dna.get("updated_at") if dna else None}
+
+    @app.patch("/me/travel-dna/preferences")
+    def update_travel_dna(data: TravelDnaPatch,
+                          vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        current = row(db, "SELECT * FROM travel_dna_preferences WHERE user_id=?", (user["id"],))
+        supplied = data.model_dump(exclude_unset=True)
+        metrics = supplied.get("metrics")
+        if metrics is None:
+            metrics = json.loads(current["metrics_json"]) if current else []
+        payload = (json.dumps([item for item in metrics], ensure_ascii=False))
+        pace = supplied.get("pace", current["pace"] if current else None)
+        scenery = supplied.get("scenery_focus", current["scenery_focus"] if current else None)
+        cuisine = supplied.get("cuisine_priority", current["cuisine_priority"] if current else None)
+        timestamp = now()
+        db.execute("""INSERT INTO travel_dna_preferences(user_id,metrics_json,pace,scenery_focus,cuisine_priority,updated_at)
+            VALUES (?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET metrics_json=excluded.metrics_json,
+            pace=excluded.pace,scenery_focus=excluded.scenery_focus,cuisine_priority=excluded.cuisine_priority,
+            updated_at=excluded.updated_at""", (user["id"], payload, pace, scenery, cuisine, timestamp))
+        return {"metrics": json.loads(payload), "preferences": {"pace": pace, "sceneryFocus": scenery,
+                "cuisinePriority": cuisine}, "updatedAt": timestamp}
 
     @app.get("/auth/oauth/{provider}/start")
     def oauth_start(provider: Literal["google", "facebook"], return_to: str = "/"):
@@ -264,15 +361,18 @@ def create_app(settings=None, services=None, gemini_client=None):
         return {"items": rows(db, "SELECT * FROM crawl_runs ORDER BY id DESC LIMIT ?", (limit,))}
 
     @app.post("/trips", status_code=201, dependencies=auth)
-    def create_trip(data: TripCreate, generate_itinerary: bool = False, db=Depends(database)):
+    def create_trip(data: TripCreate, generate_itinerary: bool = False,
+                    vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         dest = destination(db, data.destination)
         trip_id = str(uuid4())
+        owner = session_user(db, vistra_session)
         for place_id in data.must_visit:
             p = detail(db, place_id)
             if p["destination_id"] != dest["id"]:
                 raise HTTPException(422, "Must-visit place belongs to another destination")
-        db.execute("INSERT INTO trips(id,destination_id,request_json,current_version,created_at) VALUES (?,?,?,?,?)",
-                   (trip_id, dest["id"], data.model_dump_json(), 0, now()))
+        db.execute("""INSERT INTO trips(id,destination_id,request_json,current_version,created_at,owner_user_id)
+            VALUES (?,?,?,?,?,?)""",
+                   (trip_id, dest["id"], data.model_dump_json(), 0, now(), owner["id"] if owner else None))
         generation_error = None
         if generate_itinerary:
             try:
@@ -283,6 +383,41 @@ def create_app(settings=None, services=None, gemini_client=None):
                 generation_error = error.detail
                 db.execute('UPDATE trips SET generation_error=? WHERE id=?', (json.dumps(generation_error), trip_id))
         return {**trip(db, trip_id), 'generation_error': generation_error}
+
+    @app.post("/trips/{trip_id}/confirm")
+    def confirm_trip(trip_id: str, data: VersionRequest,
+                     vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        current = trip(db, trip_id)
+        owner = row(db, "SELECT owner_user_id FROM trips WHERE id=?", (trip_id,))
+        if owner["owner_user_id"] and owner["owner_user_id"] != user["id"]:
+            raise HTTPException(403, "Only the owner can confirm this plan")
+        if current["current_version"] < 1:
+            raise HTTPException(422, "Generate an itinerary before confirming the plan")
+        timestamp = now()
+        db.execute("UPDATE trips SET status='confirmed',confirmed_at=?,owner_user_id=COALESCE(owner_user_id,?) WHERE id=?",
+                   (timestamp, user["id"], trip_id))
+        return {"plan": trip(db, trip_id), "confirmedAt": timestamp,
+                "version": current["current_version"]}
+
+    @app.patch("/trips/{trip_id}/publication")
+    def update_publication(trip_id: str, data: PublicationRequest,
+                           vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        owner = row(db, "SELECT owner_user_id,status,current_version FROM trips WHERE id=? AND deleted_at IS NULL", (trip_id,))
+        if not owner:
+            raise HTTPException(404, "Trip not found")
+        if owner["owner_user_id"] != user["id"]:
+            raise HTTPException(403, "Only the owner can publish this plan")
+        if owner["current_version"] != data.base_version:
+            raise HTTPException(409, "Stale base_version")
+        if data.is_published and owner["status"] != "confirmed":
+            raise HTTPException(422, "Only confirmed plans can be published")
+        timestamp = now() if data.is_published else None
+        db.execute("UPDATE trips SET is_published=?,published_at=? WHERE id=? AND current_version=?",
+                   (1 if data.is_published else 0, timestamp, trip_id, data.base_version))
+        return {"id": trip_id, "isPublished": data.is_published, "publishedAt": timestamp,
+                "version": data.base_version}
 
     @app.get("/trips", dependencies=auth)
     def list_trips(limit: int = Query(default=20, ge=1, le=100), offset: int = Query(default=0, ge=0), deleted: bool = False, db=Depends(database)):
@@ -450,6 +585,92 @@ def create_app(settings=None, services=None, gemini_client=None):
         return {"period": {"from": start_date, "to": end_date}, "items": items,
                 "generatedAt": now()}
 
+    def plan_card(db, item, viewer_id=None):
+        request = json.loads(item["request_json"])
+        destination_item = row(db, "SELECT slug,display_name FROM destinations WHERE id=?",
+                               (item["destination_id"],))
+        likes = row(db, "SELECT COUNT(*) AS count FROM community_plan_likes WHERE trip_id=?", (item["id"],))["count"]
+        liked = bool(viewer_id and row(db, "SELECT 1 FROM community_plan_likes WHERE trip_id=? AND user_id=?",
+                                       (item["id"], viewer_id)))
+        start = request.get("start_date")
+        days = request.get("days", 1)
+        return {"id": item["id"], "title": request.get("title") or f"Trip to {destination_item['display_name']}",
+                "origin": request.get("origin"), "destination": destination_item["display_name"],
+                "coverImageUrl": None, "startDate": start,
+                "endDate": start, "durationDays": days,
+                "budgetMinVnd": request.get("budget_vnd"), "budgetMaxVnd": request.get("budget_vnd"),
+                "estimatedCostVnd": None, "status": item.get("status", "draft"),
+                "isPublished": bool(item.get("is_published")), "updatedAt": item.get("created_at"),
+                "tags": request.get("interests", []), "likesCount": likes, "likedByMe": liked}
+
+    @app.get("/community/plans")
+    def community_plans(page: int = Query(default=1, ge=1), page_size: int = Query(default=9, ge=1, le=50),
+                        q: str = "", province: str | None = None, duration: int | None = Query(default=None, ge=1),
+                        tag: str | None = None, budget_min_vnd: int | None = Query(default=None, ge=0),
+                        budget_max_vnd: int | None = Query(default=None, ge=0), liked_by_me: bool | None = None,
+                        vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        viewer = session_user(db, vistra_session)
+        conditions = ["t.is_published=1", "t.status='confirmed'", "t.deleted_at IS NULL"]
+        params = []
+        if q:
+            conditions.append("LOWER(t.request_json) LIKE ?")
+            params.append(f"%{q.lower()}%")
+        if province:
+            conditions.append("d.slug=?")
+            params.append(province)
+        where = " AND ".join(conditions)
+        base = f"FROM trips t JOIN destinations d ON d.id=t.destination_id WHERE {where}"
+        items = rows(db, "SELECT t.* " + base + " ORDER BY t.created_at DESC", params)
+        cards = []
+        for item in items:
+            request = json.loads(item["request_json"])
+            if duration and request.get("days") != duration:
+                continue
+            budget = request.get("budget_vnd")
+            if budget_min_vnd is not None and (budget is None or budget < budget_min_vnd):
+                continue
+            if budget_max_vnd is not None and (budget is None or budget > budget_max_vnd):
+                continue
+            if tag and tag not in request.get("interests", []):
+                continue
+            cards.append(plan_card(db, item, viewer["id"] if viewer else None))
+        if liked_by_me is not None:
+            cards = [card for card in cards if card["likedByMe"] == liked_by_me]
+        total = len(cards)
+        cards = cards[(page - 1) * page_size:page * page_size]
+        return {"items": cards, "page": page, "pageSize": page_size, "total": total,
+                "totalPages": (total + page_size - 1) // page_size}
+
+    @app.put("/community/plans/{trip_id}/like")
+    def like_community_plan(trip_id: str, data: LikeRequest,
+                            vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        if not row(db, "SELECT id FROM trips WHERE id=? AND is_published=1 AND status='confirmed' AND deleted_at IS NULL",
+                   (trip_id,)):
+            raise HTTPException(404, "Public plan not found")
+        if data.liked:
+            db.execute("INSERT INTO community_plan_likes(trip_id,user_id,created_at) VALUES (?,?,?) ON CONFLICT DO NOTHING",
+                       (trip_id, user["id"], now()))
+        else:
+            db.execute("DELETE FROM community_plan_likes WHERE trip_id=? AND user_id=?", (trip_id, user["id"]))
+        count = row(db, "SELECT COUNT(*) AS count FROM community_plan_likes WHERE trip_id=?", (trip_id,))["count"]
+        return {"planId": trip_id, "likedByMe": data.liked, "likesCount": count}
+
+    @app.post("/community/plans/{trip_id}/clone", status_code=201)
+    def clone_community_plan(trip_id: str,
+                             vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        source = row(db, "SELECT * FROM trips WHERE id=? AND is_published=1 AND status='confirmed' AND deleted_at IS NULL",
+                     (trip_id,))
+        if not source:
+            raise HTTPException(404, "Public plan not found")
+        clone_id = str(uuid4())
+        request = json.loads(source["request_json"])
+        db.execute("""INSERT INTO trips(id,destination_id,request_json,current_version,created_at,owner_user_id,status,is_published)
+            VALUES (?,?,?,?,?,?,?,0)""",
+                   (clone_id, source["destination_id"], json.dumps(request, ensure_ascii=False), 0, now(), user["id"], "draft"))
+        return {"plan": trip(db, clone_id)}
+
     @app.post("/trips/{trip_id}/agent", dependencies=auth)
     def travel_agent(trip_id: str, data: ChatRequest, db=Depends(database)):
         current = trip(db, trip_id)
@@ -460,6 +681,208 @@ def create_app(settings=None, services=None, gemini_client=None):
             return result
         return chat(settings, db, current, data, make_preview,
                     client=app.state.gemini)
+
+    @app.post("/feedback/tickets", status_code=201)
+    def create_feedback(data: FeedbackCreate, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        ticket_id, timestamp = str(uuid4()), now()
+        db.execute("""INSERT INTO feedback_tickets(id,user_id,subject,description,route_origin,created_at,updated_at)
+            VALUES (?,?,?,?,?,?,?)""", (ticket_id, user["id"], data.subject, data.description,
+                                         data.route_origin, timestamp, timestamp))
+        return {"ticket": feedback_payload(db, row(db, "SELECT * FROM feedback_tickets WHERE id=?", (ticket_id,)))}
+
+    @app.get("/me/feedback/tickets")
+    def my_feedback(page: int = Query(default=1, ge=1), page_size: int = Query(default=10, ge=1, le=50),
+                    status: str | None = None, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        conditions, params = ["user_id=?"], [user["id"]]
+        if status:
+            conditions.append("status=?"); params.append(status)
+        where = " AND ".join(conditions)
+        total = db.execute(f"SELECT COUNT(*) FROM feedback_tickets WHERE {where}", params).fetchone()[0]
+        tickets = rows(db, f"SELECT * FROM feedback_tickets WHERE {where} ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+                       (*params, page_size, (page - 1) * page_size))
+        return {"items": [feedback_payload(db, t) for t in tickets], "page": page, "pageSize": page_size,
+                "total": total, "totalPages": (total + page_size - 1) // page_size}
+
+    @app.post("/me/feedback/tickets/{ticket_id}/rating")
+    def rate_feedback(ticket_id: str, data: FeedbackRating,
+                      vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        timestamp = now()
+        changed = db.execute("UPDATE feedback_tickets SET user_answer_rating=?,rating_comment=?,updated_at=? "
+                             "WHERE id=? AND user_id=? AND EXISTS (SELECT 1 FROM feedback_replies WHERE ticket_id=?)",
+                             (data.rating, data.comment, timestamp, ticket_id, user["id"], ticket_id)).rowcount
+        if changed != 1:
+            raise HTTPException(404, "Ticket not found or has no staff reply")
+        return {"ticketId": ticket_id, "userAnswerRating": data.rating,
+                "ratingComment": data.comment, "updatedAt": timestamp}
+
+    @app.get("/admin/feedback/tickets")
+    def admin_feedback(page: int = Query(default=1, ge=1), page_size: int = Query(default=5, ge=1, le=50),
+                       q: str = "", status: str | None = None,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        conditions, params = ["1=1"], []
+        if q: conditions.append("LOWER(subject||' '||description) LIKE ?"); params.append(f"%{q.lower()}%")
+        if status: conditions.append("status=?"); params.append(status)
+        where = " AND ".join(conditions)
+        total = db.execute(f"SELECT COUNT(*) FROM feedback_tickets WHERE {where}", params).fetchone()[0]
+        tickets = rows(db, f"SELECT * FROM feedback_tickets WHERE {where} ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+                       (*params, page_size, (page - 1) * page_size))
+        counts = {s: db.execute("SELECT COUNT(*) FROM feedback_tickets WHERE status=?", (s,)).fetchone()[0]
+                  for s in ("unassigned", "in_progress", "answered", "resolved")}
+        return {"items": [feedback_payload(db, t) for t in tickets], "page": page, "pageSize": page_size,
+                "total": total, "totalPages": (total + page_size - 1) // page_size, "counts": counts}
+
+    @app.patch("/admin/feedback/tickets/{ticket_id}")
+    def patch_feedback(ticket_id: str, data: AdminFeedbackPatch,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        values = data.model_dump(exclude_unset=True)
+        if not values: raise HTTPException(422, "No fields to update")
+        fields = [(k, v) for k, v in values.items()]
+        db.execute(f"UPDATE feedback_tickets SET {','.join(k+'=?' for k,_ in fields)},updated_at=? WHERE id=?",
+                   (*[v for _, v in fields], now(), ticket_id))
+        ticket = row(db, "SELECT * FROM feedback_tickets WHERE id=?", (ticket_id,))
+        if not ticket: raise HTTPException(404, "Ticket not found")
+        return {"ticket": feedback_payload(db, ticket)}
+
+    @app.post("/admin/feedback/tickets/{ticket_id}/replies")
+    def reply_feedback(ticket_id: str, data: FeedbackReply,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        admin = require_admin(vistra_session, db)
+        if not row(db, "SELECT id FROM feedback_tickets WHERE id=?", (ticket_id,)):
+            raise HTTPException(404, "Ticket not found")
+        timestamp = now()
+        db.execute("INSERT INTO feedback_replies(id,ticket_id,sender_user_id,message,created_at) VALUES (?,?,?,?,?)",
+                   (str(uuid4()), ticket_id, admin["id"], data.message, timestamp))
+        db.execute("UPDATE feedback_tickets SET status='answered',updated_at=? WHERE id=?", (timestamp, ticket_id))
+        return {"ticket": feedback_payload(db, row(db, "SELECT * FROM feedback_tickets WHERE id=?", (ticket_id,)))}
+
+    @app.get("/admin/content")
+    def admin_content(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        result = {"heroPlans": [], "introDestinations": [], "allergyOptions": []}
+        mapping = {"hero-plans": "heroPlans", "intro-destinations": "introDestinations", "allergy-options": "allergyOptions"}
+        for collection, key in mapping.items():
+            result[key] = [{**json.loads(item["payload_json"]), "id": item["id"],
+                            "active": bool(item["active"]), "order": item["sort_order"]}
+                           for item in rows(db, "SELECT * FROM content_items WHERE collection=? ORDER BY sort_order,id", (collection,))]
+        return result
+
+    @app.post("/admin/content/{collection}", status_code=201)
+    def create_content(collection: Literal["hero-plans", "allergy-options"], payload: dict,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        if collection == "hero-plans" and not payload.get("title"):
+            raise HTTPException(422, "title is required")
+        if collection == "allergy-options" and not payload.get("label"):
+            raise HTTPException(422, "label is required")
+        item_id, timestamp = str(uuid4()), now()
+        db.execute("INSERT INTO content_items(id,collection,payload_json,created_at,updated_at) VALUES (?,?,?,?,?)",
+                   (item_id, collection, json.dumps(payload, ensure_ascii=False), timestamp, timestamp))
+        return {"item": {**payload, "id": item_id, "active": True, "order": 0}}
+
+    @app.patch("/admin/content/{collection}/{item_id}")
+    def update_content(collection: str, item_id: str, payload: dict,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        item = row(db, "SELECT * FROM content_items WHERE id=? AND collection=?", (item_id, collection))
+        if not item: raise HTTPException(404, "Content item not found")
+        current = json.loads(item["payload_json"]); current.update(payload)
+        active = int(payload.pop("active", bool(item["active"]))) if "active" in payload else item["active"]
+        order = int(payload.pop("order", item["sort_order"])) if "order" in payload else item["sort_order"]
+        db.execute("UPDATE content_items SET payload_json=?,active=?,sort_order=?,updated_at=? WHERE id=?",
+                   (json.dumps(current, ensure_ascii=False), active, order, now(), item_id))
+        return {"item": {**current, "id": item_id, "active": bool(active), "order": order}, "updatedAt": now()}
+
+    @app.delete("/admin/content/{collection}/{item_id}", status_code=204)
+    def delete_content(collection: str, item_id: str,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        if db.execute("DELETE FROM content_items WHERE id=? AND collection=?", (item_id, collection)).rowcount != 1:
+            raise HTTPException(404, "Content item not found")
+
+    @app.get("/admin/evaluation/datasets")
+    def evaluation_datasets(page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100),
+                            vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        total = db.execute("SELECT COUNT(*) FROM evaluation_datasets").fetchone()[0]
+        datasets = rows(db, "SELECT * FROM evaluation_datasets ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+                        (page_size, (page - 1) * page_size))
+        items = []
+        for dataset in datasets:
+            count = db.execute("SELECT COUNT(*) FROM evaluation_cases WHERE dataset_id=?", (dataset["id"],)).fetchone()[0]
+            items.append({"id": dataset["id"], "name": dataset["name"], "description": dataset["description"],
+                          "testCasesCount": count, "isBuiltin": bool(dataset["is_builtin"]), "testCases": []})
+        return {"items": items, "page": page, "pageSize": page_size, "total": total,
+                "totalPages": (total + page_size - 1) // page_size}
+
+    @app.post("/admin/evaluation/datasets", status_code=201)
+    def create_dataset(data: DatasetCreate, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        dataset_id, timestamp = str(uuid4()), now()
+        db.execute("INSERT INTO evaluation_datasets(id,name,description,created_at,updated_at) VALUES (?,?,?,?,?)",
+                   (dataset_id, data.name, data.description, timestamp, timestamp))
+        for index, case in enumerate(data.test_cases):
+            if not isinstance(case, dict) or not case.get("name"):
+                raise HTTPException(422, detail={"code": "INVALID_CASE", "index": index})
+            db.execute("INSERT INTO evaluation_cases(id,dataset_id,name,input_json,expected_json) VALUES (?,?,?,?,?)",
+                       (str(uuid4()), dataset_id, case["name"], json.dumps(case.get("input")), json.dumps(case.get("expected"))))
+        return {"dataset": {"id": dataset_id, "name": data.name, "testCasesCount": len(data.test_cases),
+                             "isBuiltin": False, "version": 1}}
+
+    @app.post("/admin/evaluation/runs", status_code=202)
+    def start_evaluation(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        dataset_id = payload.get("datasetId")
+        if not row(db, "SELECT id FROM evaluation_datasets WHERE id=?", (dataset_id,)):
+            raise HTTPException(404, "Dataset not found")
+        run_id = str(uuid4())
+        db.execute("INSERT INTO evaluation_runs(id,dataset_id,status,created_at) VALUES (?,?,?,?)",
+                   (run_id, dataset_id, "queued", now()))
+        return {"runId": run_id, "status": "queued"}
+
+    @app.get("/admin/evaluation/runs/{run_id}")
+    def evaluation_run(run_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        run = row(db, "SELECT * FROM evaluation_runs WHERE id=?", (run_id,))
+        if not run: raise HTTPException(404, "Evaluation run not found")
+        summary = json.loads(run["summary_json"]) if run["summary_json"] else None
+        return {"runId": run_id, "datasetId": run["dataset_id"], "status": run["status"],
+                "scorePct": summary.get("scorePct") if summary else None,
+                "counts": summary.get("counts", {"passed": 0, "warning": 0, "failed": 0}) if summary else None,
+                "cases": None}
+
+    @app.get("/admin/system/summary")
+    def system_summary(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        return {"availabilityPct": None, "aiResponseLatencyMs": {"avg": None, "p95": None},
+                "apiLatencyMs": {"avg": None, "p95": None}, "planAcceptancePct": None,
+                "checkedAt": now(), "benchmarkGroups": []}
+
+    @app.get("/admin/traces")
+    def list_traces(page: int = Query(default=1, ge=1), page_size: int = Query(default=5, ge=1, le=100),
+                    vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        total = db.execute("SELECT COUNT(*) FROM system_traces").fetchone()[0]
+        items = rows(db, "SELECT id,created_at,trace_type,status,latency_ms,confidence,context_json FROM system_traces "
+                     "ORDER BY created_at DESC LIMIT ? OFFSET ?", (page_size, (page - 1) * page_size))
+        return {"items": [{"id": i["id"], "timestamp": i["created_at"], "traceType": i["trace_type"],
+                           "status": i["status"], "latencyMs": i["latency_ms"], "confidence": i["confidence"],
+                           "context": json.loads(i["context_json"])} for i in items],
+                "page": page, "pageSize": page_size, "total": total,
+                "totalPages": (total + page_size - 1) // page_size}
+
+    @app.get("/admin/traces/{trace_id}")
+    def trace_detail(trace_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        trace = row(db, "SELECT * FROM system_traces WHERE id=?", (trace_id,))
+        if not trace: raise HTTPException(404, "Trace not found")
+        return {"id": trace["id"], "timestamp": trace["created_at"], "traceType": trace["trace_type"],
+                "status": trace["status"], "latencyMs": trace["latency_ms"], "confidence": trace["confidence"],
+                "context": json.loads(trace["context_json"]), "details": json.loads(trace["details_json"])}
 
     return app
 

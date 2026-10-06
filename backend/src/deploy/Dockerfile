@@ -5,6 +5,7 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./backend
+COPY scripts ./backend/scripts
 COPY seed/YourTripYourTry_Places_Schema.sql ./backend/seed/YourTripYourTry_Places_Schema.sql
 COPY seed/places_seed.seed ./backend/seed/places_seed.seed
 RUN mkdir -p /app/data

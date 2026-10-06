@@ -24,6 +24,68 @@ class LoginRequest(StrictModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+class ProfilePatch(StrictModel):
+    full_name: str | None = Field(default=None, min_length=2, max_length=120)
+    email: str | None = Field(default=None, min_length=5, max_length=320)
+    phone: str | None = Field(default=None, max_length=40)
+    default_origin: str | None = Field(default=None, max_length=120)
+    bio: str | None = Field(default=None, max_length=1000)
+    preferred_pace: str | None = Field(default=None, max_length=40)
+    preferred_stay: str | None = Field(default=None, max_length=80)
+    dietary_preference: str | None = Field(default=None, max_length=200)
+
+
+class TravelDnaMetric(StrictModel):
+    key: str = Field(min_length=1, max_length=60)
+    score: float = Field(ge=0, le=100)
+
+
+class TravelDnaPatch(StrictModel):
+    metrics: list[TravelDnaMetric] | None = Field(default=None, max_length=30)
+    pace: str | None = Field(default=None, max_length=40)
+    scenery_focus: str | None = Field(default=None, max_length=80)
+    cuisine_priority: str | None = Field(default=None, max_length=80)
+
+
+class LikeRequest(StrictModel):
+    liked: bool
+
+
+class VersionRequest(StrictModel):
+    base_version: int = Field(ge=0)
+
+
+class PublicationRequest(VersionRequest):
+    is_published: bool
+
+
+class FeedbackCreate(StrictModel):
+    subject: str = Field(min_length=1, max_length=200)
+    description: str = Field(min_length=1, max_length=5000)
+    route_origin: str = Field(min_length=1, max_length=300)
+
+
+class FeedbackRating(StrictModel):
+    rating: int = Field(ge=1, le=5)
+    comment: str | None = Field(default=None, max_length=2000)
+
+
+class AdminFeedbackPatch(StrictModel):
+    category: str | None = Field(default=None, max_length=80)
+    severity: str | None = Field(default=None, max_length=40)
+    status: Literal["unassigned", "in_progress", "answered", "resolved"] | None = None
+
+
+class FeedbackReply(StrictModel):
+    message: str = Field(min_length=1, max_length=5000)
+
+
+class DatasetCreate(StrictModel):
+    name: str = Field(min_length=1, max_length=200)
+    description: str = Field(default="", max_length=2000)
+    test_cases: list[dict] = Field(min_length=1, max_length=1000)
+
+
 class Coordinates(StrictModel):
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
