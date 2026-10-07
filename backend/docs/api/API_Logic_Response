@@ -1,0 +1,831 @@
+# VISTRA — BẢNG ĐẶC TẢ CHI TIẾT DANH SÁCH, NGHIỆP VỤ & RESPONSE API (CHUẨN HÓA THEO UI/UX)
+
+Tài liệu này hệ thống hóa 52 API phục vụ giao diện người dùng Vistra sau khi đã tinh gọn, gom nhóm theo chuẩn RESTful (`/api/v1/*`), đính kèm cấu trúc JSON Response mẫu đại diện cho từng endpoint.
+
+---
+
+## I. Nhóm Tài Khoản & Hồ Sơ Cá Nhân (Auth & Profile)
+
+### 1. `POST /api/v1/auth/login`
+- **Nghiệp vụ:** Đăng nhập dùng chung cho du khách và admin, thiết lập cookie `vistra_session` trên trình duyệt.
+- **Response (200 OK):**
+```json
+{
+  "user": {
+    "id": 1,
+    "full_name": "Nguyen Van A",
+    "email": "a@example.com",
+    "role": "traveler",
+    "avatar_url": "[https://images.vistra.vn/avatars/user_1.png](https://images.vistra.vn/avatars/user_1.png)"
+  },
+  "session": {
+    "expires_at": "2026-11-07T08:00:00+07:00"
+  }
+}
+
+
+### 2. POST /api/v1/auth/registerNghiệp vụ: Đăng ký tài khoản (họ tên, ngày sinh, email, password, chấp thuận terms) và tự động cấp phiên.   Response (201 Created):
+
+{
+  "user": {
+    "id": 2,
+    "full_name": "Nguyen Van B",
+    "email": "b@example.com",
+    "role": "traveler",
+    "avatar_url": null
+  },
+  "session": {
+    "expires_at": "2026-11-07T08:00:00+07:00"
+  }
+}
+
+
+### 3. POST /api/v1/auth/logoutNghiệp vụ: Thu hồi phiên phía server và xóa cookie vistra_session.   Response (200 OK):
+{
+  "success": true,
+  "message": "Đăng xuất thành công"
+}
+
+4. GET /api/v1/auth/meNghiệp vụ: Lấy thông tin phiên hiện tại hiển thị Navbar/Header (role, avatar, badge thành viên).   Response (200 OK):
+
+{
+  "user": {
+    "id": 1,
+    "full_name": "Nguyen Van A",
+    "email": "a@example.com",
+    "role": "traveler",
+    "avatar_url": "[https://images.vistra.vn/avatars/user_1.png](https://images.vistra.vn/avatars/user_1.png)",
+    "tier_badge": "Vàng",
+    "is_active": true
+  }
+}
+
+
+5. PATCH /api/v1/users/meNghiệp vụ: Cập nhật thông tin cá nhân, điểm xuất phát mặc định (default_origin), phong cách.   Response (200 OK):
+{
+  "id": 1,
+  "full_name": "Nguyen Van A",
+  "phone": "0912345678",
+  "default_origin": "Hà Nội",
+  "bio": "Yêu thích du lịch trải nghiệm ẩm thực",
+  "preferred_pace": "relaxed",
+  "dietary_preference": "none",
+  "updated_at": "2026-10-07T09:00:00+07:00"
+}
+
+6. GET /api/v1/users/me/dnaNghiệp vụ: Đọc các thang điểm và trọng số Travel DNA cá nhân.   Response (200 OK):
+{
+  "metrics": [
+    {"key": "nature_vs_city", "score": 85, "label": "Thiên nhiên"},
+    {"key": "relaxation_vs_action", "score": 40, "label": "Khám phá năng động"},
+    {"key": "budget_comfort", "score": 70, "label": "Tối ưu tiện nghi"}
+  ],
+  "pace": "relaxed",
+  "scenery_focus": "mountain",
+  "cuisine_priority": "local_street_food",
+  "confidence_score": 0.92
+}
+
+7. PUT /api/v1/users/me/dnaNghiệp vụ: Cập nhật toàn bộ trọng số sở thích DNA cá nhân từ màn hình Profile.   Response (200 OK):
+{
+  "success": true,
+  "updated_at": "2026-10-07T09:05:00+07:00",
+  "dna_summary": {
+    "pace": "moderate",
+    "scenery_focus": "beach",
+    "cuisine_priority": "seafood"
+  }
+}
+
+
+8. GET /api/v1/users/me/subscription
+Nghiệp vụ: Đọc gói dịch vụ, hạn mức tạo lịch trình và lịch sử các hóa đơn.
+
+Response (200 OK):
+
+{
+  "plan_name": "Gói Khám Phá (Pro)",
+  "quota_limit": 50,
+  "quota_remaining": 34,
+  "expires_at": "2026-12-31T23:59:59+07:00",
+  "invoices": [
+    {
+      "id": "INV-2026-001",
+      "amount_vnd": 299000,
+      "status": "paid",
+      "created_at": "2026-09-01T10:00:00+07:00",
+      "description": "Nâng cấp gói Pro 3 tháng"
+    }
+  ]
+}
+
+
+II. Nhóm Danh Mục, Khám Phá & Phân Tích (Public & Common)9. GET /api/v1/public/landingNghiệp vụ: Lấy nội dung trang chủ (Hero carousel, Intro điểm đến, số liệu thống kê).   Response (200 OK):
+
+{
+  "hero_plans": [
+    {
+      "id": 101,
+      "title": "Mùa lúa chín Tam Cốc",
+      "destination": "Ninh Bình",
+      "image_url": "[https://images.vistra.vn/landing/tam-coc.jpg](https://images.vistra.vn/landing/tam-coc.jpg)",
+      "is_active": true
+    }
+  ],
+  "intro_destinations": [
+    {
+      "id": 1,
+      "slug": "ninh-binh",
+      "name": "Ninh Bình",
+      "thumbnail": "[https://images.vistra.vn/dest/nb.jpg](https://images.vistra.vn/dest/nb.jpg)",
+      "short_description": "Vùng đất cố đô di sản"
+    }
+  ],
+  "stats": {
+    "total_trips_created": 15400,
+    "active_travelers": 8200
+  }
+}
+
+
+
+10. GET /api/v1/catalog/{type}Nghiệp vụ: Đọc danh mục tĩnh dùng chung (provinces, allergies, moodboard).   Response (200 OK) — ví dụ provinces:
+
+{
+  "type": "provinces",
+  "items": [
+    {"code": "NB", "slug": "ninh-binh", "name": "Ninh Bình", "region": "Bắc Bộ"},
+    {"code": "DN", "slug": "da-nang", "name": "Đà Nẵng", "region": "Trung Bộ"}
+  ]
+}
+
+
+11. POST /api/v1/dna/analyze
+Nghiệp vụ: Phân tích các ảnh moodboard và mô tả phong cách thành Travel DNA tạm thời.
+
+Response (200 OK):
+
+
+{
+  "derived_dna": {
+    "pace": "relaxed",
+    "scenery_focus": "heritage",
+    "suggested_interests": ["di_tich", "am_thuc_ban_dia"],
+    "metrics": [
+      {"key": "nature_vs_city", "score": 80}
+    ]
+  },
+  "confidence": 0.88
+}
+
+
+12. GET /api/v1/destinations/recommendationsNghiệp vụ: Gợi ý 5 điểm đến phù hợp (mùa vụ, chi phí cơ sở) theo bộ lọc.   Response (200 OK):
+
+{
+  "items": [
+    {
+      "id": 1,
+      "slug": "ninh-binh",
+      "name": "Ninh Bình",
+      "best_season": "Tháng 10 - Tháng 4",
+      "seasonality_status": "ideal",
+      "base_budget_per_day_vnd": 650000,
+      "cover_image": "[https://images.vistra.vn/dest/nb_thumb.jpg](https://images.vistra.vn/dest/nb_thumb.jpg)",
+      "match_score": 96
+    }
+  ]
+}
+
+
+13. GET /api/v1/destinations/{id}Nghiệp vụ: Xem chi tiết một điểm đến hoặc so sánh 2–3 điểm qua ?ids=1,2.   Response (200 OK) — chế độ so sánh qua query param:
+
+
+{
+  "destinations": [
+    {
+      "id": 1,
+      "name": "Ninh Bình",
+      "weather_summary": "Mát mẻ, ít mưa",
+      "estimated_budget_vnd": 1800000,
+      "highlights": ["Tràng An", "Tam Cốc", "Hang Múa"]
+    },
+    {
+      "id": 2,
+      "name": "Đà Nẵng",
+      "weather_summary": "Gió mùa nhẹ",
+      "estimated_budget_vnd": 2400000,
+      "highlights": ["Bà Nà Hills", "Bán đảo Sơn Trà"]
+    }
+  ]
+}
+
+III. Nhóm Hành Trình & Lập Kế Hoạch (Trips & Planner)14. POST /api/v1/tripsNghiệp vụ: Khởi tạo chuyến và tự động sinh lịch trình hoàn chỉnh $\ge 4$ ngày.   Response (201 Created):
+
+
+{
+  "id": 88,
+  "base_version": 1,
+  "destination": "Ninh Bình",
+  "start_date": "2026-11-01",
+  "days_count": 4,
+  "status": "draft",
+  "total_budget_vnd": 3200000,
+  "stops_count": 12,
+  "itinerary_preview": [
+    {"day": 1, "summary": "Khám phá Cố đô Hoa Lư và Tràng An"}
+  ]
+}
+
+
+15. GET /api/v1/trips/{trip_id}Nghiệp vụ: Single Source of Truth cho Planner (lịch trình chi tiết, stops, dự toán, warnings).   Response (200 OK):
+{
+  "id": 88,
+  "base_version": 2,
+  "title": "Hành trình khám phá Ninh Bình 4 ngày",
+  "status": "draft",
+  "is_published": false,
+  "travelers": 2,
+  "budget": {
+    "total_vnd": 3200000,
+    "breakdown": {
+      "transport": 600000,
+      "stay": 1200000,
+      "food": 1000000,
+      "tickets": 400000
+    }
+  },
+  "warnings": [
+    {"type": "weather", "message": "Có thể có mưa nhẹ vào chiều ngày thứ 2"}
+  ],
+  "days": [
+    {
+      "day_number": 1,
+      "date": "2026-11-01",
+      "stops": [
+        {
+          "stop_id": 1001,
+          "place_id": 12,
+          "name": "Chùa Bái Đính",
+          "start_time": "09:00",
+          "lat": 20.2764,
+          "lng": 105.8672,
+          "category": "attraction"
+        }
+      ]
+    }
+  ]
+}
+
+
+16. PATCH /api/v1/trips/{trip_id}Nghiệp vụ: Cập nhật kéo thả stops, đổi ràng buộc, chốt draft (confirmed) hoặc đổi cờ publication.   Response (200 OK):
+{
+  "id": 88,
+  "base_version": 3,
+  "status": "confirmed",
+  "is_published": true,
+  "message": "Cập nhật hành trình thành công"
+}
+
+
+17. POST /api/v1/trips/{trip_id}/chatNghiệp vụ: Trò chuyện cùng trợ lý AI Vistra, tự động áp dụng thay đổi vào bản nháp chuyến đi.   Response (200 OK):
+{
+  "reply": "Tôi đã giảm bớt 1 hoạt động vào chiều ngày 1 và dãn thời gian nghỉ ngơi theo yêu cầu của bạn.",
+  "impact_summary": "Đã chuyển Chùa Bái Đính sang sáng ngày 2",
+  "base_version": 4,
+  "updated_trip": {
+    "id": 88,
+    "status": "draft"
+  }
+}
+
+
+18. GET /api/v1/trips/meNghiệp vụ: Đọc danh sách chuyến đi của cá nhân kèm phân trang và thống kê.   Response (200 OK):
+
+{
+  "items": [
+    {
+      "id": 88,
+      "title": "Ninh Bình 4N3Đ",
+      "destination": "Ninh Bình",
+      "status": "confirmed",
+      "start_date": "2026-11-01",
+      "total_budget_vnd": 3200000,
+      "stops_count": 12
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "page_size": 10,
+    "total_records": 1
+  }
+}
+
+
+19. GET /api/v1/community/tripsNghiệp vụ: Danh sách hành trình công khai, lọc đa tiêu chí, bảo vệ dữ liệu cá nhân.   Response (200 OK):
+
+{
+  "items": [
+    {
+      "id": 88,
+      "title": "Lịch trình Ninh Bình chill 4 ngày 3 đêm",
+      "province": "Ninh Bình",
+      "duration_days": 4,
+      "total_budget_vnd": 3200000,
+      "likes_count": 48,
+      "liked_by_me": false,
+      "author_name": "Hoà Nguyễn"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "page_size": 9,
+    "total_records": 125
+  }
+}
+
+
+20. POST /api/v1/community/trips/{trip_id}/likeNghiệp vụ: Thích/bỏ thích hành trình công khai (Idempotent).   Response (200 OK):
+
+{
+  "trip_id": 88,
+  "liked": true,
+  "total_likes": 49
+}
+
+
+21. POST /api/v1/community/trips/{trip_id}/forkNghiệp vụ: Sao chép hành trình cộng đồng thành bản nháp mới độc lập của tài khoản.   Response (201 Created):
+
+{
+  "new_trip_id": 142,
+  "status": "draft",
+  "base_version": 1,
+  "message": "Đã sao chép lịch trình thành bản nháp của bạn"
+}
+
+
+IV. Nhóm Phản Hồi & Báo Lỗi (Feedback & Tickets)22. POST /api/v1/feedbackNghiệp vụ: Tiếp nhận khiếu nại, báo lỗi (hỗ trợ cả Guest và Auth).   Response (201 Created):
+
+{
+  "ticket_id": "TCK-8092",
+  "subject": "Lỗi hiển thị bản đồ ngày 2",
+  "status": "open",
+  "created_at": "2026-10-07T09:10:00+07:00"
+}
+
+
+23. GET /api/v1/feedback/meNghiệp vụ: Xem danh sách phản hồi của cá nhân kèm phản hồi từ đội ngũ hỗ trợ.   Response (200 OK):
+{
+  "items": [
+    {
+      "id": "TCK-8092",
+      "subject": "Lỗi hiển thị bản đồ ngày 2",
+      "status": "resolved",
+      "rating": null,
+      "replies": [
+        {
+          "sender": "Staff Support",
+          "message": "Đã kiểm tra và xử lý tọa độ hiển thị tại Tràng An.",
+          "created_at": "2026-10-07T09:20:00+07:00"
+        }
+      ]
+    }
+  ]
+}
+
+24. POST /api/v1/feedback/{id}/ratingNghiệp vụ: Đánh giá số sao cho câu trả lời từ đội ngũ hỗ trợ.   Response (200 OK):
+
+{
+  "ticket_id": "TCK-8092",
+  "rating": 5,
+  "comment": "Nhân viên hỗ trợ phản hồi rất nhanh",
+  "message": "Cảm ơn bạn đã đánh giá dịch vụ"
+}
+
+V. Nhóm Quản Trị Dashboard & Vận Hành (Admin Core)
+25. GET /api/v1/admin/dashboard
+Nghiệp vụ: Đọc 5 KPI tổng quan, biểu đồ 12 tháng, 4 traces gần nhất.
+
+Response (200 OK):
+
+
+{
+  "kpis": {
+    "total_users": 12450,
+    "active_trips": 542,
+    "system_health": "healthy",
+    "avg_latency_ms": 185,
+    "monthly_recurring_revenue_vnd": 45800000
+  },
+  "chart_12_months": [
+    {"month": "2026-01", "revenue_vnd": 28000000, "new_users": 650},
+    {"month": "2026-09", "revenue_vnd": 45800000, "new_users": 1280}
+  ],
+  "recent_traces": [
+    {"trace_id": "TR-01", "endpoint": "POST /trips", "latency_ms": 120, "status": 201}
+  ]
+}
+
+
+26. GET /api/v1/admin/users
+Nghiệp vụ: Danh sách người dùng, bảng thống kê donut theo hạng và phân trang.
+
+Response (200 OK):
+
+{
+  "user_distribution": {
+    "free_tier": 10500,
+    "pro_tier": 1800,
+    "vip_tier": 150
+  },
+  "items": [
+    {
+      "id": 1,
+      "full_name": "Nguyen Van A",
+      "email": "a@example.com",
+      "role": "traveler",
+      "status": "active",
+      "created_at": "2026-01-15T10:00:00+07:00"
+    }
+  ],
+  "pagination": {"page": 1, "page_size": 10, "total_records": 12450}
+}
+
+
+27. PATCH /api/v1/admin/users/{user_id}/status
+Nghiệp vụ: Khóa hoặc mở khóa tài khoản người dùng, thu hồi phiên ngay lập tức.
+
+Response (200 OK):
+
+{
+  "user_id": 1,
+  "status": "blocked",
+  "message": "Đã khóa tài khoản người dùng thành công"
+}
+
+
+28. GET /api/v1/admin/revenue
+Nghiệp vụ: Báo cáo doanh thu và danh sách đơn hàng thực tế từ cổng thanh toán.
+
+Response (200 OK):
+
+{
+  "kpis": {
+    "total_revenue_vnd": 348000000,
+    "current_month_vnd": 45800000,
+    "paid_transactions_count": 820,
+    "refund_rate": 0.01
+  },
+  "transactions": [
+    {
+      "id": "TX-9901",
+      "user_email": "a@example.com",
+      "amount_vnd": 299000,
+      "package": "Gói Pro 3 Tháng",
+      "status": "success",
+      "paid_at": "2026-10-06T15:30:00+07:00"
+    }
+  ],
+  "pagination": {"page": 1, "page_size": 20, "total_records": 820}
+}
+
+
+
+
+
+29. GET /api/v1/admin/feedbackNghiệp vụ: Hộp thư phản hồi quản trị, danh sách ticket và badge chưa phân loại.   Response (200 OK):
+{
+  "unclassified_count": 5,
+  "items": [
+    {
+      "id": "TCK-8092",
+      "subject": "Lỗi hiển thị bản đồ ngày 2",
+      "sender_email": "guest_01@gmail.com",
+      "category": "bug",
+      "severity": "medium",
+      "status": "open",
+      "created_at": "2026-10-07T09:10:00+07:00"
+    }
+  ],
+  "pagination": {"page": 1, "page_size": 10, "total_records": 24}
+}
+
+
+30. PATCH /api/v1/admin/feedback/{id}Nghiệp vụ: Phân loại hoặc cập nhật trạng thái phiếu hỗ trợ.   Response (200 OK):
+
+{
+  "id": "TCK-8092",
+  "category": "ui_ux",
+  "severity": "high",
+  "status": "in_progress",
+  "updated_at": "2026-10-07T09:15:00+07:00"
+}
+
+
+31. POST /api/v1/admin/feedback/{id}/repliesNghiệp vụ: Staff gửi câu trả lời chính thức, tự động đồng bộ cho người dùng.   Response (201 Created):
+
+{
+  "id": 501,
+  "ticket_id": "TCK-8092",
+  "staff_name": "Admin Support",
+  "message": "Đội ngũ kỹ thuật đã xác nhận và sửa lỗi tọa độ.",
+  "created_at": "2026-10-07T09:20:00+07:00"
+}
+
+32. GET /api/v1/admin/tracesNghiệp vụ: Xem danh sách trace logs hệ thống (có filter, pagination).   Response (200 OK):
+
+{
+  "items": [
+    {
+      "trace_id": "trace-uuid-001",
+      "service": "itinerary-agent",
+      "duration_ms": 340,
+      "status": "success",
+      "created_at": "2026-10-07T09:00:00+07:00"
+    }
+  ],
+  "pagination": {"page": 1, "page_size": 20, "total_records": 1400}
+}
+
+33. GET /api/v1/admin/traces/{trace_id}Nghiệp vụ: Chi tiết 1 trace (che dữ liệu nhạy cảm), hỗ trợ deep link.   Response (200 OK):
+{
+  "trace_id": "trace-uuid-001",
+  "service": "itinerary-agent",
+  "spans": [
+    {"name": "fetch_destinations", "duration_ms": 40},
+    {"name": "llm_generate_schedule", "duration_ms": 300}
+  ],
+  "sanitized_payload": {
+    "destination": "Ninh Bình",
+    "days": 4
+  }
+}
+
+
+34. GET /api/v1/admin/system/metricsNghiệp vụ: Đọc 4 KPI hệ thống và 2 nhóm benchmark chuẩn mực.   Response (200 OK):
+{
+  "kpis": {
+    "cpu_usage_pct": 24.5,
+    "memory_usage_pct": 48.2,
+    "avg_response_time_ms": 110,
+    "error_rate_pct": 0.05
+  },
+  "benchmarks": {
+    "database": {"p95_query_ms": 12, "status": "pass"},
+    "model_inference": {"avg_tokens_per_sec": 45, "status": "pass"}
+  }
+}
+
+
+VI. Nhóm Quản Trị Nội Dung CMS & Dữ Liệu Thực Thể (CMS & Entities)35. GET /api/v1/admin/content/{collection}Nghiệp vụ: Xem danh sách các nội dung CMS (hero-plans, intro-destinations, allergy-options).   Response (200 OK):
+
+
+{
+  "collection": "hero-plans",
+  "items": [
+    {
+      "id": 1,
+      "title": "Mùa lúa chín Tam Cốc",
+      "destination": "Ninh Bình",
+      "is_active": true,
+      "sort_order": 1
+    }
+  ]
+}
+
+
+36. POST /api/v1/admin/content/{collection}Nghiệp vụ: Thêm mới một bản ghi nội dung quản trị.   Response (201 Created):
+{
+  "id": 2,
+  "collection": "hero-plans",
+  "title": "Bình minh trên biển Mỹ Khê",
+  "destination": "Đà Nẵng",
+  "is_active": true
+}
+
+
+37. PATCH /api/v1/admin/content/{collection}/{id}Nghiệp vụ: Cập nhật nội dung hoặc bật/tắt trạng thái hiển thị (active/inactive).   Response (200 OK):
+{
+  "id": 1,
+  "collection": "hero-plans",
+  "is_active": false,
+  "updated_at": "2026-10-07T09:22:00+07:00"
+}
+
+
+38. DELETE /api/v1/admin/content/{collection}/{id}Nghiệp vụ: Xóa vĩnh viễn mục nội dung CMS.   Response (200 OK):
+{
+  "id": 2,
+  "success": true,
+  "message": "Đã xóa bản ghi thành công"
+}
+
+
+39. GET /api/v1/admin/entities/metadata
+Nghiệp vụ: Trả về Schema cấu trúc của 5 thực thể quản trị (37 trường form, FK, validation).
+
+Response (200 OK):
+
+{
+  "entities": {
+    "places": {
+      "display_name": "Địa điểm tham quan",
+      "fields": [
+        {"name": "id", "type": "integer", "primary_key": true},
+        {"name": "name", "type": "string", "required": true},
+        {"name": "destination_slug", "type": "string", "foreign_key": "destinations.slug"}
+      ]
+    }
+  }
+}
+
+
+40. GET /api/v1/admin/entities/{entity}
+Nghiệp vụ: Đọc danh sách bản ghi thực thể (hỗ trợ tìm kiếm, phân trang).
+
+Response (200 OK):
+{
+  "entity": "places",
+  "items": [
+    {"id": 1, "name": "Chùa Bái Đính", "destination_slug": "ninh-binh", "quality": "verified"}
+  ],
+  "pagination": {"page": 1, "page_size": 20, "total_records": 340}
+}
+
+41. POST /api/v1/admin/entities/{entity}
+Nghiệp vụ: Thêm bản ghi thực thể mới (cho phép chỉ định ID tùy biến theo UI).
+
+Response (201 Created):
+
+{
+  "entity": "places",
+  "created_id": 999,
+  "message": "Thêm bản ghi thành công"
+}
+
+
+42. PATCH /api/v1/admin/entities/{entity}/{id}
+Nghiệp vụ: Chỉnh sửa bản ghi thực thể theo khóa chính.
+
+Response (200 OK):
+{
+  "entity": "places",
+  "id": 999,
+  "updated_fields": ["name"],
+  "message": "Cập nhật bản ghi thành công"
+}
+
+43. DELETE /api/v1/admin/entities/{entity}/{id}
+Nghiệp vụ: Xóa bản ghi thực thể (kiểm tra toàn vẹn ràng buộc FK).
+
+Response (200 OK):
+
+{
+  "entity": "places",
+  "id": 999,
+  "success": true,
+  "message": "Đã xóa bản ghi"
+}
+
+
+44. POST /api/v1/admin/entities/{entity}/import
+Nghiệp vụ: Nạp JSON hàng loạt (?dry_run=true validate/preview, false commit thật).
+
+Response (200 OK) — chế độ dry_run=true:
+
+
+{
+  "is_dry_run": true,
+  "valid_records_count": 48,
+  "error_records_count": 2,
+  "errors": [
+    {"row": 12, "error": "Khóa ngoại destination_slug không tồn tại"},
+    {"row": 35, "error": "Thiếu trường bắt buộc name"}
+  ],
+  "preview": [
+    {"id": 1001, "name": "Động Am Tiên", "destination_slug": "ninh-binh"}
+  ]
+}
+
+
+VII. Nhóm Bộ Dữ Liệu Mẫu & Kiểm Thử (Golden Dataset)45. GET /api/v1/admin/golden-datasetsNghiệp vụ: Xem danh sách bộ Golden Dataset và trạng thái các test case.   Response (200 OK):
+
+{
+  "items": [
+    {
+      "id": "ds-smoke-01",
+      "name": "Smoke Test Ninh Bình",
+      "total_cases": 10,
+      "last_run_at": "2026-10-06T18:00:00+07:00",
+      "last_status": "pass",
+      "pass_rate_pct": 100
+    }
+  ]
+}
+
+
+46. POST /api/v1/admin/golden-datasetsNghiệp vụ: Nạp mới bộ Golden Dataset từ JSON.   Response (201 Created):
+{
+  "id": "ds-smoke-02",
+  "name": "Đánh giá lịch trình miền Trung",
+  "cases_loaded": 15,
+  "created_at": "2026-10-07T09:25:00+07:00"
+}
+
+
+
+47. POST /api/v1/admin/golden-datasets/{id}/run
+Nghiệp vụ: Chạy kiểm thử đánh giá thực tế và trả kết quả hiển thị lên modal[cite: 1].
+
+Response (200 OK):
+
+
+{
+  "dataset_id": "ds-smoke-01",
+  "execution_time_sec": 4.2,
+  "summary": {
+    "total": 10,
+    "passed": 9,
+    "failed": 1
+  },
+  "results": [
+    {
+      "case_name": "case-01-budget-limit",
+      "status": "pass",
+      "expected": 1500000,
+      "actual": 1450000
+    },
+    {
+      "case_name": "case-02-pace-relaxed",
+      "status": "failed",
+      "reason": "Số lượng điểm dừng ngày 1 vượt quá 4 điểm"
+    }
+  ]
+}
+
+
+VIII. Nhóm API Có Điều Kiện (Conditional & Third-party)
+48. GET /api/v1/admin/safety/catalog
+Nghiệp vụ: Đọc catalog các quy tắc kiểm duyệt an toàn nội dung Guardrails.
+
+Response (200 OK):
+{
+  "rules": [
+    {"rule_id": "RULE-01", "name": "Lọc ngôn từ nhạy cảm", "enabled": true},
+    {"rule_id": "RULE-02", "name": "Ngăn chặn địa điểm nguy hiểm/cấm", "enabled": true}
+  ]
+}
+
+
+49. POST /api/v1/admin/safety/evaluate
+Nghiệp vụ: Đánh giá prompt thực tế qua engine kiểm duyệt Safety Guardrails.
+
+Response (200 OK):
+
+{
+  "prompt": "Đi phượt vào vùng cấm Ninh Bình ban đêm",
+  "is_safe": false,
+  "flagged_rules": ["RULE-02"],
+  "action_taken": "blocked",
+  "confidence": 0.97
+}
+
+
+50. GET /api/v1/auth/oauth/{provider}/url
+Nghiệp vụ: Trả về đường dẫn đăng nhập Google/Facebook phía client[cite: 1].
+
+Response (200 OK):
+
+{
+  "provider": "google",
+  "auth_url": "[https://accounts.google.com/o/oauth2/v2/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=](https://accounts.google.com/o/oauth2/v2/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=)..."
+}
+
+
+
+51. POST /api/v1/auth/oauth/{provider}/callback
+Nghiệp vụ: Đổi authorization code lấy cookie phiên vistra_session.
+
+Response (200 OK):
+{
+  "user": {
+    "id": 5,
+    "full_name": "Google User",
+    "email": "user@gmail.com",
+    "role": "traveler",
+    "avatar_url": "[https://lh3.googleusercontent.com/](https://lh3.googleusercontent.com/)..."
+  },
+  "session": {
+    "expires_at": "2026-11-07T08:00:00+07:00"
+  }
+}
+
+
+52. POST /api/v1/auth/forgot-password
+Nghiệp vụ: Tiếp nhận yêu cầu gửi liên kết đặt lại mật khẩu qua email.
+
+Response (200 OK):
+
+{
+  "email": "a@example.com",
+  "message": "Nếu email tồn tại trên hệ thống, thư hướng dẫn đặt lại mật khẩu sẽ được gửi trong ít phút."
+}

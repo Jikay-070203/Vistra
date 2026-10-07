@@ -884,6 +884,189 @@ def create_app(settings=None, services=None, gemini_client=None):
                 "status": trace["status"], "latencyMs": trace["latency_ms"], "confidence": trace["confidence"],
                 "context": json.loads(trace["context_json"]), "details": json.loads(trace["details_json"])}
 
+    # ------------------------------------------------------------------
+    # Versioned frontend contract. Root routes above remain supported for
+    # existing clients; these aliases are the canonical /api/v1 surface.
+    # ------------------------------------------------------------------
+    @app.post("/api/v1/auth/register", status_code=201)
+    def v1_register(data: RegisterRequest, response: Response, db=Depends(database)):
+        result = register(data, response, db)
+        result["user"] = {"id": result["user"]["id"], "full_name": result["user"]["fullName"],
+                           "email": result["user"]["email"], "role": result["user"]["role"],
+                           "avatar_url": result["user"].get("avatarUrl")}
+        result["session"]["expires_at"] = result["session"].pop("expiresAt")
+        return result
+
+    @app.post("/api/v1/auth/login")
+    def v1_login(data: LoginRequest, response: Response, db=Depends(database)):
+        result = login(data, response, db)
+        result["user"] = {"id": result["user"]["id"], "full_name": result["user"]["fullName"],
+                           "email": result["user"]["email"], "role": result["user"]["role"],
+                           "avatar_url": result["user"].get("avatarUrl")}
+        result["session"]["expires_at"] = result["session"].pop("expiresAt")
+        return result
+
+    @app.get("/api/v1/auth/me")
+    def v1_me(response: Response, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        result = auth_me(response, vistra_session, db)
+        result["user"] = {"id": result["user"]["id"], "full_name": result["user"]["fullName"],
+                           "email": result["user"]["email"], "role": result["user"]["role"],
+                           "avatar_url": result["user"].get("avatarUrl")}
+        result["session"]["expires_at"] = result["session"].pop("expiresAt")
+        return result
+
+    @app.post("/api/v1/auth/logout")
+    def v1_logout(response: Response, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return logout(response, vistra_session, db)
+
+    @app.patch("/api/v1/users/me")
+    def v1_profile(data: ProfilePatch, response: Response,
+                   vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return update_profile(data, response, vistra_session, db)
+
+    @app.get("/api/v1/users/me/dna")
+    def v1_dna(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return get_travel_dna(vistra_session, db)
+
+    @app.put("/api/v1/users/me/dna")
+    def v1_dna_update(data: TravelDnaPatch, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return update_travel_dna(data, vistra_session, db)
+
+    @app.get("/api/v1/public/landing")
+    def v1_landing(db=Depends(database)):
+        content = public_content(db)
+        return {**content, "stats": {"destinations": len(content["introDestinations"]), "places": None}}
+
+    @app.get("/api/v1/catalog/{catalog_type}")
+    def v1_catalog(catalog_type: str, db=Depends(database)):
+        if catalog_type == "provinces":
+            return {"type": catalog_type, "items": rows(db, "SELECT id,slug,display_name AS name FROM destinations WHERE enabled=1 ORDER BY id")}
+        if catalog_type == "allergies":
+            return {"type": catalog_type, "items": public_content(db)["allergyOptions"]}
+        if catalog_type == "moodboard":
+            return {"type": catalog_type, "items": []}
+        raise HTTPException(404, "Catalog not found")
+
+    @app.get("/api/v1/destinations/recommendations")
+    def v1_destination_recommendations(db=Depends(database)):
+        return destination_recommendations(db=db)
+
+    @app.get("/api/v1/destinations/{destination_id}")
+    def v1_destination_detail(destination_id: str, ids: str | None = None, db=Depends(database)):
+        requested = [part.strip() for part in (ids.split(",") if ids else [destination_id]) if part.strip()]
+        result = []
+        for value in requested:
+            item = row(db, "SELECT id,slug,display_name,admin_name,center_lat,center_lon,target_places FROM destinations WHERE (slug=? OR CAST(id AS TEXT)=?) AND enabled=1", (value, value))
+            if item:
+                result.append({"id": item["id"], "slug": item["slug"], "name": item["display_name"],
+                               "region": item["admin_name"], "coordinates": {"lat": item["center_lat"], "lng": item["center_lon"]},
+                               "targetPlaces": item["target_places"], "highlights": []})
+        if not result: raise HTTPException(404, "Destination not found")
+        return {"destinations": result}
+
+    @app.get("/api/v1/trips/me")
+    def v1_my_trips(page: int = Query(default=1, ge=1), page_size: int = Query(default=10, ge=1, le=50),
+                    vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        total = db.execute("SELECT COUNT(*) FROM trips WHERE owner_user_id=? AND deleted_at IS NULL", (user["id"],)).fetchone()[0]
+        items = rows(db, "SELECT * FROM trips WHERE owner_user_id=? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                     (user["id"], page_size, (page - 1) * page_size))
+        return {"items": [plan_card(db, item, user["id"]) for item in items],
+                "pagination": {"page": page, "page_size": page_size, "total_records": total}}
+
+    @app.post("/api/v1/feedback", status_code=201)
+    def v1_feedback(data: FeedbackCreate, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return create_feedback(data, vistra_session, db)
+
+    @app.get("/api/v1/feedback/me")
+    def v1_feedback_me(page: int = Query(default=1, ge=1), page_size: int = Query(default=10, ge=1, le=50),
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return my_feedback(page, page_size, None, vistra_session, db)
+
+    @app.post("/api/v1/feedback/{ticket_id}/rating")
+    def v1_feedback_rating(ticket_id: str, data: FeedbackRating,
+                           vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return rate_feedback(ticket_id, data, vistra_session, db)
+
+    @app.get("/api/v1/community/trips")
+    def v1_community(page: int = Query(default=1, ge=1), page_size: int = Query(default=9, ge=1, le=50),
+                     vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return community_plans(page=page, page_size=page_size, q="", province=None, duration=None,
+                               tag=None, budget_min_vnd=None, budget_max_vnd=None, liked_by_me=None,
+                               vistra_session=vistra_session, db=db)
+
+    @app.post("/api/v1/community/trips/{trip_id}/like")
+    def v1_like(trip_id: str, data: LikeRequest,
+                vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        result = like_community_plan(trip_id, data, vistra_session, db)
+        return {"trip_id": result["planId"], "liked": result["likedByMe"], "total_likes": result["likesCount"]}
+
+    @app.post("/api/v1/community/trips/{trip_id}/fork", status_code=201)
+    def v1_fork(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        result = clone_community_plan(trip_id, vistra_session, db)
+        return {"new_trip_id": result["plan"]["id"], "status": "draft", "base_version": 0,
+                "message": "Trip cloned as a private draft"}
+
+    @app.patch("/api/v1/trips/{trip_id}")
+    def v1_update_trip(trip_id: str, payload: dict,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        item = row(db, "SELECT owner_user_id,current_version,status,is_published FROM trips WHERE id=? AND deleted_at IS NULL", (trip_id,))
+        if not item: raise HTTPException(404, "Trip not found")
+        if item["owner_user_id"] and item["owner_user_id"] != user["id"]:
+            raise HTTPException(403, "Only the owner can update this trip")
+        base = payload.get("base_version", item["current_version"])
+        if base != item["current_version"]:
+            raise HTTPException(409, "Stale base_version")
+        updates, values = [], []
+        if payload.get("status") in ("draft", "confirmed"):
+            updates.append("status=?"); values.append(payload["status"])
+        if "is_published" in payload:
+            if payload["is_published"] and item["status"] != "confirmed" and payload.get("status") != "confirmed":
+                raise HTTPException(422, "Only confirmed trips can be published")
+            updates.extend(["is_published=?", "published_at=?"])
+            values.extend([1 if payload["is_published"] else 0, now() if payload["is_published"] else None])
+        if updates:
+            db.execute(f"UPDATE trips SET {','.join(updates)},owner_user_id=COALESCE(owner_user_id,?) WHERE id=?",
+                       (*values, user["id"], trip_id))
+        return {"id": trip_id, "base_version": item["current_version"],
+                "status": payload.get("status", item["status"]),
+                "is_published": bool(payload.get("is_published", item["is_published"])),
+                "message": "Trip updated successfully"}
+
+    @app.post("/api/v1/trips/{trip_id}/chat")
+    def v1_trip_chat(trip_id: str, data: ChatRequest,
+                     vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return travel_agent(trip_id, data, db)
+
+    @app.get("/api/v1/admin/feedback")
+    def v1_admin_feedback(page: int = Query(default=1, ge=1), page_size: int = Query(default=10, ge=1, le=50),
+                          vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return admin_feedback(page, page_size, "", None, vistra_session, db)
+
+    @app.patch("/api/v1/admin/feedback/{ticket_id}")
+    def v1_admin_feedback_patch(ticket_id: str, data: AdminFeedbackPatch,
+                                vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return patch_feedback(ticket_id, data, vistra_session, db)
+
+    @app.post("/api/v1/admin/feedback/{ticket_id}/replies", status_code=201)
+    def v1_admin_feedback_reply(ticket_id: str, data: FeedbackReply,
+                                vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return reply_feedback(ticket_id, data, vistra_session, db)
+
+    @app.get("/api/v1/admin/traces")
+    def v1_admin_traces(page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100),
+                        vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return list_traces(page, page_size, vistra_session, db)
+
+    @app.get("/api/v1/admin/traces/{trace_id}")
+    def v1_admin_trace(trace_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return trace_detail(trace_id, vistra_session, db)
+
+    @app.get("/api/v1/admin/system/metrics")
+    def v1_admin_metrics(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return system_summary(vistra_session, db)
+
     return app
 
 
