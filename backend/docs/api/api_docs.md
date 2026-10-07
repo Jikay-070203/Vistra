@@ -15,10 +15,13 @@ POST  /api/v1/auth/register
 POST  /api/v1/auth/login
 GET   /api/v1/auth/me
 POST  /api/v1/auth/logout
+POST  /api/v1/auth/refresh
 PATCH /api/v1/users/me
 GET   /api/v1/users/me/dna
 PUT   /api/v1/users/me/dna
 ```
+
+Register/login body. Login/register create an HttpOnly `vistra_session` and `vistra_refresh` cookie. `POST /api/v1/auth/refresh` rotates the refresh cookie and issues a new short-lived access session; call it once after a `401`, then retry the original request. Never store either token in localStorage.
 
 Register/login body:
 

@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     gemini_model: str = ""
     auth_cookie_secure: bool = False
     auth_session_days: int = Field(default=30, ge=1, le=365)
+    auth_access_minutes: int = Field(default=30, ge=5, le=1440)
+    auth_refresh_days: int = Field(default=30, ge=1, le=365)
 
     @field_validator("overpass_url")
     @classmethod

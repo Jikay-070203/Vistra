@@ -167,13 +167,30 @@ def create_app(settings=None, services=None, gemini_client=None):
     def issue_session(db, user_id: str, response: Response):
         raw = secrets.token_urlsafe(48)
         created = datetime.now(UTC)
-        expires = created + timedelta(days=settings.auth_session_days)
+        expires = created + timedelta(minutes=settings.auth_access_minutes)
         db.execute("INSERT INTO sessions(id,user_id,token_hash,expires_at,created_at) VALUES (?,?,?,?,?)",
                    (str(uuid4()), user_id, hashlib.sha256(raw.encode()).hexdigest(),
                     expires.isoformat(), created.isoformat()))
         response.set_cookie("vistra_session", raw, httponly=True, secure=settings.auth_cookie_secure,
-                            samesite="lax", max_age=settings.auth_session_days * 86400, path="/")
+                            samesite="lax", max_age=settings.auth_access_minutes * 60, path="/")
         return expires.isoformat()
+
+    def issue_refresh_token(db, user_id: str, response: Response):
+        raw = secrets.token_urlsafe(64)
+        created = datetime.now(UTC)
+        expires = created + timedelta(days=settings.auth_refresh_days)
+        refresh_id = str(uuid4())
+        db.execute("INSERT INTO refresh_tokens(id,user_id,token_hash,expires_at,created_at) VALUES (?,?,?,?,?)",
+                   (refresh_id, user_id, hashlib.sha256(raw.encode()).hexdigest(),
+                    expires.isoformat(), created.isoformat()))
+        response.set_cookie("vistra_refresh", raw, httponly=True, secure=settings.auth_cookie_secure,
+                            samesite="lax", max_age=settings.auth_refresh_days * 86400, path="/")
+        return {"id": refresh_id, "expires_at": expires.isoformat()}
+
+    def issue_auth_pair(db, user_id: str, response: Response):
+        refresh = issue_refresh_token(db, user_id, response)
+        return {"expires_at": issue_session(db, user_id, response),
+                "refresh_id": refresh["id"], "refresh_expires_at": refresh["expires_at"]}
 
     @app.post("/auth/register", status_code=201)
     def register(data: RegisterRequest, response: Response, db=Depends(database)):
@@ -187,8 +204,9 @@ def create_app(settings=None, services=None, gemini_client=None):
                    (user_id, data.full_name, data.date_of_birth.isoformat() if data.date_of_birth else None,
                     email, _password_hash(data.password), timestamp, timestamp))
         user = row(db, "SELECT * FROM users WHERE id=?", (user_id,))
-        expires = issue_session(db, user_id, response)
-        return {"user": _public_user(user), "session": {"expiresAt": expires}}
+        auth_pair = issue_auth_pair(db, user_id, response)
+        return {"user": _public_user(user), "session": {"expiresAt": auth_pair["expires_at"],
+                "refreshExpiresAt": auth_pair["refresh_expires_at"]}}
 
     @app.post("/auth/login")
     def login(data: LoginRequest, response: Response, db=Depends(database)):
@@ -197,8 +215,9 @@ def create_app(settings=None, services=None, gemini_client=None):
             raise HTTPException(401, detail={"code": "INVALID_CREDENTIALS", "message": "Invalid email or password"})
         if user["status"] != "active":
             raise HTTPException(403, detail={"code": "ACCOUNT_SUSPENDED", "message": "Account is suspended"})
-        expires = issue_session(db, user["id"], response)
-        return {"user": _public_user(user), "session": {"expiresAt": expires}}
+        auth_pair = issue_auth_pair(db, user["id"], response)
+        return {"user": _public_user(user), "session": {"expiresAt": auth_pair["expires_at"],
+                "refreshExpiresAt": auth_pair["refresh_expires_at"]}}
 
     @app.get("/auth/me")
     def auth_me(response: Response, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
@@ -214,8 +233,37 @@ def create_app(settings=None, services=None, gemini_client=None):
         if vistra_session:
             db.execute("UPDATE sessions SET revoked_at=? WHERE token_hash=? AND revoked_at IS NULL",
                        (now(), hashlib.sha256(vistra_session.encode()).hexdigest()))
+        response.delete_cookie("vistra_refresh", path="/")
         response.delete_cookie("vistra_session", path="/")
         return {"success": True}
+
+    @app.post("/auth/refresh")
+    def refresh_auth(response: Response, vistra_refresh: str | None = Cookie(default=None), db=Depends(database)):
+        if not vistra_refresh:
+            raise HTTPException(401, detail={"code": "REFRESH_REQUIRED", "message": "Refresh token required"})
+        token_hash = hashlib.sha256(vistra_refresh.encode()).hexdigest()
+        token = row(db, "SELECT * FROM refresh_tokens WHERE token_hash=? AND revoked_at IS NULL AND expires_at>?",
+                    (token_hash, now()))
+        if not token:
+            raise HTTPException(401, detail={"code": "INVALID_REFRESH_TOKEN", "message": "Refresh token is invalid or expired"})
+        user = row(db, "SELECT * FROM users WHERE id=? AND status='active'", (token["user_id"],))
+        if not user:
+            raise HTTPException(401, detail={"code": "ACCOUNT_INACTIVE", "message": "Account is inactive"})
+        pair = issue_auth_pair(db, user["id"], response)
+        db.execute("UPDATE refresh_tokens SET revoked_at=?,replaced_by=? WHERE id=? AND revoked_at IS NULL",
+                   (now(), pair["refresh_id"], token["id"]))
+        return {"user": _public_user(user), "session": {"expiresAt": pair["expires_at"],
+                "refreshExpiresAt": pair["refresh_expires_at"]}}
+
+    @app.post("/api/v1/auth/refresh")
+    def v1_refresh(response: Response, vistra_refresh: str | None = Cookie(default=None), db=Depends(database)):
+        result = refresh_auth(response, vistra_refresh, db)
+        result["user"] = {"id": result["user"]["id"], "full_name": result["user"]["fullName"],
+                           "email": result["user"]["email"], "role": result["user"]["role"],
+                           "avatar_url": result["user"].get("avatarUrl")}
+        result["session"]["expires_at"] = result["session"].pop("expiresAt")
+        result["session"]["refresh_expires_at"] = result["session"].pop("refreshExpiresAt")
+        return result
 
     @app.get("/me/profile")
     def get_profile(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
