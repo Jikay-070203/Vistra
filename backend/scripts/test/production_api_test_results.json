@@ -278,7 +278,7 @@
             "details": null
           }
         ],
-        "generatedAt": "2026-10-07T03:08:53.177225+00:00"
+        "generatedAt": "2026-10-07T08:27:43.801590+00:00"
       }
     },
     {
@@ -320,14 +320,15 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
           "full_name": "Railway API Test",
-          "email": "railway-api-test-1791342533@example.com",
+          "email": "railway-api-test-1791361664@example.com",
           "role": "traveler",
           "avatar_url": null
         },
         "session": {
-          "expires_at": "2026-11-06T03:08:53.872960+00:00"
+          "refreshExpiresAt": "2026-11-06T08:27:44.519699+00:00",
+          "expires_at": "2026-10-07T08:57:44.525414+00:00"
         }
       }
     },
@@ -343,14 +344,61 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
           "full_name": "Railway API Test",
-          "email": "railway-api-test-1791342533@example.com",
+          "email": "railway-api-test-1791361664@example.com",
           "role": "traveler",
           "avatar_url": null
         },
         "session": {
-          "expires_at": "2026-11-06T03:08:53.872960+00:00"
+          "expires_at": "2026-10-07T08:57:44.525414+00:00"
+        }
+      }
+    },
+    {
+      "case": "v1 refresh token rotation",
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "user": {
+          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+          "full_name": "Railway API Test",
+          "email": "railway-api-test-1791361664@example.com",
+          "role": "traveler",
+          "avatar_url": null
+        },
+        "session": {
+          "expires_at": "2026-10-07T08:57:45.211767+00:00",
+          "refresh_expires_at": "2026-11-06T08:27:45.208191+00:00"
+        }
+      }
+    },
+    {
+      "case": "v1 auth me after refresh",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "user": {
+          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+          "full_name": "Railway API Test",
+          "email": "railway-api-test-1791361664@example.com",
+          "role": "traveler",
+          "avatar_url": null
+        },
+        "session": {
+          "expires_at": "2026-10-07T08:57:45.211767+00:00"
         }
       }
     },
@@ -365,9 +413,9 @@
       ],
       "passed": true,
       "response": {
-        "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+        "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
         "fullName": "Railway API Test",
-        "email": "railway-api-test-1791342533@example.com",
+        "email": "railway-api-test-1791361664@example.com",
         "phone": null,
         "defaultOrigin": null,
         "bio": null,
@@ -375,7 +423,7 @@
         "preferredStay": null,
         "dietaryPreference": null,
         "avatarUrl": null,
-        "joinedAt": "2026-10-07T03:08:53.826120+00:00"
+        "joinedAt": "2026-10-07T08:27:44.476440+00:00"
       }
     },
     {
@@ -390,9 +438,9 @@
       "passed": true,
       "response": {
         "profile": {
-          "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
           "fullName": "Railway API Test",
-          "email": "railway-api-test-1791342533@example.com",
+          "email": "railway-api-test-1791361664@example.com",
           "phone": null,
           "defaultOrigin": null,
           "bio": "production smoke test",
@@ -400,7 +448,7 @@
           "preferredStay": null,
           "dietaryPreference": null,
           "avatarUrl": null,
-          "joinedAt": "2026-10-07T03:08:53.826120+00:00"
+          "joinedAt": "2026-10-07T08:27:44.476440+00:00"
         },
         "emailChangePending": false
       }
@@ -449,7 +497,7 @@
           "sceneryFocus": null,
           "cuisinePriority": null
         },
-        "updatedAt": "2026-10-07T03:08:55.317144+00:00"
+        "updatedAt": "2026-10-07T08:27:47.051470+00:00"
       }
     },
     {
@@ -463,13 +511,13 @@
       ],
       "passed": true,
       "response": {
-        "id": "84d67d2a-6b34-4256-b79d-61b2c38693d4",
+        "id": "09448017-a123-4d11-b69c-d0c649f46827",
         "destination_id": 2,
         "current_version": 0,
-        "created_at": "2026-10-07T03:08:55.622142+00:00",
+        "created_at": "2026-10-07T08:27:47.387661+00:00",
         "deleted_at": null,
         "generation_error": null,
-        "owner_user_id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+        "owner_user_id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
         "status": "draft",
         "is_published": 0,
         "confirmed_at": null,
@@ -503,7 +551,7 @@
     {
       "case": "v1 get trip",
       "method": "GET",
-      "path": "/api/v1/trips/84d67d2a-6b34-4256-b79d-61b2c38693d4",
+      "path": "/api/v1/trips/09448017-a123-4d11-b69c-d0c649f46827",
       "status": 200,
       "expected": [
         200,
@@ -511,13 +559,13 @@
       ],
       "passed": true,
       "response": {
-        "id": "84d67d2a-6b34-4256-b79d-61b2c38693d4",
+        "id": "09448017-a123-4d11-b69c-d0c649f46827",
         "destination_id": 2,
         "current_version": 0,
-        "created_at": "2026-10-07T03:08:55.622142+00:00",
+        "created_at": "2026-10-07T08:27:47.387661+00:00",
         "deleted_at": null,
         "generation_error": null,
-        "owner_user_id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+        "owner_user_id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
         "status": "draft",
         "is_published": 0,
         "confirmed_at": null,
@@ -561,7 +609,7 @@
       "response": {
         "items": [
           {
-            "id": "84d67d2a-6b34-4256-b79d-61b2c38693d4",
+            "id": "09448017-a123-4d11-b69c-d0c649f46827",
             "title": "Trip to Ninh Bình",
             "origin": null,
             "destination": "Ninh Bình",
@@ -574,7 +622,7 @@
             "estimatedCostVnd": null,
             "status": "draft",
             "isPublished": false,
-            "updatedAt": "2026-10-07T03:08:55.622142+00:00",
+            "updatedAt": "2026-10-07T08:27:47.387661+00:00",
             "tags": [
               "attraction"
             ],
@@ -618,15 +666,15 @@
       "passed": true,
       "response": {
         "ticket": {
-          "id": "aefba306-cd54-4774-8325-059fdef935ab",
+          "id": "762909bf-1a5b-49a3-a978-9007a537438a",
           "subject": "Production API smoke test",
           "description": "Automated test ticket",
           "routeOrigin": "/test",
           "category": null,
           "severity": null,
           "status": "unassigned",
-          "createdAt": "2026-10-07T03:08:56.884316+00:00",
-          "updatedAt": "2026-10-07T03:08:56.884316+00:00",
+          "createdAt": "2026-10-07T08:27:48.682047+00:00",
+          "updatedAt": "2026-10-07T08:27:48.682047+00:00",
           "userAnswerRating": null,
           "ratingComment": null,
           "replies": []
@@ -646,15 +694,15 @@
       "response": {
         "items": [
           {
-            "id": "aefba306-cd54-4774-8325-059fdef935ab",
+            "id": "762909bf-1a5b-49a3-a978-9007a537438a",
             "subject": "Production API smoke test",
             "description": "Automated test ticket",
             "routeOrigin": "/test",
             "category": null,
             "severity": null,
             "status": "unassigned",
-            "createdAt": "2026-10-07T03:08:56.884316+00:00",
-            "updatedAt": "2026-10-07T03:08:56.884316+00:00",
+            "createdAt": "2026-10-07T08:27:48.682047+00:00",
+            "updatedAt": "2026-10-07T08:27:48.682047+00:00",
             "userAnswerRating": null,
             "ratingComment": null,
             "replies": []
@@ -685,7 +733,8 @@
           "avatar_url": null
         },
         "session": {
-          "expires_at": "2026-11-06T03:08:57.560819+00:00"
+          "refreshExpiresAt": "2026-11-06T08:27:49.380881+00:00",
+          "expires_at": "2026-10-07T08:57:49.384791+00:00"
         }
       }
     },
@@ -701,6 +750,20 @@
       "passed": true,
       "response": {
         "items": [
+          {
+            "id": "762909bf-1a5b-49a3-a978-9007a537438a",
+            "subject": "Production API smoke test",
+            "description": "Automated test ticket",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-07T08:27:48.682047+00:00",
+            "updatedAt": "2026-10-07T08:27:48.682047+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
           {
             "id": "aefba306-cd54-4774-8325-059fdef935ab",
             "subject": "Production API smoke test",
@@ -788,10 +851,10 @@
         ],
         "page": 1,
         "pageSize": 10,
-        "total": 6,
+        "total": 7,
         "totalPages": 1,
         "counts": {
-          "unassigned": 6,
+          "unassigned": 7,
           "in_progress": 0,
           "answered": 0,
           "resolved": 0
@@ -837,7 +900,7 @@
           "p95": null
         },
         "planAcceptancePct": null,
-        "checkedAt": "2026-10-07T03:08:58.596073+00:00",
+        "checkedAt": "2026-10-07T08:27:50.417989+00:00",
         "benchmarkGroups": []
       }
     },

@@ -43,6 +43,8 @@ services:
       GEMINI_API_KEY: ""
       GEMINI_MODEL: ""
       AUTH_COOKIE_SECURE: "false"
+      AUTH_ACCESS_MINUTES: "30"
+      AUTH_REFRESH_DAYS: "1"
     ports:
       - "8000:8000"
     mem_limit: 320m

@@ -78,6 +78,8 @@ def main() -> int:
     })
     if registered:
         request("v1 auth me", "GET", "/api/v1/auth/me")
+        request("v1 refresh token rotation", "POST", "/api/v1/auth/refresh")
+        request("v1 auth me after refresh", "GET", "/api/v1/auth/me")
         request("v1 get profile", "GET", "/api/v1/users/me")
         request("v1 update profile", "PATCH", "/api/v1/users/me", {"bio": "production smoke test"})
         request("v1 get DNA", "GET", "/api/v1/users/me/dna")

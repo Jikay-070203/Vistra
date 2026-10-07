@@ -11,6 +11,8 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
+      AUTH_ACCESS_MINUTES: ${AUTH_ACCESS_MINUTES:-30}
+      AUTH_REFRESH_DAYS: ${AUTH_REFRESH_DAYS:-1}
     ports:
       - "${HOST_PORT:-8000}:${PORT:-8000}"
     # Production currently runs backend only; cap it to leave host overhead.

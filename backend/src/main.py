@@ -172,7 +172,8 @@ def create_app(settings=None, services=None, gemini_client=None):
                    (str(uuid4()), user_id, hashlib.sha256(raw.encode()).hexdigest(),
                     expires.isoformat(), created.isoformat()))
         response.set_cookie("vistra_session", raw, httponly=True, secure=settings.auth_cookie_secure,
-                            samesite="lax", max_age=settings.auth_access_minutes * 60, path="/")
+                            samesite="none" if settings.auth_cookie_secure else "lax",
+                            max_age=settings.auth_access_minutes * 60, path="/")
         return expires.isoformat()
 
     def issue_refresh_token(db, user_id: str, response: Response):
@@ -184,7 +185,8 @@ def create_app(settings=None, services=None, gemini_client=None):
                    (refresh_id, user_id, hashlib.sha256(raw.encode()).hexdigest(),
                     expires.isoformat(), created.isoformat()))
         response.set_cookie("vistra_refresh", raw, httponly=True, secure=settings.auth_cookie_secure,
-                            samesite="lax", max_age=settings.auth_refresh_days * 86400, path="/")
+                            samesite="none" if settings.auth_cookie_secure else "lax",
+                            max_age=settings.auth_refresh_days * 86400, path="/")
         return {"id": refresh_id, "expires_at": expires.isoformat()}
 
     def issue_auth_pair(db, user_id: str, response: Response):
