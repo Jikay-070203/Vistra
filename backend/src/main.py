@@ -924,6 +924,10 @@ def create_app(settings=None, services=None, gemini_client=None):
                    vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         return update_profile(data, response, vistra_session, db)
 
+    @app.get("/api/v1/users/me")
+    def v1_get_profile(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return get_profile(vistra_session, db)
+
     @app.get("/api/v1/users/me/dna")
     def v1_dna(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         return get_travel_dna(vistra_session, db)
@@ -973,6 +977,15 @@ def create_app(settings=None, services=None, gemini_client=None):
                      (user["id"], page_size, (page - 1) * page_size))
         return {"items": [plan_card(db, item, user["id"]) for item in items],
                 "pagination": {"page": page, "page_size": page_size, "total_records": total}}
+
+    @app.post("/api/v1/trips", status_code=201)
+    def v1_create_trip(data: TripCreate, generate_itinerary: bool = False,
+                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return create_trip(data, generate_itinerary, vistra_session, db)
+
+    @app.get("/api/v1/trips/{trip_id}")
+    def v1_get_trip(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return get_trip(trip_id, db)
 
     @app.post("/api/v1/feedback", status_code=201)
     def v1_feedback(data: FeedbackCreate, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
