@@ -94,7 +94,8 @@ class Coordinates(StrictModel):
 class TripCreate(StrictModel):
     destination: str = Field(min_length=1, max_length=60)
     start_date: date
-    days: int = Field(default=2, ge=1, le=3)
+    # The user may plan any number of days; only zero/negative durations are invalid.
+    days: int = Field(default=2, ge=1)
     people: int = Field(default=1, ge=1, le=50)
     budget_vnd: int = Field(default=1500000, ge=0, le=100000000000)
     budget_scope: Literal["total", "per_person"] = "per_person"
@@ -127,7 +128,7 @@ class GenerateSelection(StrictModel):
 
 class Stop(StrictModel):
     place_id: int = Field(gt=0)
-    day: int = Field(ge=1, le=3)
+    day: int = Field(ge=1)
     start_time: str | None = Field(default=None, pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")
 
 
