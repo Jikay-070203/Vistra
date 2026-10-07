@@ -17,7 +17,7 @@
       }
     },
     {
-      "case": "versioned status",
+      "case": "v1 status",
       "method": "GET",
       "path": "/api/v1/status",
       "status": 200,
@@ -32,77 +32,9 @@
       }
     },
     {
-      "case": "destinations",
+      "case": "v1 landing",
       "method": "GET",
-      "path": "/destinations",
-      "status": 200,
-      "expected": [
-        200,
-        201
-      ],
-      "passed": true,
-      "response": {
-        "items": [
-          {
-            "id": 1,
-            "slug": "ha-noi",
-            "display_name": "Hà Nội",
-            "admin_name": null,
-            "center_lat": 21.0285,
-            "center_lon": 105.8542,
-            "target_places": 300,
-            "enabled": 1,
-            "places": 0,
-            "schedulable": 0
-          },
-          {
-            "id": 2,
-            "slug": "ninh-binh",
-            "display_name": "Ninh Bình",
-            "admin_name": null,
-            "center_lat": 20.2506,
-            "center_lon": 105.9745,
-            "target_places": 300,
-            "enabled": 1,
-            "places": 300,
-            "schedulable": 0
-          },
-          {
-            "id": 3,
-            "slug": "tp-ho-chi-minh",
-            "display_name": "TP. Hồ Chí Minh",
-            "admin_name": null,
-            "center_lat": 10.7769,
-            "center_lon": 106.7009,
-            "target_places": 300,
-            "enabled": 1,
-            "places": 0,
-            "schedulable": 0
-          },
-          {
-            "id": 4,
-            "slug": "da-lat",
-            "display_name": "Đà Lạt",
-            "admin_name": null,
-            "center_lat": 11.9404,
-            "center_lon": 108.4583,
-            "target_places": 300,
-            "enabled": 1,
-            "places": 0,
-            "schedulable": 0
-          }
-        ],
-        "attribution": {
-          "text": "© OpenStreetMap contributors",
-          "url": "https://www.openstreetmap.org/copyright",
-          "license": "ODbL-1.0"
-        }
-      }
-    },
-    {
-      "case": "public content",
-      "method": "GET",
-      "path": "/public/content",
+      "path": "/api/v1/public/landing",
       "status": 200,
       "expected": [
         200,
@@ -170,13 +102,89 @@
             "active": true,
             "label": "Gluten"
           }
+        ],
+        "stats": {
+          "destinations": 4,
+          "places": null
+        }
+      }
+    },
+    {
+      "case": "v1 provinces catalog",
+      "method": "GET",
+      "path": "/api/v1/catalog/provinces",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "type": "provinces",
+        "items": [
+          {
+            "id": 1,
+            "slug": "ha-noi",
+            "name": "Hà Nội"
+          },
+          {
+            "id": 2,
+            "slug": "ninh-binh",
+            "name": "Ninh Bình"
+          },
+          {
+            "id": 3,
+            "slug": "tp-ho-chi-minh",
+            "name": "TP. Hồ Chí Minh"
+          },
+          {
+            "id": 4,
+            "slug": "da-lat",
+            "name": "Đà Lạt"
+          }
         ]
       }
     },
     {
-      "case": "destination recommendations",
+      "case": "v1 allergies catalog",
       "method": "GET",
-      "path": "/recommendations/destinations",
+      "path": "/api/v1/catalog/allergies",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "type": "allergies",
+        "items": [
+          {
+            "id": "seafood",
+            "active": true,
+            "label": "Hải sản"
+          },
+          {
+            "id": "peanut",
+            "active": true,
+            "label": "Đậu phộng"
+          },
+          {
+            "id": "dairy",
+            "active": true,
+            "label": "Sữa"
+          },
+          {
+            "id": "gluten",
+            "active": true,
+            "label": "Gluten"
+          }
+        ]
+      }
+    },
+    {
+      "case": "v1 destination recommendations",
+      "method": "GET",
+      "path": "/api/v1/destinations/recommendations",
       "status": 200,
       "expected": [
         200,
@@ -270,13 +278,40 @@
             "details": null
           }
         ],
-        "generatedAt": "2026-10-06T04:05:55.728894+00:00"
+        "generatedAt": "2026-10-07T03:08:53.177225+00:00"
       }
     },
     {
-      "case": "register",
+      "case": "v1 destination detail",
+      "method": "GET",
+      "path": "/api/v1/destinations/1",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "destinations": [
+          {
+            "id": 1,
+            "slug": "ha-noi",
+            "name": "Hà Nội",
+            "region": null,
+            "coordinates": {
+              "lat": 21.0285,
+              "lng": 105.8542
+            },
+            "targetPlaces": 300,
+            "highlights": []
+          }
+        ]
+      }
+    },
+    {
+      "case": "v1 register",
       "method": "POST",
-      "path": "/auth/register",
+      "path": "/api/v1/auth/register",
       "status": 201,
       "expected": [
         200,
@@ -285,21 +320,21 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
-          "fullName": "API Test User",
-          "email": "api-test-1791259556@example.com",
+          "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+          "full_name": "Railway API Test",
+          "email": "railway-api-test-1791342533@example.com",
           "role": "traveler",
-          "avatarUrl": null
+          "avatar_url": null
         },
         "session": {
-          "expiresAt": "2026-11-05T04:05:56.121278+00:00"
+          "expires_at": "2026-11-06T03:08:53.872960+00:00"
         }
       }
     },
     {
-      "case": "auth me",
+      "case": "v1 auth me",
       "method": "GET",
-      "path": "/auth/me",
+      "path": "/api/v1/auth/me",
       "status": 200,
       "expected": [
         200,
@@ -308,21 +343,21 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
-          "fullName": "API Test User",
-          "email": "api-test-1791259556@example.com",
+          "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+          "full_name": "Railway API Test",
+          "email": "railway-api-test-1791342533@example.com",
           "role": "traveler",
-          "avatarUrl": null
+          "avatar_url": null
         },
         "session": {
-          "expiresAt": "2026-11-05T04:05:56.121278+00:00"
+          "expires_at": "2026-11-06T03:08:53.872960+00:00"
         }
       }
     },
     {
-      "case": "get profile",
+      "case": "v1 get profile",
       "method": "GET",
-      "path": "/me/profile",
+      "path": "/api/v1/users/me",
       "status": 200,
       "expected": [
         200,
@@ -330,9 +365,9 @@
       ],
       "passed": true,
       "response": {
-        "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
-        "fullName": "API Test User",
-        "email": "api-test-1791259556@example.com",
+        "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+        "fullName": "Railway API Test",
+        "email": "railway-api-test-1791342533@example.com",
         "phone": null,
         "defaultOrigin": null,
         "bio": null,
@@ -340,13 +375,13 @@
         "preferredStay": null,
         "dietaryPreference": null,
         "avatarUrl": null,
-        "joinedAt": "2026-10-06T04:05:56.064400+00:00"
+        "joinedAt": "2026-10-07T03:08:53.826120+00:00"
       }
     },
     {
-      "case": "update profile",
+      "case": "v1 update profile",
       "method": "PATCH",
-      "path": "/me/profile",
+      "path": "/api/v1/users/me",
       "status": 200,
       "expected": [
         200,
@@ -355,25 +390,25 @@
       "passed": true,
       "response": {
         "profile": {
-          "id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
-          "fullName": "API Test User",
-          "email": "api-test-1791259556@example.com",
+          "id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+          "fullName": "Railway API Test",
+          "email": "railway-api-test-1791342533@example.com",
           "phone": null,
           "defaultOrigin": null,
-          "bio": "API smoke test",
+          "bio": "production smoke test",
           "preferredPace": null,
           "preferredStay": null,
           "dietaryPreference": null,
           "avatarUrl": null,
-          "joinedAt": "2026-10-06T04:05:56.064400+00:00"
+          "joinedAt": "2026-10-07T03:08:53.826120+00:00"
         },
         "emailChangePending": false
       }
     },
     {
-      "case": "get travel dna",
+      "case": "v1 get DNA",
       "method": "GET",
-      "path": "/me/travel-dna",
+      "path": "/api/v1/users/me/dna",
       "status": 200,
       "expected": [
         200,
@@ -393,9 +428,9 @@
       }
     },
     {
-      "case": "update travel dna",
-      "method": "PATCH",
-      "path": "/me/travel-dna/preferences",
+      "case": "v1 update DNA",
+      "method": "PUT",
+      "path": "/api/v1/users/me/dna",
       "status": 200,
       "expected": [
         200,
@@ -414,26 +449,27 @@
           "sceneryFocus": null,
           "cuisinePriority": null
         },
-        "updatedAt": "2026-10-06T04:05:57.776600+00:00"
+        "updatedAt": "2026-10-07T03:08:55.317144+00:00"
       }
     },
     {
-      "case": "create trip",
+      "case": "v1 create trip",
       "method": "POST",
-      "path": "/trips",
+      "path": "/api/v1/trips",
       "status": 201,
       "expected": [
+        200,
         201
       ],
       "passed": true,
       "response": {
-        "id": "0aa5f504-8add-411a-9d73-90ad897ce249",
+        "id": "84d67d2a-6b34-4256-b79d-61b2c38693d4",
         "destination_id": 2,
         "current_version": 0,
-        "created_at": "2026-10-06T04:05:58.104280+00:00",
+        "created_at": "2026-10-07T03:08:55.622142+00:00",
         "deleted_at": null,
         "generation_error": null,
-        "owner_user_id": "91b2cad6-ceb3-4bbb-9fdf-ea583f53729b",
+        "owner_user_id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
         "status": "draft",
         "is_published": 0,
         "confirmed_at": null,
@@ -441,13 +477,13 @@
         "request": {
           "destination": "ninh-binh",
           "start_date": "2026-11-01",
-          "days": 2,
-          "people": 1,
-          "budget_vnd": 1500000,
-          "budget_scope": "per_person",
+          "days": 4,
+          "people": 2,
+          "budget_vnd": 3200000,
+          "budget_scope": "total",
           "transport": "car",
           "origin": null,
-          "pace": "normal",
+          "pace": "relaxed",
           "interests": [
             "attraction"
           ],
@@ -465,9 +501,98 @@
       }
     },
     {
-      "case": "community plans",
+      "case": "v1 get trip",
       "method": "GET",
-      "path": "/community/plans",
+      "path": "/api/v1/trips/84d67d2a-6b34-4256-b79d-61b2c38693d4",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "id": "84d67d2a-6b34-4256-b79d-61b2c38693d4",
+        "destination_id": 2,
+        "current_version": 0,
+        "created_at": "2026-10-07T03:08:55.622142+00:00",
+        "deleted_at": null,
+        "generation_error": null,
+        "owner_user_id": "30b7d37c-970e-4232-b4ed-77549bc8e3a4",
+        "status": "draft",
+        "is_published": 0,
+        "confirmed_at": null,
+        "published_at": null,
+        "request": {
+          "destination": "ninh-binh",
+          "start_date": "2026-11-01",
+          "days": 4,
+          "people": 2,
+          "budget_vnd": 3200000,
+          "budget_scope": "total",
+          "transport": "car",
+          "origin": null,
+          "pace": "relaxed",
+          "interests": [
+            "attraction"
+          ],
+          "must_visit": [],
+          "allow_unverified": false,
+          "lodging_total_vnd": null,
+          "transport_total_vnd": null
+        },
+        "itinerary": null,
+        "recommendations": {
+          "attraction": [],
+          "food": [],
+          "stay": []
+        }
+      }
+    },
+    {
+      "case": "v1 my trips",
+      "method": "GET",
+      "path": "/api/v1/trips/me",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [
+          {
+            "id": "84d67d2a-6b34-4256-b79d-61b2c38693d4",
+            "title": "Trip to Ninh Bình",
+            "origin": null,
+            "destination": "Ninh Bình",
+            "coverImageUrl": null,
+            "startDate": "2026-11-01",
+            "endDate": "2026-11-01",
+            "durationDays": 4,
+            "budgetMinVnd": 3200000,
+            "budgetMaxVnd": 3200000,
+            "estimatedCostVnd": null,
+            "status": "draft",
+            "isPublished": false,
+            "updatedAt": "2026-10-07T03:08:55.622142+00:00",
+            "tags": [
+              "attraction"
+            ],
+            "likesCount": 0,
+            "likedByMe": false
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "page_size": 10,
+          "total_records": 1
+        }
+      }
+    },
+    {
+      "case": "v1 community list",
+      "method": "GET",
+      "path": "/api/v1/community/trips",
       "status": 200,
       "expected": [
         200,
@@ -483,9 +608,9 @@
       }
     },
     {
-      "case": "create feedback ticket",
+      "case": "v1 feedback create",
       "method": "POST",
-      "path": "/feedback/tickets",
+      "path": "/api/v1/feedback",
       "status": 201,
       "expected": [
         201
@@ -493,15 +618,15 @@
       "passed": true,
       "response": {
         "ticket": {
-          "id": "10102228-0d06-446a-bd75-e3f36b2bd860",
-          "subject": "API smoke test",
-          "description": "Created by test script",
+          "id": "aefba306-cd54-4774-8325-059fdef935ab",
+          "subject": "Production API smoke test",
+          "description": "Automated test ticket",
           "routeOrigin": "/test",
           "category": null,
           "severity": null,
           "status": "unassigned",
-          "createdAt": "2026-10-06T04:05:58.874714+00:00",
-          "updatedAt": "2026-10-06T04:05:58.874714+00:00",
+          "createdAt": "2026-10-07T03:08:56.884316+00:00",
+          "updatedAt": "2026-10-07T03:08:56.884316+00:00",
           "userAnswerRating": null,
           "ratingComment": null,
           "replies": []
@@ -509,9 +634,9 @@
       }
     },
     {
-      "case": "my feedback tickets",
+      "case": "v1 feedback mine",
       "method": "GET",
-      "path": "/me/feedback/tickets",
+      "path": "/api/v1/feedback/me",
       "status": 200,
       "expected": [
         200,
@@ -521,15 +646,15 @@
       "response": {
         "items": [
           {
-            "id": "10102228-0d06-446a-bd75-e3f36b2bd860",
-            "subject": "API smoke test",
-            "description": "Created by test script",
+            "id": "aefba306-cd54-4774-8325-059fdef935ab",
+            "subject": "Production API smoke test",
+            "description": "Automated test ticket",
             "routeOrigin": "/test",
             "category": null,
             "severity": null,
             "status": "unassigned",
-            "createdAt": "2026-10-06T04:05:58.874714+00:00",
-            "updatedAt": "2026-10-06T04:05:58.874714+00:00",
+            "createdAt": "2026-10-07T03:08:56.884316+00:00",
+            "updatedAt": "2026-10-07T03:08:56.884316+00:00",
             "userAnswerRating": null,
             "ratingComment": null,
             "replies": []
@@ -542,9 +667,9 @@
       }
     },
     {
-      "case": "admin login",
+      "case": "v1 admin login",
       "method": "POST",
-      "path": "/auth/login",
+      "path": "/api/v1/auth/login",
       "status": 200,
       "expected": [
         200,
@@ -554,36 +679,20 @@
       "response": {
         "user": {
           "id": "c288cbbe-e0dd-4b21-a9e0-12cea8d71501",
-          "fullName": "Project Admin",
+          "full_name": "Admin",
           "email": "admin@vistral.com",
           "role": "admin",
-          "avatarUrl": null
+          "avatar_url": null
         },
         "session": {
-          "expiresAt": "2026-11-05T04:05:59.528219+00:00"
+          "expires_at": "2026-11-06T03:08:57.560819+00:00"
         }
-      }
-    },
-    {
-      "case": "admin content",
-      "method": "GET",
-      "path": "/admin/content",
-      "status": 200,
-      "expected": [
-        200,
-        201
-      ],
-      "passed": true,
-      "response": {
-        "heroPlans": [],
-        "introDestinations": [],
-        "allergyOptions": []
       }
     },
     {
       "case": "admin feedback",
       "method": "GET",
-      "path": "/admin/feedback/tickets",
+      "path": "/api/v1/admin/feedback",
       "status": 200,
       "expected": [
         200,
@@ -592,6 +701,48 @@
       "passed": true,
       "response": {
         "items": [
+          {
+            "id": "aefba306-cd54-4774-8325-059fdef935ab",
+            "subject": "Production API smoke test",
+            "description": "Automated test ticket",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-07T03:08:56.884316+00:00",
+            "updatedAt": "2026-10-07T03:08:56.884316+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
+          {
+            "id": "930d63dc-a15a-4862-83db-f7e152f02f83",
+            "subject": "Production API smoke test",
+            "description": "Automated test ticket",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-07T03:06:27.204410+00:00",
+            "updatedAt": "2026-10-07T03:06:27.204410+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
+          {
+            "id": "c8067f88-e1e7-4e33-b8f0-4462463ea964",
+            "subject": "Production API smoke test",
+            "description": "Automated test ticket",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-07T03:02:38.087310+00:00",
+            "updatedAt": "2026-10-07T03:02:38.087310+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
           {
             "id": "10102228-0d06-446a-bd75-e3f36b2bd860",
             "subject": "API smoke test",
@@ -636,15 +787,74 @@
           }
         ],
         "page": 1,
-        "pageSize": 5,
-        "total": 3,
+        "pageSize": 10,
+        "total": 6,
         "totalPages": 1,
         "counts": {
-          "unassigned": 3,
+          "unassigned": 6,
           "in_progress": 0,
           "answered": 0,
           "resolved": 0
         }
+      }
+    },
+    {
+      "case": "admin traces",
+      "method": "GET",
+      "path": "/api/v1/admin/traces",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "items": [],
+        "page": 1,
+        "pageSize": 20,
+        "total": 0,
+        "totalPages": 0
+      }
+    },
+    {
+      "case": "admin metrics",
+      "method": "GET",
+      "path": "/api/v1/admin/system/metrics",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "availabilityPct": null,
+        "aiResponseLatencyMs": {
+          "avg": null,
+          "p95": null
+        },
+        "apiLatencyMs": {
+          "avg": null,
+          "p95": null
+        },
+        "planAcceptancePct": null,
+        "checkedAt": "2026-10-07T03:08:58.596073+00:00",
+        "benchmarkGroups": []
+      }
+    },
+    {
+      "case": "admin content",
+      "method": "GET",
+      "path": "/admin/content",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "heroPlans": [],
+        "introDestinations": [],
+        "allergyOptions": []
       }
     },
     {
@@ -666,52 +876,9 @@
       }
     },
     {
-      "case": "system summary",
-      "method": "GET",
-      "path": "/admin/system/summary",
-      "status": 200,
-      "expected": [
-        200,
-        201
-      ],
-      "passed": true,
-      "response": {
-        "availabilityPct": null,
-        "aiResponseLatencyMs": {
-          "avg": null,
-          "p95": null
-        },
-        "apiLatencyMs": {
-          "avg": null,
-          "p95": null
-        },
-        "planAcceptancePct": null,
-        "checkedAt": "2026-10-06T04:06:00.811704+00:00",
-        "benchmarkGroups": []
-      }
-    },
-    {
-      "case": "traces",
-      "method": "GET",
-      "path": "/admin/traces",
-      "status": 200,
-      "expected": [
-        200,
-        201
-      ],
-      "passed": true,
-      "response": {
-        "items": [],
-        "page": 1,
-        "pageSize": 5,
-        "total": 0,
-        "totalPages": 0
-      }
-    },
-    {
-      "case": "logout",
+      "case": "v1 logout",
       "method": "POST",
-      "path": "/auth/logout",
+      "path": "/api/v1/auth/logout",
       "status": 200,
       "expected": [
         200,
