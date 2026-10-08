@@ -11,23 +11,42 @@ import ProfileFeedbackTab from './ProfileFeedbackTab';
 
 export default function ProfileScreen() {
   const {
-    plans,
+    isLoggedIn,
     activeTab,
     setActiveTab,
     formData,
     setFormData,
+    avatarUrl,
+    joinedAt,
     savedSuccess,
     setSavedSuccess,
+    saveError,
+    isSaving,
+    isLoading,
+    retryLoadProfile,
+    hasLoadedProfile,
     handleSave,
+    totalPlansCount,
     confirmedPlansCount,
     publishedPlansCount,
+    serverTrips,
+    serverTotal,
+    serverTotalPages,
+    activityPage,
+    activityPageSize,
+    handleActivityPageChange,
+    isLoadingActivity,
+    activityError,
+    retryLoadActivity,
   } = useProfileController();
 
   return (
     <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
       <ProfileHeader
         formData={formData}
-        totalPlansCount={plans.length}
+        avatarUrl={avatarUrl}
+        joinedAt={joinedAt}
+        totalPlansCount={totalPlansCount}
         confirmedPlansCount={confirmedPlansCount}
         publishedPlansCount={publishedPlansCount}
         activeTab={activeTab}
@@ -40,7 +59,13 @@ export default function ProfileScreen() {
           setFormData={setFormData}
           savedSuccess={savedSuccess}
           setSavedSuccess={setSavedSuccess}
+          saveError={saveError}
+          isSaving={isSaving}
+          isLoading={isLoading}
+          onRetry={retryLoadProfile}
+          hasLoadedProfile={hasLoadedProfile}
           handleSave={handleSave}
+          isLoggedIn={isLoggedIn}
         />
       )}
 
@@ -48,7 +73,20 @@ export default function ProfileScreen() {
 
       {activeTab === 'subscription' && <ProfileSubscriptionTab />}
 
-      {activeTab === 'activity' && <ProfileActivityTab plans={plans} />}
+      {activeTab === 'activity' && (
+        <ProfileActivityTab
+          isLoggedIn={isLoggedIn}
+          serverTrips={serverTrips}
+          isLoadingServerTrips={isLoadingActivity}
+          serverTripsError={activityError}
+          serverTotal={serverTotal}
+          serverTotalPages={serverTotalPages}
+          currentPage={activityPage}
+          pageSize={activityPageSize}
+          onPageChange={handleActivityPageChange}
+          onRetry={retryLoadActivity}
+        />
+      )}
 
       {activeTab === 'feedback' && <ProfileFeedbackTab />}
     </div>

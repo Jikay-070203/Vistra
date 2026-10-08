@@ -1,9 +1,9 @@
 import React from 'react';
-import { headers, cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import AdminNavigation from '@/components/admin/AdminNavigation';
-import { verifySessionToken, getAdminAuthConfig, getSafeAdminRedirect } from '@/lib/adminAuth';
-import { appConfig } from '@/config/appConfig';
+import { requireBackendAdmin } from '@/lib/backendSession';
+import { getSafeAdminRedirect } from '@/lib/adminAuth';
 
 export default async function AdminLayout({
   children,
@@ -25,20 +25,17 @@ export default async function AdminLayout({
     );
   }
 
-  // Defense-in-depth server check for protected admin routes
-  const cookieStore = await cookies();
-  const token = cookieStore.get(appConfig.adminAuth.cookieName)?.value;
-  const config = getAdminAuthConfig();
-
-  let hasValidSession = false;
-  if (config && token) {
-    const session = await verifySessionToken(token, config.secret);
-    hasValidSession = !!session;
+  // Server-side verification using backendSession
+  let adminSession = null;
+  try {
+    adminSession = await requireBackendAdmin();
+  } catch (error) {
+    console.error('[Admin Layout] Failed to verify backend admin session:', error);
   }
 
-  if (!hasValidSession) {
+  if (!adminSession) {
     const safeNext = getSafeAdminRedirect(currentPath || '/admin');
-    redirect(`/admin/login?next=${encodeURIComponent(safeNext)}`);
+    redirect(`/login?next=${encodeURIComponent(safeNext)}`);
   }
 
   return (

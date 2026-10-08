@@ -1,142 +1,187 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useDemoPlan } from '@/context/DemoPlanContext';
-import { MoodPhoto, PaceType } from './types';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useUserAuth } from '@/lib/userAuth';
+import { createTrip } from '@/services/tripService';
+import { getProvinceCatalog } from '@/services/catalogService';
+import type { PlanPace } from '@/types/planApi';
+import type { CreatedTripView } from '@/types/tripCreateApi';
+import { DEFAULT_BUDGET_MIN } from '@/components/shared/BudgetRangeField';
+import type { MoodPhoto, TravelDnaState } from './types';
 
-const INITIAL_PHOTOS: MoodPhoto[] = [
+const INITIAL_DNA: TravelDnaState = {
+  exploration: 50,
+  natureCulture: 50,
+  pace: 50,
+  cuisine: 50,
+  budget: 50,
+};
+
+const DEFAULT_SAMPLE_PHOTOS: MoodPhoto[] = [
   {
-    id: 'p1',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAPN5yjZ4_2ddr4jbSd40ZJyTlXybQh97VY5fXwC9yQZpYjZ2_OlrtKKKKlSTVAs8kGb29CSu_0FD9TT3XtpN8DS3eOGJIEc8Hfolwsv9NJNBg-fzNCTXMRC6XepNBLp8jiMOgU_B9pbUx7sdT2Zxbt-kZIfGDM3xsW5DCkglFVtg0GHPtF1vDWrjiK2F08F5ALXUGVOKJcyVXvEG2YRY9IIwmeU5ynP7wjBVOShMLL7u70IDnT5eozVw',
-    caption: 'Biển mây thung lũng Mường Hoa lúc bình minh',
-    tags: ['Thanh bình', 'Sương mù', 'Núi non'],
+    id: 'sample-1',
+    url: '/landing/hero-inspiration.jpg',
+    caption: 'Hồ sương sớm & rừng thông Đà Lạt',
+    tags: ['Bình yên', 'Thiên nhiên'],
   },
   {
-    id: 'p2',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBId3SEsE_eVNlUFOMkPBrr_5xjm109Sz2r1nwrXTj0qPo7JBw9hsO6oDiqXIu6jUtUaQNQJBK6SfYQa7VM1sHJrRP-o1vM3Ud7XiDtuXAgiwaroG9tY39vYc0qYLfHE3bvMCsfBj-XqjjUiDC2-Eh7BTFWd8wxt0OI-tbivDsgE9eCjh6vZpCKblKWVXoBt2LBNwLdwXHYYlRfnDcqqttso7lj42EIWC0lCGkLtkhsErLA-RIr5YyqBg',
-    caption: 'Ban công ngắm cảnh phong cách Indochine hoài niệm',
-    tags: ['Cổ điển', 'Ban công ngắm cảnh'],
-  },
-  {
-    id: 'p3',
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDw7fycPldv6zjzmXnR_P-Y6m8EPzMPk_w_W3ElQp0yObpBAqZmYUSgldO_JtqNPNIfrrxPfpa0IYxfQi1MVIZjAkWdGBmlCE3WctbelvGM3saJCy0FjGtLpqxIKt2nk6UzAsSLPAmMuC_HuRkBHN_38GunDsJIAisl-Oy5w5mOYZuVJSWG5BjUnXlJ2fb8gjP0-poQNhrZvKMpWCivd2QzVcz01RDCVs2S-qKDufkPlLRQiM7Vmlte-Q',
-    caption: 'Lối mòn lát đá và xưởng dệt lanh thủ công bản làng',
-    tags: ['Bản làng', 'Lối đi thuận tiện'],
+    id: 'sample-2',
+    url: '/landing/final-journey.jpg',
+    caption: 'Cung đường đèo mây & hoàng hôn',
+    tags: ['Cảnh quan', 'Phiêu lưu'],
   },
 ];
 
 export function useCreateTripController() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const resumePlanId = searchParams.get('resumePlanId');
-  const { createDraftFromInput, getPlanById, setActivePlanId } = useDemoPlan();
+  const { user, isLoggedIn, isLoaded } = useUserAuth();
+  const preferredProvince = useSearchParams().get('province');
+  const accountId = isLoggedIn ? user?.id ?? null : null;
+  const accountRef = useRef<string | null>(accountId);
 
-  const existingPlan = resumePlanId ? getPlanById(resumePlanId) : undefined;
+  useLayoutEffect(() => {
+    accountRef.current = accountId;
+    return () => { accountRef.current = null; };
+  }, [accountId]);
 
-  const [photos, setPhotos] = useState<MoodPhoto[]>(INITIAL_PHOTOS);
+  // Auth Guard: Auto-redirect anonymous users to login
+  useEffect(() => {
+    if (isLoaded && !isLoggedIn) {
+      router.replace('/login?next=/create-trip');
+    }
+  }, [isLoaded, isLoggedIn, router]);
 
-  const [narrative, setNarrative] = useState(
-    'Tôi muốn một nơi giống như những bức ảnh này. Núi non yên tĩnh, thời tiết mát mẻ, chụp ảnh đẹp, khoảng 4 ngày, không quá đông đúc. Ưu tiên đồ ăn địa phương chuẩn vị và những điểm ngắm cảnh tĩnh lặng hơn là các điểm du lịch thương mại.'
-  );
+  const submittingRef = useRef(false);
+  const [catalog, setCatalog] = useState<Array<{ id: number; slug: string; name: string }>>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
 
-  const [pace, setPace] = useState<PaceType>('Thư thái');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Form core fields (accepted by backend API)
+  const [destination, setDestination] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [budget, setBudget] = useState({ min: DEFAULT_BUDGET_MIN, max: DEFAULT_BUDGET_MIN });
+  const [people, setPeople] = useState(1);
+  const [pace, setPace] = useState<PlanPace>('normal');
 
-  // Structured form parameters (UX-10 / F05)
-  const [startCity, setStartCity] = useState('Hà Nội, Việt Nam');
-  const [startDate, setStartDate] = useState('2026-11-18');
-  const [endDate, setEndDate] = useState('2026-11-21');
-  const [budgetMin, setBudgetMin] = useState('10.000.000');
-  const [budgetMax, setBudgetMax] = useState('15.000.000');
-  const [adultsCount, setAdultsCount] = useState(2);
-  const [elderlyCount, setElderlyCount] = useState(0);
-  const [childrenCount, setChildrenCount] = useState(0);
-  const [dietaryNote, setDietaryNote] = useState('Ưu tiên ẩm thực bản địa, hạn chế món cay');
-  const [mobilityNote, setMobilityNote] = useState('Thể lực tốt, ưu tiên lối đi dạo bậc đá nhẹ nhàng');
+  // Extended fields (stored locally on client; clearly marked pending backend API support)
+  const [notes, setNotes] = useState('');
+  const [fitnessLevel, setFitnessLevel] = useState<number>(3); // 1-5 default 3 (Vừa phải)
+  const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<MoodPhoto[]>(DEFAULT_SAMPLE_PHOTOS);
+  const [selectedPhotoForModal, setSelectedPhotoForModal] = useState<MoodPhoto | null>(null);
+  const [travelDna, setTravelDna] = useState<TravelDnaState>(INITIAL_DNA);
 
-  // Compute combined strings for backward compatibility
-  const computedDates = `${startDate.slice(8, 10)}–${endDate.slice(8, 10)} Th${startDate.slice(5, 7)}`;
-  const computedDuration = '4 ngày / 3 đêm';
-  const computedTravelers = `${adultsCount} Người lớn${elderlyCount > 0 ? `, ${elderlyCount} Người cao tuổi` : ''}${childrenCount > 0 ? `, ${childrenCount} Trẻ em` : ''}`;
-  const computedBudget = `${budgetMin} – ${budgetMax} VND`;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<{ accountId: string; message: string } | null>(null);
+  const [created, setCreated] = useState<(CreatedTripView & { accountId: string }) | null>(null);
 
-  const handleAddPhoto = () => {
-    const newPhoto: MoodPhoto = {
-      id: `p-${Date.now()}`,
-      url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDCCq4LoWJv6LIWDiWBi2YoJT_8MBz1oXRtey5TupfI-I_ITtEG3JQaokAyT-ADtXxZyF6xQXMvJEKQqHbYe5Dl4ST0AbMIel6Fwv9j8RmUyJ1t2FjrTVEz-7WLFEEEESRTawdQufbO3E9D6-3rWDTKxW_GlTsYkcVL6Z8MlzYe3wpBoAty1Dn2dp92he6lD5rA6IT2x53nhiTIcBZ31Mu5E48oUyrWIM8nVwicxAykmhYIRotTl-as8w',
-      caption: 'Guồng nước mộc bên dòng suối bản Cát Cát',
-      tags: ['Thiên nhiên', 'Dòng suối', 'Bản địa'],
-    };
-    setPhotos([...photos, newPhoto]);
-    setToastMessage('Đã thêm 1 ảnh cảm hứng vào Moodboard.');
+  useEffect(() => {
+    let active = true;
+    getProvinceCatalog().then(({ data: items }) => {
+      if (!active) return;
+      setCatalog(items);
+      setCatalogError(null);
+      if (preferredProvince) {
+        const match = items.find(item => item.slug === preferredProvince || item.name === preferredProvince);
+        if (match) setDestination(match.slug);
+      }
+    }).catch((cause: unknown) => {
+      if (active) setCatalogError(cause instanceof Error ? cause.message : 'Không thể tải danh mục tỉnh.');
+    }).finally(() => { if (active) setCatalogLoading(false); });
+    return () => { active = false; };
+  }, [reload, preferredProvince]);
+
+  const toggleAllergy = (allergy: string) => {
+    setSelectedAllergies(prev =>
+      prev.includes(allergy) ? prev.filter(item => item !== allergy) : [...prev, allergy]
+    );
   };
 
-  const handleRemovePhoto = (id: string) => {
-    if (photos.length <= 1) {
-      setToastMessage('Cần giữ ít nhất 1 ảnh cảm hứng để AI phân tích.');
+  const removePhoto = (id: string) => {
+    setPhotos(prev => prev.filter(p => p.id !== id));
+  };
+
+  const addCustomPhoto = (photo: MoodPhoto) => {
+    setPhotos(prev => [...prev, photo]);
+  };
+
+  const resetTravelDna = () => {
+    setTravelDna(INITIAL_DNA);
+  };
+
+  const submit = async () => {
+    if (submittingRef.current || !accountRef.current) return;
+    const days = (Date.parse(endDate) - Date.parse(startDate)) / 86400000 + 1;
+    if (!catalog.some(item => item.slug === destination) || !startDate || !endDate ||
+        !Number.isInteger(days) || days < 1 || !Number.isInteger(people) || people < 1 || people > 50) {
+      setError({ accountId: accountRef.current, message: 'Chọn tỉnh, ngày đi/ngày về hợp lệ và số người từ 1 đến 50.' });
       return;
     }
-    setPhotos(photos.filter((p) => p.id !== id));
-    setToastMessage('Đã gỡ ảnh khỏi Moodboard.');
-  };
-
-  // Primary Action: Create draft or resume existing draft and navigate to active planner workspace
-  const handleStartPlanning = () => {
-    if (existingPlan) {
-      // Resume selected draft: set as active and navigate without creating a duplicate
-      setActivePlanId(existingPlan.id);
-      router.push('/planner');
-    } else {
-      const fullNarrative = `${narrative}\n[Ràng buộc bổ sung: ${computedTravelers} · Chế độ ăn: ${dietaryNote} · Thể lực: ${mobilityNote} · Phong cách: ${pace}]`;
-      createDraftFromInput({
-        origin: startCity,
-        dates: computedDates,
-        duration: computedDuration,
-        travelers: computedTravelers,
-        budget: computedBudget,
-        narrative: fullNarrative,
-        selectedDestination: 'Sa Pa, Lào Cai',
+    const currentAccId = accountRef.current;
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    setError(null);
+    setCreated(null);
+    try {
+      // ONLY send parameters defined in tripCreateApi schema (no unsupported fields sent to backend)
+      const result = await createTrip({
+        destination,
+        start_date: startDate,
+        days,
+        people,
+        budget_vnd: budget.max,
+        budget_scope: 'total',
+        transport: 'car',
+        pace,
       });
-      router.push('/planner');
+      if (accountRef.current === currentAccId) setCreated({ ...result.data, accountId: currentAccId });
+    } catch (cause: unknown) {
+      if (accountRef.current === currentAccId) setError({ accountId: currentAccId, message: cause instanceof Error ? cause.message : 'Không thể tạo chuyến đi.' });
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
   return {
-    existingPlan,
-    photos,
-    narrative,
-    setNarrative,
-    pace,
-    setPace,
-    toastMessage,
-    setToastMessage,
-    startCity,
-    setStartCity,
+    isLoggedIn,
+    isLoaded,
+    catalog,
+    catalogLoading,
+    catalogError,
+    retryCatalog: () => { setCatalogLoading(true); setCatalogError(null); setReload(value => value + 1); },
+    destination,
+    setDestination,
     startDate,
     setStartDate,
     endDate,
     setEndDate,
-    budgetMin,
-    setBudgetMin,
-    budgetMax,
-    setBudgetMax,
-    adultsCount,
-    setAdultsCount,
-    elderlyCount,
-    setElderlyCount,
-    childrenCount,
-    setChildrenCount,
-    dietaryNote,
-    setDietaryNote,
-    mobilityNote,
-    setMobilityNote,
-    dates: computedDates,
-    duration: computedDuration,
-    travelers: computedTravelers,
-    budget: computedBudget,
-    handleAddPhoto,
-    handleRemovePhoto,
-    handleStartPlanning,
+    budget,
+    setBudget,
+    people,
+    setPeople,
+    pace,
+    setPace,
+    notes,
+    setNotes,
+    fitnessLevel,
+    setFitnessLevel,
+    selectedAllergies,
+    toggleAllergy,
+    photos,
+    addCustomPhoto,
+    removePhoto,
+    selectedPhotoForModal,
+    setSelectedPhotoForModal,
+    travelDna,
+    setTravelDna,
+    resetTravelDna,
+    isSubmitting,
+    error: error?.accountId === accountId ? error.message : null,
+    created: created?.accountId === accountId ? created : null,
+    submit,
   };
 }

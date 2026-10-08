@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { ProfileFormData } from './useProfileController';
 
 interface ProfileInfoTabProps {
@@ -8,7 +9,13 @@ interface ProfileInfoTabProps {
   setFormData: React.Dispatch<React.SetStateAction<ProfileFormData>>;
   savedSuccess: boolean;
   setSavedSuccess: (val: boolean) => void;
+  saveError: string | null;
+  isSaving: boolean;
+  isLoading: boolean;
   handleSave: (e: React.FormEvent) => void;
+  isLoggedIn: boolean;
+  hasLoadedProfile: boolean;
+  onRetry: () => void;
 }
 
 export default function ProfileInfoTab({
@@ -16,25 +23,61 @@ export default function ProfileInfoTab({
   setFormData,
   savedSuccess,
   setSavedSuccess,
+  saveError,
+  isSaving,
+  isLoading,
   handleSave,
+  isLoggedIn,
+  hasLoadedProfile,
+  onRetry,
 }: ProfileInfoTabProps) {
+  if (!isLoggedIn) return (
+    <div className="bg-white rounded-3xl p-8 border border-[#0E1D4F]/10 text-center text-sm text-[#4B5875]">
+      <p>Đăng nhập để xem và cập nhật hồ sơ của bạn.</p>
+      <Link href="/login" className="inline-block mt-3 font-semibold text-[#205BD6] underline">Đăng nhập</Link>
+    </div>
+  );
   return (
     <>
-      {/* Toast Notification */}
-      {savedSuccess && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-sm animate-fade-in">
+      {/* Loading Notification */}
+      {isLoading && (
+        <div className="mb-6 p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-sm flex items-center gap-3 animate-fade-in" role="status">
+          <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0"></span>
+          <span>Đang tải thông tin hồ sơ từ máy chủ...</span>
+        </div>
+      )}
+
+      {/* Error Notification */}
+      {saveError && (
+        <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-sm animate-fade-in" role="alert">
           <div className="flex items-center gap-3">
-            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">
+            <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+              !
+            </span>
+            <span>
+              <strong>Lỗi:</strong> {saveError}
+            </span>
+          </div>
+          {!hasLoadedProfile && <button type="button" onClick={onRetry} disabled={isLoading} className="px-4 py-3 rounded-xl font-semibold underline disabled:opacity-50">Thử lại</button>}
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {savedSuccess && (
+        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-sm animate-fade-in" role="status">
+          <div className="flex items-center gap-3">
+            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
               ✓
             </span>
             <span>
-              <strong>Cập nhật thành công!</strong> Các tinh chỉnh hồ sơ đã được lưu trữ cục bộ trong phiên làm việc demo hiện tại.
+              <strong>Cập nhật thành công!</strong>{' '}
+              Thông tin hồ sơ đã được lưu đồng bộ với máy chủ.
             </span>
           </div>
           <button
             type="button"
             onClick={() => setSavedSuccess(false)}
-            className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-1"
+            className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-1 cursor-pointer"
           >
             Đóng
           </button>
@@ -61,7 +104,8 @@ export default function ProfileInfoTab({
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                  disabled={isLoading || isSaving || !hasLoadedProfile}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6] disabled:opacity-60"
                   required
                 />
               </div>
@@ -73,7 +117,8 @@ export default function ProfileInfoTab({
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                  disabled={isLoading || isSaving || !hasLoadedProfile}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6] disabled:opacity-60"
                   required
                 />
               </div>
@@ -88,7 +133,8 @@ export default function ProfileInfoTab({
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                  disabled={isLoading || isSaving || !hasLoadedProfile}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6] disabled:opacity-60"
                 />
               </div>
               <div>
@@ -99,7 +145,8 @@ export default function ProfileInfoTab({
                   type="text"
                   value={formData.defaultOrigin}
                   onChange={(e) => setFormData({ ...formData, defaultOrigin: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                  disabled={isLoading || isSaving || !hasLoadedProfile}
+                  className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6] disabled:opacity-60"
                   required
                 />
               </div>
@@ -113,19 +160,24 @@ export default function ProfileInfoTab({
                 rows={3}
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6]"
+                disabled={isLoading || isSaving || !hasLoadedProfile}
+                className="w-full px-4 py-3 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/20 text-[#0E1D4F] text-sm focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6] disabled:opacity-60"
               />
             </div>
 
-            <div className="pt-4 border-t border-[#0E1D4F]/10 flex items-center justify-between">
+            <div className="pt-4 border-t border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <span className="text-xs text-[#4B5875]">
-                Dữ liệu được lưu trong phạm vi phiên demo của trình duyệt.
+                Dữ liệu được lưu và đồng bộ trực tiếp với máy chủ.
               </span>
               <button
                 type="submit"
-                className="px-6 py-3 rounded-full bg-[#205BD6] text-white text-sm font-bold shadow-md hover:bg-[#205BD6]/90 transition-all cursor-pointer"
+                disabled={isSaving || isLoading || !hasLoadedProfile}
+                className="px-6 py-3 rounded-full bg-[#205BD6] text-white text-sm font-bold shadow-md hover:bg-[#205BD6]/90 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Lưu thay đổi hồ sơ
+                {isSaving && (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                )}
+                <span>{isSaving ? 'Đang lưu...' : 'Lưu thay đổi hồ sơ'}</span>
               </button>
             </div>
           </form>
@@ -144,23 +196,23 @@ export default function ProfileInfoTab({
             <div className="space-y-4">
               <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
                 <div className="text-xs font-bold text-[#0E1D4F] mb-1">Nhịp độ hành trình:</div>
-                <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredPace}</div>
+                <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredPace || 'Chưa thiết lập'}</div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
                 <div className="text-xs font-bold text-[#0E1D4F] mb-1">Gu lưu trú:</div>
-                <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredStay}</div>
+                <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredStay || 'Chưa thiết lập'}</div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
                 <div className="text-xs font-bold text-[#0E1D4F] mb-1">Khẩu vị trải nghiệm:</div>
-                <div className="text-xs text-[#205BD6] font-semibold">{formData.dietaryPreference}</div>
+                <div className="text-xs text-[#205BD6] font-semibold">{formData.dietaryPreference || 'Chưa thiết lập'}</div>
               </div>
             </div>
           </div>
 
-          <div className="mt-8 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-            <span className="font-bold">Lưu ý Demo:</span> Các tùy chọn này là bản dựng tĩnh mô phỏng cách hệ thống ghi nhận hồ sơ du khách.
+          <div className="mt-8 p-4 rounded-2xl bg-[#EBF1F0]/50 border border-[#0E1D4F]/10 text-[#4B5875] text-xs">
+            <span className="font-bold text-[#0E1D4F]">Đồng bộ hồ sơ:</span> Các tiêu chí trên được liên kết trực tiếp với dữ liệu hồ sơ du khách.
           </div>
         </div>
       </div>

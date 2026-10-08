@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Icon from '@/components/ui/Icon';
 import styles from '../landing.module.css';
-import LandingEditorialMotif from '../LandingEditorialMotif';
 import {
   LANDING_ASSETS,
   LANDING_PINS,
@@ -298,10 +297,7 @@ export default function FinalValueSection({
 
           {/* Right Column: Value Summary (5 cols) */}
           <div className={`col-span-12 lg:col-span-5 ${styles.finalCopyCol}`}>
-            <div className="flex items-center gap-3 mb-2">
-              <LandingEditorialMotif variant="terrain" className={styles.sectionMotif} width={96} height={58} />
-            </div>
-            <h2 className={styles.h2}>
+            <h2 className={styles.h2} title="Mọi mảnh ghép đang sẵn sàng.">
               Mọi mảnh ghép đang sẵn sàng.
             </h2>
             <p className={styles.body}>

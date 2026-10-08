@@ -1,25 +1,49 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+import { useUserAuth } from '@/lib/userAuth';
 import { ProfileTabType, ProfileFormData } from './useProfileController';
 
 interface ProfileHeaderProps {
   formData: ProfileFormData;
-  totalPlansCount: number;
-  confirmedPlansCount: number;
-  publishedPlansCount: number;
+  avatarUrl: string | null;
+  joinedAt: string | null;
+  totalPlansCount: number | string;
+  confirmedPlansCount: number | string;
+  publishedPlansCount: number | string;
   activeTab: ProfileTabType;
   onSelectTab: (tab: ProfileTabType) => void;
 }
 
 export default function ProfileHeader({
   formData,
+  avatarUrl,
+  joinedAt,
   totalPlansCount,
   confirmedPlansCount,
   publishedPlansCount,
   activeTab,
   onSelectTab,
 }: ProfileHeaderProps) {
+  const { isLoggedIn } = useUserAuth();
+
+  const formattedJoinedAt = joinedAt
+    ? (() => {
+        try {
+          const d = new Date(joinedAt);
+          if (isNaN(d.getTime())) return joinedAt;
+          return `Tháng ${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        } catch {
+          return joinedAt;
+        }
+      })()
+    : 'Chưa cập nhật';
+
+  const userInitials = formData.fullName
+    ? formData.fullName.trim().slice(0, 2).toUpperCase()
+    : 'VS';
+
   return (
     <>
       {/* Top Breadcrumb & Tag */}
@@ -34,29 +58,57 @@ export default function ProfileHeader({
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#205BD6] to-[#08B3C6] flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-md">
-                VS
+            {isLoggedIn && (
+              <div className="relative">
+                {avatarUrl ? (
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-[#0E1D4F]/10 shadow-md">
+                    <Image
+                      src={avatarUrl}
+                      alt={formData.fullName || 'Ảnh đại diện người dùng'}
+                      fill
+                      sizes="(max-width: 640px) 80px, 96px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#205BD6] to-[#08B3C6] flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-md"
+                    aria-label="Chưa có ảnh đại diện"
+                  >
+                    {userInitials}
+                  </div>
+                )}
+                <span
+                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[10px]"
+                  title="Đang hoạt động"
+                >
+                  ✓
+                </span>
               </div>
-              <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[10px]" title="Đang hoạt động">
-                ✓
-              </span>
-            </div>
+            )}
 
             <div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
-                  {formData.fullName}
+                  {formData.fullName || (isLoggedIn ? 'Tài khoản thành viên' : 'Khách vãng lai')}
                 </h1>
                 <span className="px-3 py-1 rounded-full bg-[#08B3C6]/15 text-[#08B3C6] text-xs font-bold border border-[#08B3C6]/30">
-                  Pro Explorer Demo
+                  {isLoggedIn ? 'Đã đăng nhập' : 'Chưa đăng nhập'}
                 </span>
               </div>
-              <p className="text-sm text-[#4B5875] mt-1">{formData.email}</p>
+              <p className="text-sm text-[#4B5875] mt-1">{formData.email || 'Chưa có email'}</p>
               <div className="flex flex-wrap items-center gap-4 text-xs text-[#4B5875] mt-2">
-                <span>📍 Xuất phát: <strong className="text-[#0E1D4F]">{formData.defaultOrigin}</strong></span>
+                <span>
+                  📍 Xuất phát:{' '}
+                  <strong className="text-[#0E1D4F]">
+                    {formData.defaultOrigin || 'Chưa thiết lập'}
+                  </strong>
+                </span>
                 <span>•</span>
-                <span>🗓 Tham gia từ: <strong className="text-[#0E1D4F]">Tháng 08/2026</strong></span>
+                <span>
+                  🗓 Tham gia từ:{' '}
+                  <strong className="text-[#0E1D4F]">{formattedJoinedAt}</strong>
+                </span>
               </div>
             </div>
           </div>
@@ -65,17 +117,23 @@ export default function ProfileHeader({
           <div className="flex items-center gap-3 sm:gap-6 bg-[#EBF1F0]/60 p-4 rounded-2xl border border-[#0E1D4F]/5">
             <div className="text-center px-3">
               <div className="text-2xl font-bold text-[#0E1D4F]">{totalPlansCount}</div>
-              <div className="text-xs text-[#4B5875] mt-0.5">Tổng hành trình</div>
+              <div className="text-xs text-[#4B5875] mt-0.5">
+                Tổng hành trình
+              </div>
             </div>
             <div className="w-px h-8 bg-[#0E1D4F]/10"></div>
             <div className="text-center px-3">
               <div className="text-2xl font-bold text-emerald-600">{confirmedPlansCount}</div>
-              <div className="text-xs text-[#4B5875] mt-0.5">Đã chốt lịch</div>
+              <div className="text-xs text-[#4B5875] mt-0.5">
+                Đã chốt (Chưa có số liệu)
+              </div>
             </div>
             <div className="w-px h-8 bg-[#0E1D4F]/10"></div>
             <div className="text-center px-3">
               <div className="text-2xl font-bold text-[#205BD6]">{publishedPlansCount}</div>
-              <div className="text-xs text-[#4B5875] mt-0.5">Đã chia sẻ</div>
+              <div className="text-xs text-[#4B5875] mt-0.5">
+                Đã chia sẻ (Chưa có số liệu)
+              </div>
             </div>
           </div>
         </div>
@@ -113,7 +171,7 @@ export default function ProfileHeader({
                 : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#0E1D4F]/5'
             }`}
           >
-            Gói dịch vụ &amp; Hạn mức (Demo)
+            Gói dịch vụ &amp; Hạn mức
           </button>
           <button
             type="button"

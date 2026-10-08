@@ -1,56 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MOCK_DESTINATIONS } from '@/data/mockData';
-import { useDemoPlan } from '@/context/DemoPlanContext';
+import { getRecommendations } from '@/services/destinationService';
+import type { DestinationRecommendationView } from '@/types/recommendationApi';
 
 export function useDestinationsController() {
   const router = useRouter();
-  const { setActivePlanId } = useDemoPlan();
-
-  const [selectedForCompare, setSelectedForCompare] = useState<string[]>(['sapa', 'dalat']);
-  const [expandedDetails, setExpandedDetails] = useState<string | null>('sapa');
+  const [destinations, setDestinations] = useState<DestinationRecommendationView[]>([]);
+  const [isLoadingRecommendations, setLoading] = useState(true);
+  const [recommendationsError, setError] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
+  const [selectedForCompare, setSelected] = useState<string[]>([]);
+  const [expandedDetails, setExpanded] = useState<string | null>(null);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
-
-  const toggleCompare = (id: string) => {
-    if (selectedForCompare.includes(id)) {
-      if (selectedForCompare.length <= 1) return;
-      setSelectedForCompare(selectedForCompare.filter((item) => item !== id));
-    } else {
-      if (selectedForCompare.length >= 3) {
-        setSelectedForCompare([selectedForCompare[1], selectedForCompare[2], id]);
-      } else {
-        setSelectedForCompare([...selectedForCompare, id]);
-      }
-    }
-  };
-
-  const toggleDetails = (id: string) => {
-    setExpandedDetails(expandedDetails === id ? null : id);
-  };
-
-  const handleSelectDestination = (destName: string) => {
-    // Select plan associated with destination or set default
-    if (destName.toLowerCase().includes('sa pa')) {
-      setActivePlanId('sapa-cloud-hunt');
-    } else if (destName.toLowerCase().includes('đà lạt')) {
-      setActivePlanId('dalat-pine-hills');
-    }
-    router.push('/planner');
-  };
-
-  const comparedDestinations = MOCK_DESTINATIONS.filter((d) => selectedForCompare.includes(d.id));
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) { setLoading(true); setError(null); } });
+    getRecommendations().then(response => {
+      if (!active || !response.data) return;
+      const items = response.data.items;
+      setDestinations(items);
+      setSelected(previous => previous.filter(id => items.some(item => item.id === id)));
+    }).catch((cause: unknown) => {
+      if (active) { setDestinations([]); setError(cause instanceof Error ? cause.message : 'Không thể tải điểm đến.'); }
+    }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
 
   return {
-    destinations: MOCK_DESTINATIONS,
-    selectedForCompare,
-    expandedDetails,
-    showComparisonModal,
-    setShowComparisonModal,
-    comparedDestinations,
-    toggleCompare,
-    toggleDetails,
-    handleSelectDestination,
+    destinations, isLoadingRecommendations, recommendationsError, retryRecommendations: () => setReload(value => value + 1),
+    selectedForCompare, expandedDetails, showComparisonModal, setShowComparisonModal,
+    comparedDestinations: destinations.filter(item => selectedForCompare.includes(item.id)),
+    toggleCompare: (id: string) => setSelected(previous => previous.includes(id) ? previous.filter(item => item !== id) : previous.length < 3 ? [...previous, id] : previous),
+    toggleDetails: (id: string) => setExpanded(previous => previous === id ? null : id),
+    handleSelectDestination: (slug: string) => router.push(`/create-trip?province=${encodeURIComponent(slug)}`),
   };
 }

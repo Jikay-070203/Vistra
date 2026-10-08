@@ -95,7 +95,7 @@ export default function FinalPlaceDetail({
         </button>
       </div>
 
-      <h3 className={styles.placeName}>{place.name}</h3>
+      <h3 className={styles.placeName} title={place.name}>{place.name}</h3>
 
       {/* Timing slot if activity exists */}
       {activity?.timeLabel && (

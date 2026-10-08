@@ -1,108 +1,44 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import {
-  verifyAdminCredentials,
-  signSessionToken,
-  getAdminAuthConfig,
-  getAdminCookieOptions,
-  AdminSessionPayload,
-} from '@/lib/adminAuth';
-import { appConfig } from '@/config/appConfig';
+import { getBackendServerUrl } from '@/config/backendConfig';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { authResponseSchema } from '@/schemas/authSchema';
 
-export async function POST(request: Request) {
+/** Temporary compatibility alias. Unified login should call authService.login. */
+export async function POST(request: Request): Promise<Response> {
+  if (request.headers.get('origin') !== new URL(request.url).origin) {
+    return Response.json({ success: false, message: 'Origin mismatch' }, { status: 403 });
+  }
+  let credentials: unknown;
+  try { credentials = await request.json(); }
+  catch { return Response.json({ success: false, message: 'Dữ liệu yêu cầu không hợp lệ.' }, { status: 400 }); }
+  if (typeof credentials !== 'object' || credentials === null || Array.isArray(credentials)) {
+    return Response.json({ success: false, message: 'Dữ liệu yêu cầu không hợp lệ.' }, { status: 400 });
+  }
+  const { email, password } = credentials as Record<string, unknown>;
+  if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password) {
+    return Response.json({ success: false, message: 'Thiếu email hoặc mật khẩu.' }, { status: 400 });
+  }
   try {
-    let body: { email?: string; password?: string };
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { success: false, message: 'Dữ liệu yêu cầu không hợp lệ.' },
-        { status: 400 }
-      );
-    }
-
-    const { email, password } = body;
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { success: false, message: 'Vui lòng cung cấp đầy đủ email và mật khẩu.' },
-        { status: 400 }
-      );
-    }
-
-    // Verify server-side credentials
-    const verification = verifyAdminCredentials(email, password);
-
-    if (!verification.ok) {
-      if (verification.errorType === 'MISSING_CONFIG') {
-        // Do not leak secret details to client; server error is already logged in getAdminAuthConfig
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Cấu hình xác thực hệ thống chưa sẵn sàng. Vui lòng liên hệ quản trị viên.',
-          },
-          { status: 500 }
-        );
-      }
-
-      // Invalid credentials
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Email hoặc mật khẩu quản trị viên không chính xác.',
-        },
-        { status: 401 }
-      );
-    }
-
-    // Retrieve verified server config
-    const config = getAdminAuthConfig();
-    if (!config) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Lỗi xác thực hệ thống.',
-        },
-        { status: 500 }
-      );
-    }
-
-    // Generate signed session token
-    const now = Date.now();
-    const durationSeconds = appConfig.adminAuth.sessionDurationSeconds;
-    const expiresAt = now + durationSeconds * 1000;
-
-    const payload: AdminSessionPayload = {
-      role: 'admin',
-      email: email.trim().toLowerCase(),
-      iat: now,
-      exp: expiresAt,
-    };
-
-    const sessionToken = await signSessionToken(payload, config.secret);
-
-    // Set secure HttpOnly cookie on /admin path
-    const cookieStore = await cookies();
-    const cookieOptions = getAdminCookieOptions(durationSeconds);
-
-    cookieStore.set(cookieOptions.name, sessionToken, {
-      httpOnly: cookieOptions.httpOnly,
-      sameSite: cookieOptions.sameSite,
-      secure: cookieOptions.secure,
-      path: cookieOptions.path,
-      maxAge: cookieOptions.maxAge,
+    const backend = new URL(API_ENDPOINTS.AUTH.LOGIN, getBackendServerUrl());
+    const result = await fetch(backend, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ email: email.trim(), password }), cache: 'no-store', redirect: 'manual',
     });
-
-    // Success response: NEVER include credentials, secret or token in the body
-    return NextResponse.json({
-      success: true,
-      message: 'Đăng nhập thành công.',
-    });
-  } catch (error) {
-    console.error('[Admin Auth API Error] Login handler unexpected error:', error);
-    return NextResponse.json(
-      { success: false, message: 'Đã xảy ra lỗi trong quá trình xử lý đăng nhập.' },
-      { status: 500 }
-    );
+    if (!result.ok) {
+      return Response.json({ success: false, message: 'Xác thực không thành công.' }, { status: result.status });
+    }
+    const auth = authResponseSchema.parse(await result.json());
+    if (auth.user.role !== 'admin') {
+      return Response.json({ success: false, message: 'Tài khoản không có quyền quản trị.' }, { status: 403 });
+    }
+    const headers = new Headers({ 'Cache-Control': 'no-store' });
+    const setCookies = typeof (result.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function'
+      ? (result.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      : result.headers.get('set-cookie') ? [result.headers.get('set-cookie')!] : [];
+    for (const cookie of setCookies) {
+      headers.append('Set-Cookie', cookie);
+    }
+    return Response.json({ success: true, message: 'Đăng nhập thành công.' }, { headers });
+  } catch {
+    return Response.json({ success: false, message: 'Backend chưa sẵn sàng.' }, { status: 502 });
   }
 }

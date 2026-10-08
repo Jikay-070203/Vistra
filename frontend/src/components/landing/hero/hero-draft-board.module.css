@@ -65,12 +65,16 @@
 }
 
 .boardHeaderTitle {
-  font-size: 15px;
+  font-size: clamp(13px, 1.2vw, 15px);
   font-weight: 700;
   color: var(--vistra-navy, #0E1D4F);
   margin: 0;
   line-height: 1.25;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .boardHeaderSub {

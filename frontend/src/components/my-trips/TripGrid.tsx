@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import Icon from '@/components/ui/Icon';
-import { DemoPlan } from '@/context/DemoPlanContext';
-import TripCard from './TripCard';
+
+import TripCard, { UnifiedTripCard } from './TripCard';
 
 interface TripGridProps {
-  plans: DemoPlan[];
+  plans: UnifiedTripCard[];
   totalFilteredCount: number;
   currentPage: number;
   totalPages: number;
@@ -22,6 +22,12 @@ export default function TripGrid({
   onPageChange,
   onClearFilters,
 }: TripGridProps) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const changePage = (page: number) => {
+    onPageChange(page);
+    requestAnimationFrame(() => gridRef.current?.scrollIntoView({ block: 'start' }));
+  };
+
   if (plans.length === 0) {
     return (
       <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-12 text-center flex flex-col items-center justify-center my-6">
@@ -47,10 +53,12 @@ export default function TripGrid({
 
   return (
     <>
-      {/* 4 Columns x 4 Rows Responsive Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 my-6">
+      {/* TRIP-01: Standard left-aligned responsive CSS grid so incomplete final rows never center */}
+      <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 my-6 scroll-mt-24 items-stretch">
         {plans.map((plan) => (
-          <TripCard key={plan.id} plan={plan} />
+          <div key={plan.id} className="w-full">
+            <TripCard plan={plan} />
+          </div>
         ))}
       </div>
 
@@ -65,8 +73,8 @@ export default function TripGrid({
             <button
               type="button"
               disabled={currentPage === 1}
-              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-              className="p-2 rounded-xl bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors"
+              onClick={() => changePage(Math.max(1, currentPage - 1))}
+              className="p-2 rounded-xl bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer"
               aria-label="Trang trước"
             >
               <Icon name="chevron_left" className="size-4" />
@@ -79,8 +87,10 @@ export default function TripGrid({
                 <button
                   key={pageNum}
                   type="button"
-                  onClick={() => onPageChange(pageNum)}
-                  className={`w-9 h-9 rounded-xl text-xs font-semibold transition-all ${
+                  onClick={() => changePage(pageNum)}
+                  aria-current={isSelected ? 'page' : undefined}
+                  aria-label={`Trang ${pageNum}`}
+                  className={`w-9 h-9 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[#205BD6] text-white shadow-xs'
                       : 'bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] hover:bg-[#EBF1F0]'
@@ -94,8 +104,8 @@ export default function TripGrid({
             <button
               type="button"
               disabled={currentPage === totalPages}
-              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-              className="p-2 rounded-xl bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors"
+              onClick={() => changePage(Math.min(totalPages, currentPage + 1))}
+              className="p-2 rounded-xl bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer"
               aria-label="Trang sau"
             >
               <Icon name="chevron_right" className="size-4" />

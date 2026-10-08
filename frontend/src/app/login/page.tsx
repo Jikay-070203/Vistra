@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import LoginScreen from '@/components/auth/LoginScreen';
 
 export const metadata = {
@@ -7,5 +7,15 @@ export const metadata = {
 };
 
 export default function LoginPage() {
-  return <LoginScreen />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#EBF1F0] flex items-center justify-center">
+          <div className="text-sm font-semibold text-[#4B5875]">Đang tải...</div>
+        </div>
+      }
+    >
+      <LoginScreen />
+    </Suspense>
+  );
 }

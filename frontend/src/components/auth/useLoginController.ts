@@ -1,11 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { login as loginApi } from '@/services/authService';
+import { setAuthState } from '@/lib/userAuth';
+import { getSafeAdminRedirect } from '@/lib/adminAuth';
+import { ApiClientError } from '@/services/apiClient';
 
 export function useLoginController() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get('next');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
@@ -27,19 +37,57 @@ export function useLoginController() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
-      setFeedbackMessage(
-        'Chế độ demo UI: Đã xác thực form thành công! Hệ thống không lưu trữ hay gửi thông tin thật lên server.'
-      );
-    }
-  };
+    if (!validate() || isLoading) return;
 
-  const handleProviderClick = (provider: 'Google' | 'Facebook') => {
-    setFeedbackMessage(
-      `Đăng nhập bằng ${provider} đang ở chế độ mô phỏng giao diện (Demo-only). Chưa tích hợp OAuth provider thực tế.`
-    );
+    setIsLoading(true);
+    setFeedbackMessage(null);
+
+    try {
+      const result = await loginApi({ email: email.trim(), password });
+      const auth = result.data;
+
+      // Store real authenticated session
+      setAuthState(auth);
+
+      if (auth.user.role === 'admin') {
+        setFeedbackMessage('Xác thực quản trị viên thành công. Đang chuyển hướng...');
+        const target = nextParam && nextParam.startsWith('/admin') ? getSafeAdminRedirect(nextParam) : '/admin';
+        router.push(target);
+        return;
+      }
+
+      // Traveler / Staff login
+      const welcomeMsg = auth.user.role === 'staff'
+        ? 'Đăng nhập nhân viên thành công. Đang chuyển hướng...'
+        : 'Đăng nhập thành công. Đang chuyển hướng...';
+      setFeedbackMessage(welcomeMsg);
+      let target = '/community';
+      if (nextParam && !nextParam.startsWith('/admin') && nextParam.startsWith('/') && !nextParam.startsWith('//')) {
+        target = nextParam;
+      }
+      setTimeout(() => {
+        router.push(target);
+      }, 300);
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        if (error.httpStatus === 401) {
+          setErrors({ email: 'Địa chỉ email hoặc mật khẩu không chính xác.' });
+        } else if (error.httpStatus === 403) {
+          setErrors({ email: 'Tài khoản của bạn đã bị vô hiệu hóa hoặc không có quyền truy cập.' });
+        } else if (error.errorType === 'network_error') {
+          setErrors({ email: 'Không thể kết nối đến máy chủ xác thực. Vui lòng kiểm tra mạng.' });
+        } else {
+          setErrors({ email: error.message || 'Đăng nhập không thành công. Vui lòng thử lại.' });
+        }
+      } else {
+        const message = error instanceof Error ? error.message : 'Đăng nhập không thành công.';
+        setErrors({ email: message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return {
@@ -49,11 +97,11 @@ export function useLoginController() {
     setPassword,
     showPassword,
     setShowPassword,
+    isLoading,
     errors,
     setErrors,
     feedbackMessage,
     setFeedbackMessage,
     handleLoginSubmit,
-    handleProviderClick,
   };
 }

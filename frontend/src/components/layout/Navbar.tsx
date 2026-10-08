@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/ui/Icon';
+import { useUserAuth } from '@/lib/userAuth';
 
 interface NavLink {
   label: string;
@@ -14,11 +15,12 @@ interface NavLink {
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isLoggedIn, user, logout } = useUserAuth();
 
   const navLinks: NavLink[] = [
-    { label: 'Chuyến đi của tôi', href: '/my-trips' },
-    { label: 'Điểm đến', href: '/destinations' },
     { label: 'Cộng đồng', href: '/community' },
+    { label: 'Điểm đến', href: '/destinations' },
+    { label: 'Chuyến đi của tôi', href: '/my-trips' },
   ];
 
   const isActive = (href: string) => {
@@ -69,42 +71,48 @@ export default function Navbar() {
 
         {/* Action Controls & Utilities */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-
-          {/* Login / Auth link */}
-          <Link
-            href="/login"
-            className={`hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-label-md transition-all ${
-              pathname === '/login' || pathname === '/register'
-                ? 'text-[#205BD6] bg-[#205BD6]/10 font-semibold'
-                : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-white/60'
-            }`}
-          >
-            <Icon name="login" className="size-3.5" />
-            <span>Đăng nhập</span>
-          </Link>
-
-          {/* Primary Action Button */}
-          <Link
-            href="/create-trip"
-            className="inline-flex items-center justify-center gap-1.5 bg-[#205BD6] hover:bg-[#1847a8] text-white font-label-lg text-xs sm:text-sm px-3.5 sm:px-4 py-2 rounded-xl transition-all active:scale-[0.98] shadow-[0_4px_14px_rgba(32,91,214,0.22)] font-semibold"
-          >
-            <Icon name="add" className="size-4" />
-            <span>Lên kế hoạch</span>
-          </Link>
-
-          {/* Profile Avatar Button */}
-          <Link
-            href="/profile"
-            className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs transition-all ${
-              pathname.startsWith('/profile')
-                ? 'bg-[#205BD6] text-white border-[#205BD6] shadow-xs'
-                : 'bg-white/90 text-[#0E1D4F] border-[#0E1D4F]/15 hover:border-[#205BD6] hover:shadow-xs'
-            }`}
-            title="Hồ sơ du khách & Portfolio"
-            aria-label="Hồ sơ cá nhân"
-          >
-            <span>VS</span>
-          </Link>
+          {/* Login link (when not logged in) */}
+          {!isLoggedIn ? (
+            <Link
+              href="/login"
+              className={`hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-label-md transition-all ${
+                pathname === '/login' || pathname === '/register'
+                  ? 'text-[#205BD6] bg-[#205BD6]/10 font-semibold'
+                  : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-white/60'
+              }`}
+            >
+              <Icon name="login" className="size-3.5" />
+              <span>Đăng nhập</span>
+            </Link>
+          ) : (
+            <>
+              {/* Profile Avatar Button */}
+              <Link
+                href="/profile"
+                className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs transition-all ${
+                  pathname.startsWith('/profile')
+                    ? 'bg-[#205BD6] text-white border-[#205BD6] shadow-xs'
+                    : 'bg-white/90 text-[#0E1D4F] border-[#0E1D4F]/15 hover:border-[#205BD6] hover:shadow-xs'
+                }`}
+                title={user?.fullName ? `Hồ sơ: ${user.fullName}` : 'Hồ sơ du khách'}
+                aria-label="Hồ sơ cá nhân"
+              >
+                <span>{user?.fullName ? user.fullName.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() : 'VS'}</span>
+              </Link>
+              {/* Logout button */}
+              <button
+                type="button"
+                onClick={async () => {
+                  await logout();
+                }}
+                className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-label-md text-[#4B5875] hover:text-[#ba1a1a] hover:bg-red-50/50 transition-all cursor-pointer"
+                title="Đăng xuất"
+                aria-label="Đăng xuất"
+              >
+                <Icon name="logout" className="size-3.5" />
+              </button>
+            </>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -141,32 +149,40 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            <Link
-              href="/create-trip"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-sm px-3 py-2.5 rounded-lg transition-all font-semibold text-white bg-[#205BD6] hover:bg-[#1847a8] flex items-center gap-1.5 mt-1"
-            >
-              <Icon name="add" className="size-4" />
-              <span>Lên kế hoạch</span>
-            </Link>
 
             <div className="pt-2 mt-1 border-t border-[#0E1D4F]/10 flex flex-col gap-1">
-              <Link
-                href="/profile"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] flex items-center gap-2"
-              >
-                <Icon name="person" className="size-4 text-[#205BD6]" />
-                <span>Hồ sơ du khách &amp; Tùy chọn</span>
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] flex items-center gap-2"
-              >
-                <Icon name="login" className="size-4 text-[#205BD6]" />
-                <span>Đăng nhập / Đăng ký</span>
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] flex items-center gap-2"
+                  >
+                    <Icon name="person" className="size-4 text-[#205BD6]" />
+                    <span>Hồ sơ du khách ({user?.fullName || 'VISTRA'})</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setMobileMenuOpen(false);
+                      await logout();
+                    }}
+                    className="text-sm px-3 py-2 rounded-lg text-[#ba1a1a] hover:bg-red-50 flex items-center gap-2 text-left w-full cursor-pointer"
+                  >
+                    <Icon name="logout" className="size-4 text-[#ba1a1a]" />
+                    <span>Đăng xuất</span>
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] flex items-center gap-2"
+                >
+                  <Icon name="login" className="size-4 text-[#205BD6]" />
+                  <span>Đăng nhập / Đăng ký</span>
+                </Link>
+              )}
             </div>
           </nav>
         </div>

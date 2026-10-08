@@ -13,12 +13,20 @@ export default function AdminScreen() {
     setFilterStatus,
     selectedLog,
     setSelectedLog,
+    traceDetailError,
+    setTraceDetailError,
+    isLoadingDetail,
+    retryDetail,
     paginatedLogs,
     totalLogsCount,
     filteredCount,
     currentPage,
     totalPages,
+    pageSize,
     setCurrentPage,
+    isLoadingTraces,
+    tracesError,
+    retryTraces,
   } = useAdminController();
 
   return (
@@ -32,13 +40,23 @@ export default function AdminScreen() {
         filteredCount={filteredCount}
         currentPage={currentPage}
         totalPages={totalPages}
+        pageSize={pageSize}
+        isLoading={isLoadingTraces}
+        error={tracesError}
+        onRetry={retryTraces}
         onPageChange={setCurrentPage}
         onFilterChange={setFilterStatus}
         onSelectLog={setSelectedLog}
       />
       <TraceDetailDialog
         log={selectedLog}
-        onClose={() => setSelectedLog(null)}
+        isLoading={isLoadingDetail}
+        error={traceDetailError}
+        onRetry={retryDetail}
+        onClose={() => {
+          setSelectedLog(null);
+          setTraceDetailError(null);
+        }}
       />
     </div>
   );

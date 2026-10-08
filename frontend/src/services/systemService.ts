@@ -1,8 +1,24 @@
+import { getApiBaseUrl, getSessionProxyBaseUrl } from '@/config/apiConfig';
+import { API_ENDPOINTS } from '@/constants/endpoints';
+import { healthResponseSchema } from '@/schemas/systemSchema';
+import { traceDetailSchema, traceListSchema } from '@/schemas/adminSystemSchema';
+import { ApiClientError, apiRequest } from '@/services/apiClient';
+import type { ApiRequestResult } from '@/types/api';
 import type { HealthResponse, HealthErrorType } from '@/types/system';
+import type { AdminPageQuery, AdminPageView, TraceDetailView, TraceListItemView } from '@/types/adminSystemApi';
 
-/**
- * Custom error class for Health Check operations
- */
+export async function getTraces(query: AdminPageQuery): Promise<ApiRequestResult<AdminPageView<TraceListItemView>>> {
+  const params = new URLSearchParams({ page: String(query.page), page_size: String(query.pageSize) });
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACES + '?' + params, getSessionProxyBaseUrl());
+  return { ...result, data: traceListSchema.parse(result.data) };
+}
+
+export async function getTrace(id: string): Promise<ApiRequestResult<TraceDetailView>> {
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACE(id), getSessionProxyBaseUrl());
+  return { ...result, data: traceDetailSchema.parse(result.data) };
+}
+
+/** Custom error class kept as the UI-facing contract for health checks. */
 export class HealthServiceError extends Error {
   public httpStatus?: number;
   public endpoint: string;
@@ -14,7 +30,7 @@ export class HealthServiceError extends Error {
       httpStatus?: number;
       endpoint: string;
       errorType: HealthErrorType;
-    }
+    },
   ) {
     super(message);
     this.name = 'HealthServiceError';
@@ -24,120 +40,57 @@ export class HealthServiceError extends Error {
   }
 }
 
-/**
- * Normalizes backend base URL by stripping trailing slashes.
- */
-export function getBackendBaseUrl(customBaseUrl?: string): string {
-  const rawUrl = customBaseUrl !== undefined ? customBaseUrl : process.env.NEXT_PUBLIC_API_URL;
-  if (!rawUrl || typeof rawUrl !== 'string') {
-    return '';
-  }
-  return rawUrl.trim().replace(/\/+$/, '');
+/** Preserves the previous export while the base URL now lives in config. */
+export function getBackendBaseUrl(): string | undefined {
+  return getApiBaseUrl();
 }
 
-/**
- * Invokes GET /health endpoint from the configured backend base URL.
- *
- * @param customBaseUrl Optional override for testing or simulation
- * @returns Object containing parsed HealthResponse, HTTP status, and endpoint called
- * @throws HealthServiceError on missing URL, network/CORS error, HTTP error, or malformed response
- */
+const healthErrorTypes: Record<ApiClientError['errorType'], HealthErrorType> = {
+  missing_base_url: 'missing_url',
+  network_error: 'network_cors',
+  aborted: 'aborted',
+  http_error: 'http_error',
+  invalid_json: 'invalid_response',
+};
+
+/** Calls GET /health using backend env origin and validates JSON against backend contract. */
 export async function getSystemHealth(customBaseUrl?: string): Promise<{
   data: HealthResponse;
   httpStatus: number;
   endpoint: string;
 }> {
-  const baseUrl = getBackendBaseUrl(customBaseUrl);
-
-  if (!baseUrl) {
-    throw new HealthServiceError(
-      'Chưa cấu hình biến môi trường NEXT_PUBLIC_API_URL. Vui lòng thiết lập base URL của backend trong file môi trường.',
-      {
-        endpoint: '(Chưa cấu hình)',
-        errorType: 'missing_url',
-      }
-    );
-  }
-
-  const endpoint = `${baseUrl}/health`;
-
-  let response: Response;
+  void customBaseUrl;
+  let result: ApiRequestResult;
   try {
-    response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-      cache: 'no-store',
-    });
-  } catch (cause: unknown) {
-    const detail = cause instanceof Error ? cause.message : 'Network error';
-    throw new HealthServiceError(
-      `Không thể kết nối tới backend (${detail}). Vui lòng đảm bảo backend đang chạy và cấu hình CORS_ORIGINS cho phép origin của frontend.`,
-      {
-        endpoint,
-        errorType: 'network_cors',
-      }
+    result = await apiRequest(
+      API_ENDPOINTS.SYSTEM.HEALTH,
+      getApiBaseUrl(),
+      { method: 'GET' },
     );
-  }
-
-  if (!response.ok) {
-    let errorDetail = '';
-    try {
-      const errJson = await response.json();
-      errorDetail =
-        typeof errJson === 'object' && errJson !== null
-          ? (errJson as { detail?: string; message?: string }).detail ||
-            (errJson as { detail?: string; message?: string }).message ||
-            JSON.stringify(errJson)
-          : String(errJson);
-    } catch {
-      try {
-        errorDetail = await response.text();
-      } catch {
-        errorDetail = '';
-      }
+  } catch (error: unknown) {
+    if (error instanceof ApiClientError) {
+      throw new HealthServiceError(error.message, {
+        httpStatus: error.httpStatus,
+        endpoint: error.endpoint,
+        errorType: healthErrorTypes[error.errorType],
+      });
     }
-
-    const message = errorDetail
-      ? `Backend phản hồi lỗi HTTP ${response.status}: ${errorDetail.slice(0, 120)}`
-      : `Backend phản hồi lỗi HTTP ${response.status} (${response.statusText || 'Lỗi máy chủ'})`;
-
-    throw new HealthServiceError(message, {
-      httpStatus: response.status,
-      endpoint,
-      errorType: 'http_error',
-    });
+    throw error;
   }
 
-  let data: unknown;
   try {
-    data = await response.json();
+    return {
+      ...result,
+      data: healthResponseSchema.parse(result.data),
+    };
   } catch {
     throw new HealthServiceError(
-      'Phản hồi từ backend không phải định dạng JSON hợp lệ.',
+      'Dữ liệu phản hồi từ /health không đúng schema dự kiến ({ status: "ok", version: string }).',
       {
-        httpStatus: response.status,
-        endpoint,
+        httpStatus: result.httpStatus,
+        endpoint: result.endpoint,
         errorType: 'invalid_response',
-      }
+      },
     );
   }
-
-  if (typeof data !== 'object' || data === null) {
-    throw new HealthServiceError(
-      'Dữ liệu phản hồi từ /health không đúng định dạng đối tượng JSON.',
-      {
-        httpStatus: response.status,
-        endpoint,
-        errorType: 'invalid_response',
-      }
-    );
-  }
-
-  return {
-    data: data as HealthResponse,
-    httpStatus: response.status,
-    endpoint,
-  };
 }

@@ -127,3 +127,12 @@ Tại mỗi thư mục task `docs/evidence/playwright/YYYY-MM-DD_HH-mm-ss/`, t�
    - Tiếp tục lưu các ảnh mới (after-fix, retest) vào cùng thư mục này với số thứ tự tăng dần (`02_...`, `03_...`).
    - Cập nhật kết quả vào `run-info.md`.
    - **Chỉ tạo thư mục timestamp mới khi bắt đầu một task độc lập hoàn toàn mới.**
+
+## 8. Quy tắc test tạm cho task implement API
+
+Quy tắc này chỉ áp dụng khi implement hoặc sửa luồng gọi API ở frontend; không xóa hay thay đổi các test có sẵn của feature khác.
+
+- Chỉ tạo test script tạm trong `.api-test-tmp/<task-id>/`, không đặt test tạm trong `src/` và không thêm test `.mjs` lâu dài cho task API.
+- Chạy test sau khi phần implement đã sẵn sàng. Nếu tất cả test case thành công, xóa toàn bộ test script và thư mục tạm của task trước khi kết thúc.
+- Nếu có test case thất bại, append vào `frontend/fallure.md` gồm task/thời điểm, command đã chạy, tên case, expected/actual và lỗi liên quan. Không ghi credential, token hoặc dữ liệu nhạy cảm. Giữ test tạm để có thể tái hiện và dừng ở trạng thái chờ review thủ công; chỉ xóa sau khi lỗi đã được xử lí và toàn bộ test chạy lại thành công.
+- Khi báo cáo kết quả, nêu số test case pass/fail và xác nhận test tạm đã được dọn hoặc đang được giữ để review.

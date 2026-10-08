@@ -99,3 +99,13 @@ function formatParts(d: Date): string {
 export function getNowFormattedVN(): string {
   return formatParts(new Date());
 }
+
+/** Travel dates are calendar dates; UTC avoids local DST changing the trip length. */
+export function endDateFromDuration(startDate: string | null, durationDays: number): string | null {
+  if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) ||
+      !Number.isInteger(durationDays) || durationDays < 1) return null;
+  const date = new Date(startDate + 'T00:00:00.000Z');
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== startDate) return null;
+  date.setUTCDate(date.getUTCDate() + durationDays - 1);
+  return date.toISOString().slice(0, 10);
+}

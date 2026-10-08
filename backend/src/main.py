@@ -8,8 +8,9 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import uuid4
+from urllib.parse import urlparse
 
-from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Response
+from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -104,6 +105,7 @@ def create_app(settings=None, services=None, gemini_client=None):
             raise HTTPException(404, "Trip not found")
         result["request"] = json.loads(result.pop("request_json"))
         result['generation_error'] = json.loads(result['generation_error']) if result['generation_error'] else None
+        result["travel_dna"] = json.loads(result["travel_dna_json"]) if result.get("travel_dna_json") else None
         version = row(db, "SELECT payload_json FROM itinerary_versions WHERE trip_id=? AND version=?",
                       (trip_id, result["current_version"]))
         result["itinerary"] = json.loads(version["payload_json"]) if version else None
@@ -338,6 +340,87 @@ def create_app(settings=None, services=None, gemini_client=None):
         return {"metrics": json.loads(payload), "preferences": {"pace": pace, "sceneryFocus": scenery,
                 "cuisinePriority": cuisine}, "updatedAt": timestamp}
 
+    @app.post("/api/v1/dna/analyze", status_code=201)
+    async def analyze_dna(request: Request,
+                          vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        """Create a short-lived, user-owned DNA analysis reference.
+
+        The MVP validates and records the image batch without pretending that a
+        vision model produced a result. A model can consume the stored source
+        metadata later without changing the ownership/expiry contract.
+        """
+        user = require_session(vistra_session, db)
+        content_type = request.headers.get("content-type", "")
+        if content_type.startswith("application/json"):
+            payload = await request.json()
+            urls = payload.get("image_urls", []) if isinstance(payload, dict) else []
+            description = payload.get("description", "") if isinstance(payload, dict) else ""
+            if not isinstance(urls, list) or not 1 <= len(urls) <= 3:
+                raise HTTPException(422, detail={"code": "IMAGE_COUNT_INVALID", "message": "Attach between 1 and 3 images"})
+            files = []
+            for value in urls:
+                if not isinstance(value, str) or not value.startswith(("https://", "http://")):
+                    raise HTTPException(422, detail={"code": "IMAGE_URL_INVALID", "message": "image_urls must contain HTTP(S) URLs"})
+                host = (urlparse(value).hostname or "").lower()
+                if host != "res.cloudinary.com" and not host.endswith(".cloudinary.com"):
+                    raise HTTPException(422, detail={"code": "IMAGE_HOST_INVALID", "message": "Images must be hosted on Cloudinary"})
+                files.append({"url": value})
+        else:
+            form = await request.form()
+            description = str(form.get("description", ""))
+            files = [value for value in form.getlist("files") if hasattr(value, "read")]
+            if not 1 <= len(files) <= 3:
+                raise HTTPException(422, detail={"code": "IMAGE_COUNT_INVALID", "message": "Attach between 1 and 3 images"})
+        sources, accepted = [], []
+        allowed = {"image/jpeg", "image/png", "image/webp"}
+        for upload in files:
+            if "url" in upload:
+                import httpx
+                url = upload["url"]
+                item = {"id": str(uuid4()), "url": url, "filename": url.rsplit("/", 1)[-1][:120], "status": "processed"}
+                async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+                    response = await client.get(url)
+                if response.status_code >= 400:
+                    item["status"] = "rejected"
+                    item["error"] = "IMAGE_UNAVAILABLE"
+                    sources.append(item)
+                    continue
+                content = response.content
+                mime = response.headers.get("content-type", "").split(";", 1)[0].lower()
+            else:
+                content = await upload.read()
+                item = {"id": str(uuid4()), "filename": upload.filename or "image", "status": "processed"}
+                mime = (upload.content_type or "").lower()
+            error = None
+            if len(content) > 5 * 1024 * 1024:
+                error = "IMAGE_TOO_LARGE"
+            elif mime not in allowed:
+                error = "UNSUPPORTED_IMAGE_TYPE"
+            if error:
+                item["status"] = "rejected"
+                item["error"] = error
+            else:
+                accepted.append((item, mime, len(content), hashlib.sha256(content).hexdigest()))
+            sources.append(item)
+        if not accepted:
+            code = "IMAGE_TOO_LARGE" if all(item.get("error") == "IMAGE_TOO_LARGE" for item in sources) else "NO_VALID_IMAGES"
+            raise HTTPException(422, detail={"code": code, "message": "Each image must be <= 5 MB and JPEG, PNG, or WebP", "sources": sources})
+        analysis_id = str(uuid4())
+        created = now()
+        expires = (datetime.now(UTC) + timedelta(hours=24)).isoformat(timespec="microseconds")
+        derived = {"metrics": [], "pace": None, "scenery_focus": None, "cuisine_priority": None,
+                   "suggested_interests": []}
+        db.execute("""INSERT INTO dna_analyses(id,user_id,description,derived_dna_json,confidence,sources_json,status,created_at,expires_at)
+            VALUES (?,?,?,?,?,?,?,?,?)""", (analysis_id, user["id"], description, json.dumps(derived), None,
+                                                json.dumps(sources), "completed", created, expires))
+        for item, content_type, size, digest in accepted:
+            db.execute("""INSERT INTO dna_analysis_files(id,analysis_id,filename,content_type,size_bytes,sha256,status,error)
+                VALUES (?,?,?,?,?,?,?,?)""", (item["id"], analysis_id, item["filename"], content_type, size,
+                                               digest, item["status"], None))
+        return {"analysis_id": analysis_id, "status": "completed", "derived_dna": derived,
+                "suggested_trip_dna": derived, "confidence": None, "expires_at": expires,
+                "sources": sources, "notice": "Images validated; no vision model is configured yet."}
+
     @app.get("/auth/oauth/{provider}/start")
     def oauth_start(provider: Literal["google", "facebook"], return_to: str = "/"):
         raise HTTPException(501, detail={"code": "OAUTH_NOT_CONFIGURED",
@@ -415,14 +498,23 @@ def create_app(settings=None, services=None, gemini_client=None):
                     vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         dest = destination(db, data.destination)
         trip_id = str(uuid4())
-        owner = session_user(db, vistra_session)
+        owner = require_session(vistra_session, db)
         for place_id in data.must_visit:
             p = detail(db, place_id)
             if p["destination_id"] != dest["id"]:
                 raise HTTPException(422, "Must-visit place belongs to another destination")
-        db.execute("""INSERT INTO trips(id,destination_id,request_json,current_version,created_at,owner_user_id)
-            VALUES (?,?,?,?,?,?)""",
-                   (trip_id, dest["id"], data.model_dump_json(), 0, now(), owner["id"] if owner else None))
+        if data.dna_analysis_id:
+            if not owner:
+                raise HTTPException(401, "A signed-in user is required for DNA analysis")
+            analysis = row(db, "SELECT id FROM dna_analyses WHERE id=? AND user_id=? AND status='completed' AND expires_at>?",
+                           (data.dna_analysis_id, owner["id"], now()))
+            if not analysis:
+                raise HTTPException(422, "DNA analysis is missing, expired, or belongs to another user")
+        dna_json = data.travel_dna_override.model_dump_json() if data.travel_dna_override else None
+        db.execute("""INSERT INTO trips(id,destination_id,request_json,current_version,created_at,owner_user_id,dna_analysis_id,travel_dna_json,notes)
+            VALUES (?,?,?,?,?,?,?,?,?)""",
+                   (trip_id, dest["id"], data.model_dump_json(), 0, now(), owner["id"] if owner else None,
+                    data.dna_analysis_id, dna_json, data.notes))
         generation_error = None
         if generate_itinerary:
             try:
@@ -445,8 +537,11 @@ def create_app(settings=None, services=None, gemini_client=None):
         if current["current_version"] < 1:
             raise HTTPException(422, "Generate an itinerary before confirming the plan")
         timestamp = now()
-        db.execute("UPDATE trips SET status='confirmed',confirmed_at=?,owner_user_id=COALESCE(owner_user_id,?) WHERE id=?",
-                   (timestamp, user["id"], trip_id))
+        changed = db.execute("""UPDATE trips SET status='confirmed',confirmed_at=?,owner_user_id=?,updated_at=?
+            WHERE id=? AND owner_user_id=? AND current_version=? AND deleted_at IS NULL""",
+            (timestamp, user["id"], timestamp, trip_id, user["id"], data.base_version)).rowcount
+        if changed != 1:
+            raise HTTPException(409, "Trip changed. Reload before confirming the plan")
         return {"plan": trip(db, trip_id), "confirmedAt": timestamp,
                 "version": current["current_version"]}
 
@@ -464,8 +559,11 @@ def create_app(settings=None, services=None, gemini_client=None):
         if data.is_published and owner["status"] != "confirmed":
             raise HTTPException(422, "Only confirmed plans can be published")
         timestamp = now() if data.is_published else None
-        db.execute("UPDATE trips SET is_published=?,published_at=? WHERE id=? AND current_version=?",
-                   (1 if data.is_published else 0, timestamp, trip_id, data.base_version))
+        changed = db.execute("""UPDATE trips SET is_published=?,published_at=?,updated_at=?
+            WHERE id=? AND owner_user_id=? AND current_version=? AND deleted_at IS NULL""",
+            (1 if data.is_published else 0, timestamp, now(), trip_id, user["id"], data.base_version)).rowcount
+        if changed != 1:
+            raise HTTPException(409, "Trip changed. Reload before updating publication")
         return {"id": trip_id, "isPublished": data.is_published, "publishedAt": timestamp,
                 "version": data.base_version}
 
@@ -602,6 +700,18 @@ def create_app(settings=None, services=None, gemini_client=None):
             {"id": "dairy", "active": True, "label": "Sữa"},
             {"id": "gluten", "active": True, "label": "Gluten"},
         ]
+        cms = {"heroPlans": [], "introDestinations": [], "allergyOptions": []}
+        mapping = {"hero-plans": "heroPlans", "intro-destinations": "introDestinations", "allergy-options": "allergyOptions"}
+        for collection, key in mapping.items():
+            cms[key] = [{**json.loads(item["payload_json"]), "id": item["id"],
+                         "active": bool(item["active"]), "order": item["sort_order"]}
+                        for item in rows(db, "SELECT * FROM content_items WHERE collection=? AND active=1 ORDER BY sort_order,id", (collection,))]
+        if cms["heroPlans"] or cms["introDestinations"] or cms["allergyOptions"]:
+            if not cms["introDestinations"]:
+                cms["introDestinations"] = intro
+            if not cms["allergyOptions"]:
+                cms["allergyOptions"] = allergies
+            return cms
         return {"heroPlans": [], "introDestinations": intro, "allergyOptions": allergies}
 
     @app.get("/recommendations/destinations", dependencies=auth)
@@ -644,13 +754,21 @@ def create_app(settings=None, services=None, gemini_client=None):
                                        (item["id"], viewer_id)))
         start = request.get("start_date")
         days = request.get("days", 1)
+        end = None
+        if start and days:
+            try:
+                end = (datetime.fromisoformat(start) + timedelta(days=int(days) - 1)).date().isoformat()
+            except (TypeError, ValueError):
+                end = None
         return {"id": item["id"], "title": request.get("title") or f"Trip to {destination_item['display_name']}",
                 "origin": request.get("origin"), "destination": destination_item["display_name"],
                 "coverImageUrl": None, "startDate": start,
-                "endDate": start, "durationDays": days,
+                "endDate": end, "durationDays": days,
                 "budgetMinVnd": request.get("budget_vnd"), "budgetMaxVnd": request.get("budget_vnd"),
-                "estimatedCostVnd": None, "status": item.get("status", "draft"),
-                "isPublished": bool(item.get("is_published")), "updatedAt": item.get("created_at"),
+                "estimatedCostVnd": request.get("lodging_total_vnd") + request.get("transport_total_vnd")
+                    if request.get("lodging_total_vnd") is not None and request.get("transport_total_vnd") is not None else None,
+                "status": item.get("status", "draft"),
+                "isPublished": bool(item.get("is_published")), "updatedAt": item.get("updated_at"),
                 "tags": request.get("interests", []), "likesCount": likes, "likedByMe": liked}
 
     @app.get("/community/plans")
@@ -722,8 +840,11 @@ def create_app(settings=None, services=None, gemini_client=None):
         return {"plan": trip(db, clone_id)}
 
     @app.post("/trips/{trip_id}/agent", dependencies=auth)
-    def travel_agent(trip_id: str, data: ChatRequest, db=Depends(database)):
+    def travel_agent(trip_id: str, data: ChatRequest, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
         current = trip(db, trip_id)
+        if current.get("owner_user_id") != user["id"]:
+            raise HTTPException(404, "Trip not found")
         def make_preview(request):
             result = preview(trip_id, request, db)
             # Previews do not change the itinerary. Release the write lock before the next model call.
@@ -818,15 +939,27 @@ def create_app(settings=None, services=None, gemini_client=None):
         for collection, key in mapping.items():
             result[key] = [{**json.loads(item["payload_json"]), "id": item["id"],
                             "active": bool(item["active"]), "order": item["sort_order"]}
-                           for item in rows(db, "SELECT * FROM content_items WHERE collection=? ORDER BY sort_order,id", (collection,))]
+                           for item in rows(db, "SELECT * FROM content_items WHERE collection=? AND active=1 ORDER BY sort_order,id", (collection,))]
+        if not result["introDestinations"]:
+            destinations_data = rows(db, "SELECT id,slug,display_name FROM destinations WHERE enabled=1 ORDER BY id")
+            result["introDestinations"] = [{"id": str(item["id"]), "active": True, "order": item["id"],
+                "label": item["display_name"], "provinceCode": item["slug"], "imageUrl": None, "tagline": None}
+                for item in destinations_data]
+        if not result["allergyOptions"]:
+            result["allergyOptions"] = [{"id": "seafood", "active": True, "label": "Hải sản"},
+                {"id": "peanut", "active": True, "label": "Đậu phộng"},
+                {"id": "dairy", "active": True, "label": "Sữa"},
+                {"id": "gluten", "active": True, "label": "Gluten"}]
         return result
 
     @app.post("/admin/content/{collection}", status_code=201)
-    def create_content(collection: Literal["hero-plans", "allergy-options"], payload: dict,
+    def create_content(collection: Literal["hero-plans", "intro-destinations", "allergy-options"], payload: dict,
                        vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
         if collection == "hero-plans" and not payload.get("title"):
             raise HTTPException(422, "title is required")
+        if collection == "intro-destinations" and not payload.get("label"):
+            raise HTTPException(422, "label is required")
         if collection == "allergy-options" and not payload.get("label"):
             raise HTTPException(422, "label is required")
         item_id, timestamp = str(uuid4()), now()
@@ -1035,6 +1168,10 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     @app.get("/api/v1/trips/{trip_id}")
     def v1_get_trip(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        owner = row(db, "SELECT owner_user_id FROM trips WHERE id=? AND deleted_at IS NULL", (trip_id,))
+        if not owner or owner["owner_user_id"] != user["id"]:
+            raise HTTPException(404, "Trip not found")
         return get_trip(trip_id, db)
 
     @app.post("/api/v1/feedback", status_code=201)
@@ -1053,9 +1190,13 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     @app.get("/api/v1/community/trips")
     def v1_community(page: int = Query(default=1, ge=1), page_size: int = Query(default=9, ge=1, le=50),
+                     q: str = "", province: str | None = None, duration: int | None = Query(default=None, ge=1),
+                     tag: str | None = None, budget_min_vnd: int | None = Query(default=None, ge=0),
+                     budget_max_vnd: int | None = Query(default=None, ge=0), liked_by_me: bool | None = None,
                      vistra_session: str | None = Cookie(default=None), db=Depends(database)):
-        return community_plans(page=page, page_size=page_size, q="", province=None, duration=None,
-                               tag=None, budget_min_vnd=None, budget_max_vnd=None, liked_by_me=None,
+        return community_plans(page=page, page_size=page_size, q=q, province=province, duration=duration,
+                               tag=tag, budget_min_vnd=budget_min_vnd, budget_max_vnd=budget_max_vnd,
+                               liked_by_me=liked_by_me,
                                vistra_session=vistra_session, db=db)
 
     @app.post("/api/v1/community/trips/{trip_id}/like")
@@ -1074,6 +1215,9 @@ def create_app(settings=None, services=None, gemini_client=None):
     def v1_update_trip(trip_id: str, payload: dict,
                        vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         user = require_session(vistra_session, db)
+        unsupported = set(payload) - {"base_version", "status", "is_published"}
+        if unsupported:
+            raise HTTPException(422, detail={"code": "UNSUPPORTED_TRIP_FIELDS", "fields": sorted(unsupported)})
         item = row(db, "SELECT owner_user_id,current_version,status,is_published FROM trips WHERE id=? AND deleted_at IS NULL", (trip_id,))
         if not item: raise HTTPException(404, "Trip not found")
         if item["owner_user_id"] and item["owner_user_id"] != user["id"]:
@@ -1090,8 +1234,11 @@ def create_app(settings=None, services=None, gemini_client=None):
             updates.extend(["is_published=?", "published_at=?"])
             values.extend([1 if payload["is_published"] else 0, now() if payload["is_published"] else None])
         if updates:
-            db.execute(f"UPDATE trips SET {','.join(updates)},owner_user_id=COALESCE(owner_user_id,?) WHERE id=?",
-                       (*values, user["id"], trip_id))
+            changed = db.execute(f"UPDATE trips SET {','.join(updates)},owner_user_id=COALESCE(owner_user_id,?),updated_at=? "
+                                 "WHERE id=? AND owner_user_id=? AND current_version=? AND deleted_at IS NULL",
+                                 (*values, user["id"], now(), trip_id, user["id"], item["current_version"])).rowcount
+            if changed != 1:
+                raise HTTPException(409, "Trip changed. Reload before updating")
         return {"id": trip_id, "base_version": item["current_version"],
                 "status": payload.get("status", item["status"]),
                 "is_published": bool(payload.get("is_published", item["is_published"])),
@@ -1100,7 +1247,7 @@ def create_app(settings=None, services=None, gemini_client=None):
     @app.post("/api/v1/trips/{trip_id}/chat")
     def v1_trip_chat(trip_id: str, data: ChatRequest,
                      vistra_session: str | None = Cookie(default=None), db=Depends(database)):
-        return travel_agent(trip_id, data, db)
+        return travel_agent(trip_id, data, vistra_session, db)
 
     @app.get("/api/v1/admin/feedback")
     def v1_admin_feedback(page: int = Query(default=1, ge=1), page_size: int = Query(default=10, ge=1, le=50),

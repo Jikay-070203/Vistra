@@ -1,176 +1,231 @@
 'use client';
 
-import React from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import Toast from '@/components/shared/Toast';
 import Icon from '@/components/ui/Icon';
-import { usePlannerController } from './usePlannerController';
-import PlannerCommandBar from './PlannerCommandBar';
-import ChatPanel from './ChatPanel';
-import ItineraryPanel from './ItineraryPanel';
-import GeographicMapPanel from './GeographicMapPanel';
-import SourcesModal from './SourcesModal';
-import ConfirmPlanDialog from './ConfirmPlanDialog';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import ItineraryView, { money, tripButtonClass, tripPanelClass } from '@/components/trip-plan/ItineraryView';
+import TripMap from '@/components/trip-plan/TripMap';
+import PlaceSources from './PlaceSources';
+import TripPageState from './TripPageState';
+import { useTripWorkspace } from './useTripWorkspace';
 
 export default function PlannerScreen() {
-  const {
-    activePlan,
-    isLoaded,
-    isNotFound,
-    currentDay,
-    selectedDayNumber,
-    setSelectedDayNumber,
-    inputText,
-    setInputText,
-    sourcesModalOpen,
-    setSourcesModalOpen,
-    isOpenMobileMap,
-    setIsOpenMobileMap,
-    isCollapsedDesktopMap,
-    setIsCollapsedDesktopMap,
-    mobileTab,
-    setMobileTab,
-    toastMessage,
-    setToastMessage,
-    confirmModalOpen,
-    setConfirmModalOpen,
-    hasNewMessages,
-    scrollToBottom,
-    chatContainerRef,
-    mobileMapTriggerRef,
-    sourcesTriggerRef,
-    handleSendMessage,
-    handleKeyDown,
-    handleConfirmPlan,
-  } = usePlannerController();
-
-  if (!isLoaded) {
-    return (
-      <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-24 text-center">
-        <div className="inline-block size-8 border-3 border-[#205BD6] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-xs text-[#4B5875] mt-3">Đang mở bàn làm việc kiến tạo...</p>
-      </div>
-    );
+  const workspace = useTripWorkspace();
+  if (!workspace.trip || workspace.loading || !workspace.isLoggedIn) {
+    return <TripPageState workspace={workspace} title="Bàn làm việc hành trình" />;
   }
+  return <PlannerWorkspace key={`${workspace.trip.owner_user_id}:${workspace.trip.id}`} workspace={workspace} />;
+}
 
-  if (isNotFound) {
-    return (
-      <div className="max-w-[720px] mx-auto w-full px-4 py-24 text-center flex flex-col items-center justify-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#EBF1F0] flex items-center justify-center text-[#4B5875] mb-4 shadow-xs">
-          <Icon name="search_off" className="size-8" />
-        </div>
-        <h1 className="font-headline-lg text-2xl font-bold text-[#0E1D4F] mb-2">
-          Không tìm thấy chuyến đi
-        </h1>
-        <p className="text-sm text-[#4B5875] mb-6 max-w-md">
-          Mã hành trình được yêu cầu không tồn tại trong kho lưu trữ hoặc đã bị xóa.
-        </p>
-        <Link
-          href="/my-trips"
-          className="px-5 py-2.5 bg-[#205BD6] text-white text-sm font-semibold rounded-xl hover:bg-[#1847a8] transition-colors shadow-xs"
-        >
-          Quay lại Chuyến đi của tôi
-        </Link>
-      </div>
-    );
-  }
+function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripWorkspace> }) {
+  const { trip, itinerary, messages, preview, busy, error } = workspace;
+  const [day, setDay] = useState(1);
+  const [place, setPlace] = useState<number | null>(null);
+  const [text, setText] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
+
+  if (!trip) return null;
+  const selectedDay = day <= trip.request.days ? day : 1;
+  const selectedPlace = itinerary?.activities.some(item => item.day === selectedDay && item.place_id === place) ? place : null;
+  const editable = trip.status === 'draft';
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-76px)]">
-      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 py-5 text-[#0E1D4F]">
+      <header className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div>
+          <Link className="text-sm text-[#205BD6] underline min-h-11 inline-flex items-center" href="/my-trips">
+            ← Chuyến đi của tôi
+          </Link>
+          <h1 className="text-2xl font-bold">{trip.request.destination}</h1>
+          <p className="text-sm text-[#4B5875]">
+            {trip.request.start_date} · {trip.request.days} ngày · {trip.request.people} người
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link className={tripButtonClass} href={`/trip-plan?id=${encodeURIComponent(trip.id)}`}>
+            Xem tài liệu hành trình
+          </Link>
+          {editable && (
+            <button
+              type="button"
+              disabled={busy || !itinerary || !!preview}
+              className={`${tripButtonClass} bg-[#205BD6] text-white`}
+              onClick={() => setConfirmOpen(true)}
+            >
+              Chốt lịch trình
+            </button>
+          )}
+          {trip.status === 'confirmed' && (
+            <button
+              type="button"
+              disabled={busy}
+              className={`${tripButtonClass} ${
+                trip.is_published
+                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
+              onClick={() => setPublishOpen(true)}
+            >
+              {trip.is_published ? 'Hủy chia sẻ cộng đồng' : 'Chia sẻ lên cộng đồng'}
+            </button>
+          )}
+        </div>
+      </header>
 
-      {/* Top Workspace Command Bar */}
-      <PlannerCommandBar
-        activePlan={activePlan}
-        onOpenSourcesModal={() => setSourcesModalOpen(true)}
-        onOpenMobileMap={() => setIsOpenMobileMap(true)}
-        onOpenConfirmModal={() => setConfirmModalOpen(true)}
-        sourcesTriggerRef={sourcesTriggerRef}
-        mobileMapTriggerRef={mobileMapTriggerRef}
-      />
-
-      {/* Workspace Layout */}
-      <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-4 sm:py-6 flex-1 flex flex-col">
-        {/* Mobile / Tablet View Switcher Tab Bar (< 1024px) */}
-        <div className="lg:hidden flex items-center p-1 bg-white/80 backdrop-blur-md rounded-xl border border-[#0E1D4F]/10 mb-4 shadow-2xs">
-          <button
-            type="button"
-            onClick={() => setMobileTab('chat')}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              mobileTab === 'chat'
-                ? 'bg-[#205BD6] text-white shadow-xs'
-                : 'text-[#4B5875] hover:text-[#0E1D4F]'
-            }`}
-          >
-            <Icon name="chat" className="size-3.5" />
-            <span>Hội thoại ({activePlan.chatMessages.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileTab('itinerary')}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              mobileTab === 'itinerary'
-                ? 'bg-[#205BD6] text-white shadow-xs'
-                : 'text-[#4B5875] hover:text-[#0E1D4F]'
-            }`}
-          >
-            <Icon name="calendar_today" className="size-3.5" />
-            <span>Lịch trình ({activePlan.days.length} ngày)</span>
+      {error && (
+        <div role="alert" className="p-4 mb-4 rounded-xl border border-rose-200 bg-rose-50 text-rose-800">
+          {error}
+          <button type="button" disabled={busy} className={`${tripButtonClass} ml-2`} onClick={workspace.retry}>
+            Tải lại hành trình
           </button>
         </div>
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-1">
-          {/* PANEL 1: Chat Panel (5 columns) */}
-          <ChatPanel
-            activePlan={activePlan}
-            mobileTab={mobileTab}
-            inputText={inputText}
-            onInputChange={setInputText}
-            onKeyDown={handleKeyDown}
-            onSendMessage={handleSendMessage}
-            chatContainerRef={chatContainerRef}
-            hasNewMessages={hasNewMessages}
-            onScrollToBottom={scrollToBottom}
-          />
+      {/* 3-Panel Workspace Layout: Col 1 (Chat), Col 2 (Itinerary), Col 3 (Map) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        {/* Column 1: AI Chat Assistant */}
+        <section className={tripPanelClass} aria-label="Hội thoại với Vistra">
+          <h2 className="text-lg font-bold mb-3">Hội thoại với Vistra</h2>
+          <div className="h-[40dvh] lg:h-[50dvh] min-h-64 overflow-y-auto overscroll-contain space-y-3" aria-label="Tin nhắn" role="log" aria-live="polite">
+            {messages.length === 0 && <p className="text-[#4B5875] text-sm">Gửi yêu cầu để cùng Vistra điều chỉnh lịch trình.</p>}
+            {messages.map((message, index) => (
+              <div key={index} className={`rounded-xl border border-[#0E1D4F]/10 p-3 ${message.role === 'user' ? 'ml-4 bg-[#205BD6]/5' : 'mr-4 bg-[#EBF1F0]/40'}`}>
+                <p className="text-xs font-semibold mb-1">{message.role === 'user' ? 'Yêu cầu của bạn' : 'Vistra'}</p>
+                <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+              </div>
+            ))}
+            {busy && <p role="status" className="text-sm text-[#4B5875]">Đang xử lý yêu cầu...</p>}
+          </div>
+          <form className="mt-4 space-y-2" onSubmit={async (event) => { event.preventDefault(); if (await workspace.send(text)) setText(''); }}>
+            <label htmlFor="planner-message" className="text-sm font-semibold">Yêu cầu điều chỉnh</label>
+            <textarea
+              id="planner-message"
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              maxLength={4000}
+              rows={3}
+              disabled={busy || !editable || !itinerary || !!preview}
+              className="w-full p-3 border border-[#0E1D4F]/15 rounded-xl text-base disabled:opacity-60"
+            />
+            <button
+              type="submit"
+              disabled={busy || !editable || !itinerary || !text.trim() || !!preview}
+              className={`${tripButtonClass} w-full bg-[#205BD6] text-white`}
+            >
+              Gửi yêu cầu
+            </button>
+          </form>
+          {!editable && <p className="text-sm mt-3 text-[#4B5875]">Lịch trình đã chốt.</p>}
+          {selectedPlace !== null && <PlaceSources key={`${trip.id}:${selectedPlace}`} id={selectedPlace} />}
+        </section>
 
-          {/* PANEL 2: Itinerary Panel (4 columns when map open, 7 columns when collapsed) */}
-          <ItineraryPanel
-            activePlan={activePlan}
-            currentDay={currentDay}
-            selectedDayNumber={selectedDayNumber}
-            onSelectDayNumber={setSelectedDayNumber}
-            isCollapsedDesktopMap={isCollapsedDesktopMap}
-            mobileTab={mobileTab}
-          />
+        {/* Column 2: Detailed Itinerary or Dedicated Empty State */}
+        {itinerary ? (
+          <div className="min-w-0 space-y-3">
+            {preview && (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4" role="status">
+                <p className="font-semibold">Bản xem trước · Chưa lưu</p>
+                <p className="text-sm mt-2">Thay đổi chi phí đã biết: {money(preview.known_cost_delta_vnd)}</p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <button type="button" disabled={busy} className={tripButtonClass} onClick={workspace.savePreview}>
+                    Lưu thay đổi
+                  </button>
+                  <button type="button" disabled={busy} className={tripButtonClass} onClick={workspace.discardPreview}>
+                    Giữ lịch trình cũ
+                  </button>
+                </div>
+              </div>
+            )}
+            <ItineraryView
+              itinerary={itinerary}
+              request={trip.request}
+              selectedDay={selectedDay}
+              onDay={setDay}
+              selectedPlace={selectedPlace}
+              onPlace={setPlace}
+              busy={busy}
+              onMove={editable ? workspace.move : undefined}
+            />
+          </div>
+        ) : (
+          <section className={`${tripPanelClass} space-y-4`} aria-label="Lịch trình chi tiết">
+            <div className="flex items-center justify-between pb-3 border-b border-[#0E1D4F]/10">
+              <h2 className="text-lg font-bold">Lịch trình chi tiết</h2>
+              <span className="text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-medium">
+                Chưa có lịch trình
+              </span>
+            </div>
+            <p className="text-sm text-[#4B5875]">
+              {typeof trip.generation_error === 'string'
+                ? trip.generation_error
+                : 'Hành trình chưa có chặng dừng chi tiết. Nhấn nút bên dưới để Vistra tự động sinh lịch trình.'}
+            </p>
+            <button
+              type="button"
+              disabled={busy || trip.current_version !== 0}
+              className={`${tripButtonClass} bg-[#205BD6] text-white w-full`}
+              onClick={workspace.generate}
+            >
+              {busy ? 'Đang tạo lịch trình...' : 'Tạo lịch trình từ gợi ý'}
+            </button>
+            {trip.recommendations && Object.keys(trip.recommendations).length > 0 && (
+              <div className="pt-2 border-t border-[#0E1D4F]/10">
+                <p className="text-xs font-semibold text-[#0E1D4F] mb-2">Điểm đến đề xuất:</p>
+                <ul className="text-xs text-[#4B5875] space-y-1 list-disc pl-4 max-h-48 overflow-y-auto">
+                  {Object.values(trip.recommendations).flat().map((item) => (
+                    <li key={item.id}>{item.display_name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
 
-          {/* PANEL 3: Geographic Map Panel (3 columns or collapsed, plus Mobile overlay) */}
-          <GeographicMapPanel
-            activePlan={activePlan}
-            currentDay={currentDay}
-            selectedDayNumber={selectedDayNumber}
-            isOpenMobile={isOpenMobileMap}
-            onCloseMobile={() => setIsOpenMobileMap(false)}
-            mobileTriggerRef={mobileMapTriggerRef}
-            isCollapsedDesktop={isCollapsedDesktopMap}
-            onToggleCollapseDesktop={() => setIsCollapsedDesktopMap(!isCollapsedDesktopMap)}
-          />
-        </div>
+        {/* Column 3: Route Map or Dedicated Empty Map Frame */}
+        {itinerary ? (
+          <TripMap itinerary={itinerary} day={selectedDay} selectedPlace={selectedPlace} onPlace={setPlace} />
+        ) : (
+          <section className={`${tripPanelClass} flex flex-col items-center justify-center min-h-[350px] text-center p-6 space-y-3`} aria-label="Bản đồ tuyến đường">
+            <div className="size-12 rounded-2xl bg-[#EBF1F0] flex items-center justify-center text-[#4B5875]">
+              <Icon name="map" className="size-6 text-[#205BD6]" />
+            </div>
+            <h3 className="font-bold text-sm text-[#0E1D4F]">Bản đồ tuyến đường</h3>
+            <p className="text-xs text-[#4B5875] max-w-xs leading-relaxed">
+              Bản đồ trực quan sẽ hiển thị toàn bộ điểm dừng và tuyến đường nối sau khi lịch trình được khởi tạo.
+            </p>
+          </section>
+        )}
       </div>
 
-      {/* SOURCES MODAL (UX-PL-01C) */}
-      <SourcesModal
-        isOpen={sourcesModalOpen}
-        activePlan={activePlan}
-        onClose={() => setSourcesModalOpen(false)}
-        triggerRef={sourcesTriggerRef}
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title="Chốt lịch trình này?"
+        message="Xác nhận phương án đã lưu trên hệ thống. Sau khi chốt, bạn có thể chia sẻ lên cộng đồng."
+        confirmVariant="primary"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void workspace.confirm();
+        }}
       />
 
-      {/* CONFIRM PLAN MODAL */}
-      <ConfirmPlanDialog
-        isOpen={confirmModalOpen}
-        activePlan={activePlan}
-        onClose={() => setConfirmModalOpen(false)}
-        onConfirm={handleConfirmPlan}
+      <ConfirmModal
+        isOpen={publishOpen}
+        title={trip.is_published ? 'Hủy chia sẻ hành trình?' : 'Chia sẻ lên cộng đồng?'}
+        message={
+          trip.is_published
+            ? 'Hành trình này sẽ được rút khỏi danh sách khám phá chung của cộng đồng VISTRA.'
+            : 'Hành trình đã chốt của bạn sẽ được hiển thị trên trang Cộng đồng để các du khách khác tham khảo.'
+        }
+        confirmLabel={trip.is_published ? 'Xác nhận hủy chia sẻ' : 'Xác nhận chia sẻ'}
+        confirmVariant={trip.is_published ? 'danger' : 'primary'}
+        onCancel={() => setPublishOpen(false)}
+        onConfirm={() => {
+          setPublishOpen(false);
+          void workspace.togglePublication();
+        }}
       />
     </div>
   );

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifySessionToken, getSafeAdminRedirect } from '@/lib/adminAuth';
-import { appConfig } from '@/config/appConfig';
+import { getSafeAdminRedirect } from '@/lib/adminAuth';
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -24,42 +23,27 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  const secret = process.env.ADMIN_SESSION_SECRET;
-  const token = request.cookies.get(appConfig.adminAuth.cookieName)?.value;
-
-  let hasValidSession = false;
-  if (secret && token) {
-    const session = await verifySessionToken(token, secret);
-    hasValidSession = !!session;
-  }
-
-  const isLoginPage = pathname === '/admin/login';
-
-  // Handling for /admin/login route
+  // Any attempt to visit /admin/login redirects to unified /login
+  const isLoginPage = pathname === '/admin/login' || pathname.startsWith('/admin/login');
   if (isLoginPage) {
-    if (hasValidSession) {
-      // If already logged in, redirect to safe next or /admin
-      const nextParam = request.nextUrl.searchParams.get('next');
-      const safeRedirect = getSafeAdminRedirect(nextParam);
-      return NextResponse.redirect(new URL(safeRedirect, request.url));
-    }
-    // Allow unauthenticated visitor to see login page
-    return NextResponse.next({
-      request: { headers: requestHeaders },
-    });
-  }
-
-  // All other /admin routes (/admin, /admin/users, /admin/revenue, /admin/feedback, /admin/system, etc.)
-  if (!hasValidSession) {
-    const fullRequestedPath = pathname + (search || '');
-    const safeNext = getSafeAdminRedirect(fullRequestedPath);
-    const loginUrl = new URL('/admin/login', request.url);
-    loginUrl.searchParams.set('next', safeNext);
-
+    const nextParam = request.nextUrl.searchParams.get('next') || '/admin';
+    const safeRedirect = getSafeAdminRedirect(nextParam);
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('next', safeRedirect);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Valid session present, proceed with custom header
+  // All protected /admin routes require the backend session cookie
+  const sessionToken = request.cookies.get('vistra_session')?.value;
+  if (!sessionToken) {
+    const fullRequestedPath = pathname + (search || '');
+    const safeNext = getSafeAdminRedirect(fullRequestedPath);
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('next', safeNext);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Session cookie is present, pass to Server Component (AdminLayout verifies admin role)
   return NextResponse.next({
     request: { headers: requestHeaders },
   });

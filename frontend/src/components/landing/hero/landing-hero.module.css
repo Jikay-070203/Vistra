@@ -25,7 +25,7 @@
   flex-direction: column;
   justify-content: flex-start;
   padding-top: 92px;
-  padding-bottom: 40px;
+  padding-bottom: 24px;
   background: transparent;
   scroll-margin-top: 76px;
   box-sizing: border-box;
@@ -35,7 +35,7 @@
   .heroSection {
     min-height: auto;
     padding-top: 88px;
-    padding-bottom: 36px;
+    padding-bottom: 24px;
   }
 }
 
@@ -145,19 +145,26 @@
 
 /* H1 Headline */
 .heroH1 {
-  font-size: clamp(36px, 4.2vw, 62px);
-  line-height: 1.06;
+  font-size: clamp(20px, 4.2vw, 58px);
+  line-height: 1.1;
   letter-spacing: -0.025em;
   font-weight: 800;
   color: var(--vistra-navy, #0E1D4F);
   margin: 0;
-  max-width: 540px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Metaphor Keywords Kicker */
 .metaphorKicker {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
   gap: 8px;
   font-size: 12px;
   font-weight: 800;

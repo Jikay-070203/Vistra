@@ -15,10 +15,9 @@ export default function LoginScreen() {
     setShowPassword,
     errors,
     setErrors,
+    isLoading,
     feedbackMessage,
-    setFeedbackMessage,
     handleLoginSubmit,
-    handleProviderClick,
   } = useLoginController();
 
   return (
@@ -33,15 +32,15 @@ export default function LoginScreen() {
             Đăng nhập tài khoản
           </h1>
           <p className="text-xs sm:text-sm text-[#4B5875]">
-            Truy cập các hành trình du lịch được lưu trữ của bạn
+            Cổng xác thực hợp nhất dành cho Du khách và Quản trị viên VISTRA
           </p>
         </div>
 
-        {/* Demo Notice Banner */}
+        {/* Unified Notice Banner */}
         <div className="p-3 bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 flex items-start gap-2.5 text-xs text-[#4B5875]">
           <Icon name="info" className="size-4 text-[#205BD6] shrink-0 mt-0.5" />
           <span>
-            <strong>Giao diện mẫu (Demo Mode):</strong> Form kiểm tra tương tác hợp lệ cục bộ, không gửi dữ liệu ra bên ngoài.
+            Hệ thống tự động điều hướng theo quyền hạn tài khoản tương ứng sau khi xác thực hợp lệ.
           </span>
         </div>
 
@@ -99,7 +98,8 @@ export default function LoginScreen() {
               </label>
               <button
                 type="button"
-                onClick={() => setFeedbackMessage('Chức năng khôi phục mật khẩu demo: Hãy nhập email của bạn.')}
+                disabled
+                title="Backend chưa hỗ trợ khôi phục mật khẩu"
                 className="text-[11px] text-[#205BD6] hover:underline cursor-pointer"
               >
                 Quên mật khẩu?
@@ -141,9 +141,10 @@ export default function LoginScreen() {
           {/* Submit CTA */}
           <button
             type="submit"
-            className="w-full py-2.5 px-4 bg-[#205BD6] hover:bg-[#1847a8] text-white font-semibold text-sm rounded-xl transition-all shadow-[0_4px_14px_rgba(32,91,214,0.25)] active:scale-[0.98] cursor-pointer mt-2"
+            disabled={isLoading}
+            className="w-full py-2.5 px-4 bg-[#205BD6] hover:bg-[#1847a8] disabled:bg-[#4B5875]/50 text-white font-semibold text-sm rounded-xl transition-all shadow-[0_4px_14px_rgba(32,91,214,0.25)] active:scale-[0.98] cursor-pointer mt-2 disabled:cursor-not-allowed"
           >
-            Đăng nhập
+            {isLoading ? 'Đang xác thực...' : 'Đăng nhập'}
           </button>
         </form>
 
@@ -159,7 +160,8 @@ export default function LoginScreen() {
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => handleProviderClick('Google')}
+            disabled
+            title="Backend chưa cấu hình Google OAuth"
             className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all cursor-pointer"
           >
             <span className="font-bold text-[#205BD6]">G</span>
@@ -167,13 +169,16 @@ export default function LoginScreen() {
           </button>
           <button
             type="button"
-            onClick={() => handleProviderClick('Facebook')}
+            disabled
+            title="Backend chưa cấu hình Facebook OAuth"
             className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all cursor-pointer"
           >
             <span className="font-bold text-[#205BD6]">f</span>
             <span>Facebook</span>
           </button>
         </div>
+
+        <p className="text-xs text-[#4B5875]">Đăng nhập Google/Facebook và khôi phục mật khẩu chưa khả dụng từ backend.</p>
 
         {/* Footer Nav Link */}
         <div className="text-center pt-2 text-xs text-[#4B5875]">

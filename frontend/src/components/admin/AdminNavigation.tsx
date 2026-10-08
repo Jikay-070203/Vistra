@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Icon from '@/components/ui/Icon';
+import { logout as apiLogout } from '@/services/authService';
+import { setAuthState } from '@/lib/userAuth';
 import { useFeedback } from '@/context/FeedbackContext';
-import { logoutAdmin } from '@/services/adminAuthService';
 
 interface AdminNavItem {
   id: string;
@@ -18,13 +19,17 @@ interface AdminNavItem {
 export default function AdminNavigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const { tickets } = useFeedback();
+  const { counts, countsLoading, countsError } = useFeedback();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
 
-  const unassignedCount = tickets.filter((t) => t.status === 'unassigned').length;
+  // Authoritative unassigned count only: if null/error/loading, omit numeric badge, never fall back to loaded tickets subset/zero
+  const unassignedBadge: number | undefined =
+    countsLoading || countsError || !counts || counts.unassigned <= 0
+      ? undefined
+      : counts.unassigned;
 
   const navItems: AdminNavItem[] = [
     {
@@ -50,7 +55,13 @@ export default function AdminNavigation() {
       label: 'Hòm thư Phản hồi',
       href: '/admin/feedback',
       icon: 'feedback',
-      badge: unassignedCount > 0 ? unassignedCount : undefined,
+      badge: unassignedBadge,
+    },
+    {
+      id: 'content',
+      label: 'Quản lý Nội dung',
+      href: '/admin/content',
+      icon: 'auto_stories',
     },
     {
       id: 'system',
@@ -71,9 +82,14 @@ export default function AdminNavigation() {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
-      await logoutAdmin();
-      router.push('/admin/login');
-      router.refresh();
+      const result = await apiLogout();
+      if (result.data?.success) {
+        setAuthState(null);
+        router.push('/login?next=/admin');
+        router.refresh();
+      } else {
+        setIsLoggingOut(false);
+      }
     } catch (error) {
       console.error('Logout error:', error);
       setIsLoggingOut(false);
@@ -91,10 +107,23 @@ export default function AdminNavigation() {
   useEffect(() => {
     if (!isMobileOpen) return;
 
+    drawerRef.current?.querySelector<HTMLElement>('a, button')?.focus();
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsMobileOpen(false);
         toggleBtnRef.current?.focus();
+      } else if (e.key === 'Tab' && drawerRef.current) {
+        const focusable = Array.from(drawerRef.current.querySelectorAll<HTMLElement>('a, button:not([disabled])'));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
       }
     };
 
@@ -145,8 +174,8 @@ export default function AdminNavigation() {
 
   return (
     <>
-      {/* Mobile Top Header */}
-      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-4 py-3 flex items-center justify-between">
+      {/* Mobile Top Header (print:hidden) */}
+      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-4 py-3 flex items-center justify-between print:hidden">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#0E1D4F] text-white flex items-center justify-center shrink-0">
             <Icon name="admin_panel_settings" className="size-4" />
@@ -182,14 +211,13 @@ export default function AdminNavigation() {
         />
       )}
 
+      {isMobileOpen && (
       <div
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label="Menu quản trị"
-        className={`md:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white flex flex-col shadow-2xl transition-transform duration-200 ease-in-out ${
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className="md:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white flex flex-col shadow-2xl"
       >
         <div className="p-4 border-b border-[#0E1D4F]/10 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -245,10 +273,11 @@ export default function AdminNavigation() {
           </button>
         </div>
       </div>
+      )}
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar (print:hidden) */}
       <aside
-        className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-white border-r border-[#0E1D4F]/10 flex-col sticky top-0 h-screen z-20 shadow-xs"
+        className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-white border-r border-[#0E1D4F]/10 flex-col sticky top-0 h-screen z-20 shadow-xs print:hidden"
         aria-label="Thanh bên Quản trị"
       >
         {/* Brand Header */}

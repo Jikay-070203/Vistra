@@ -110,6 +110,9 @@
   color: var(--vistra-navy);
   margin: 0 0 8px 0;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .placeDesc {

@@ -108,6 +108,9 @@ class TripCreate(StrictModel):
     # Explicit group estimates; unknown costs remain null elsewhere.
     lodging_total_vnd: int | None = Field(default=None, ge=0, le=100000000000)
     transport_total_vnd: int | None = Field(default=None, ge=0, le=100000000000)
+    notes: str = Field(default="", max_length=5000)
+    dna_analysis_id: str | None = Field(default=None, max_length=80)
+    travel_dna_override: TravelDnaPatch | None = None
 
     @model_validator(mode="after")
     def unique_ids(self):

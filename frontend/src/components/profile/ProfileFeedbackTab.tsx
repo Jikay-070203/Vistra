@@ -1,27 +1,77 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import Icon from '@/components/ui/Icon';
 import { useFeedback } from '@/context/FeedbackContext';
 import { FeedbackTicket } from '@/types/feedback';
+import { useUserAuth } from '@/lib/userAuth';
+
+const useIdentityEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export default function ProfileFeedbackTab() {
-  const { tickets, rateStaffAnswer } = useFeedback();
-  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(
-    tickets.length > 0 ? tickets[0].id : null
-  );
+  const { user } = useUserAuth();
+  const identity = user?.id ?? null;
+  const { tickets, loading, error, page, pageSize, total, totalPages, rateStaffAnswer, loadTickets } =
+    useFeedback();
+  const [requestedPage, setRequestedPage] = useState(1);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [ratingInput, setRatingInput] = useState<{ [ticketId: string]: number }>({});
   const [commentInput, setCommentInput] = useState<{ [ticketId: string]: string }>({});
   const [ratedSuccessId, setRatedSuccessId] = useState<string | null>(null);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [rateError, setRateError] = useState<string | null>(null);
+  const ratingGeneration = useRef(0);
+  const [previousIdentity, setPreviousIdentity] = useState(identity);
+  if (previousIdentity !== identity) {
+    setPreviousIdentity(identity);
+    setRequestedPage(1);
+    setSelectedTicketId(null);
+    setRatingInput({});
+    setCommentInput({});
+    setRatedSuccessId(null);
+    setRateError(null);
+    setIsSubmittingRating(false);
+  }
+  useIdentityEffect(() => () => { ratingGeneration.current += 1; }, [identity]);
 
-  const selectedTicket = tickets.find((t) => t.id === selectedTicketId) || tickets[0];
+  const REQUESTED_PAGE_SIZE = 10;
+  // Consume server page and pageSize metadata; handle clamped responses gracefully
+  const activePage = page > 0 ? page : requestedPage;
+  const effectivePageSize = pageSize > 0 ? pageSize : REQUESTED_PAGE_SIZE;
 
-  const handleRateSubmit = (ticketId: string) => {
+  useEffect(() => {
+    loadTickets({ page: requestedPage, pageSize: REQUESTED_PAGE_SIZE, isAdmin: false }).catch(() => {});
+  }, [requestedPage, loadTickets]);
+
+  const handlePageChange = (newPage: number) => {
+    const clamped = Math.max(1, Math.min(newPage, Math.max(1, totalPages)));
+    setRequestedPage(clamped);
+  };
+
+  const selectedTicket = useMemo(() => {
+    if (!selectedTicketId) return tickets[0] || null;
+    return tickets.find((t) => t.id === selectedTicketId) || tickets[0] || null;
+  }, [tickets, selectedTicketId]);
+
+  const handleRateSubmit = async (ticketId: string) => {
+    if (isSubmittingRating) return;
+    const generation = ++ratingGeneration.current;
     const star = ratingInput[ticketId] || 5;
     const comment = commentInput[ticketId] || '';
-    rateStaffAnswer(ticketId, star, comment);
-    setRatedSuccessId(ticketId);
-    setTimeout(() => setRatedSuccessId(null), 3000);
+    try {
+      setIsSubmittingRating(true);
+      setRateError(null);
+      await rateStaffAnswer(ticketId, star, comment);
+      if (ratingGeneration.current !== generation) return;
+      setRatedSuccessId(ticketId);
+      setTimeout(() => {
+        if (ratingGeneration.current === generation) setRatedSuccessId(null);
+      }, 3000);
+    } catch (err: unknown) {
+      if (ratingGeneration.current === generation) setRateError(err instanceof Error ? err.message : 'Không thể gửi đánh giá.');
+    } finally {
+      if (ratingGeneration.current === generation) setIsSubmittingRating(false);
+    }
   };
 
   const getStatusBadge = (status: FeedbackTicket['status']) => {
@@ -65,17 +115,35 @@ export default function ProfileFeedbackTab() {
     switch (severity) {
       case 'critical':
       case 'Nghiêm trọng':
-        return <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">Nghiêm trọng</span>;
+        return (
+          <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">
+            Nghiêm trọng
+          </span>
+        );
       case 'high':
       case 'Cao':
-        return <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">Cao</span>;
+        return (
+          <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">
+            Cao
+          </span>
+        );
       case 'medium':
       case 'Trung bình':
-        return <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">Trung bình</span>;
+        return (
+          <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+            Trung bình
+          </span>
+        );
       case 'low':
       case 'Thấp':
+        return (
+          <span className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200">
+            Thấp
+          </span>
+        );
       default:
-        return <span className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200">Thấp</span>;
+        // Unknown or null severity must show unclassified or omit, NOT Thấp!
+        return null;
     }
   };
 
@@ -112,12 +180,36 @@ export default function ProfileFeedbackTab() {
         </div>
         <div className="flex items-center gap-2">
           <span className="px-3.5 py-1.5 rounded-full bg-[#205BD6]/10 text-[#205BD6] text-xs font-bold border border-[#205BD6]/20">
-            {tickets.length} Phiếu phản hồi
+            {loading ? 'Đang tải...' : error ? 'Không thể tải' : `${total} Phiếu phản hồi`}
           </span>
         </div>
       </div>
 
-      {tickets.length === 0 ? (
+      {loading && tickets.length === 0 ? (
+        <div className="text-center py-16 text-[#4B5875]" role="status" aria-live="polite">
+          <Icon name="sync" className="size-8 mx-auto text-[#205BD6] animate-spin mb-3" />
+          <p className="font-semibold text-sm text-[#0E1D4F]">Đang tải danh sách phản hồi...</p>
+          <p className="text-xs text-[#4B5875] mt-1">Hệ thống đang kết nối với máy chủ để lấy dữ liệu mới nhất.</p>
+        </div>
+      ) : error ? (
+        <div
+          className="text-center py-12 px-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 space-y-3"
+          role="alert"
+        >
+          <Icon name="error" className="size-8 mx-auto text-red-600 mb-1" />
+          <p className="font-semibold text-sm">{error}</p>
+          <p className="text-xs text-red-600">Đã xảy ra lỗi khi tải danh sách phản hồi từ máy chủ.</p>
+          <button
+            type="button"
+            onClick={() => loadTickets({ page: activePage, pageSize: effectivePageSize, isAdmin: false })}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
+            aria-label="Thử lại tải danh sách phản hồi"
+          >
+            <Icon name="refresh" className="size-3.5" />
+            <span>Thử lại</span>
+          </button>
+        </div>
+      ) : tickets.length === 0 ? (
         <div className="text-center py-12 text-[#4B5875]">
           <Icon name="feedback" className="size-12 mx-auto text-[#4B5875]/40 mb-3" />
           <p className="font-semibold text-sm">Bạn chưa gửi phản hồi nào</p>
@@ -125,7 +217,7 @@ export default function ProfileFeedbackTab() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Ticket List (4 cols) */}
+          {/* Ticket List (5 cols) */}
           <div className="lg:col-span-5 space-y-3 max-h-[640px] overflow-y-auto pr-1">
             {tickets.map((ticket) => {
               const isSelected = ticket.id === selectedTicket?.id;
@@ -143,7 +235,9 @@ export default function ProfileFeedbackTab() {
                   }}
                   tabIndex={0}
                   role="button"
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer text-left ${
+                  aria-pressed={isSelected}
+                  aria-label={`Xem phản hồi ${ticket.id}: ${ticket.subject}`}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
                     isSelected
                       ? 'border-[#205BD6] bg-[#205BD6]/5 shadow-sm'
                       : 'border-[#0E1D4F]/10 bg-white hover:bg-[#EBF1F0]/40'
@@ -179,6 +273,36 @@ export default function ProfileFeedbackTab() {
                 </div>
               );
             })}
+
+            {/* Pagination Controls using returned pageSize and server metadata */}
+            {totalPages > 1 && (
+              <div className="pt-3 border-t border-[#0E1D4F]/10 flex items-center justify-between text-xs text-[#4B5875]">
+                <span>{total} phiếu</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={activePage <= 1 || loading}
+                    onClick={() => handlePageChange(activePage - 1)}
+                    className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] font-semibold text-[#0E1D4F] cursor-pointer"
+                    aria-label="Trang trước"
+                  >
+                    Trước
+                  </button>
+                  <span className="font-semibold text-[#0E1D4F]">
+                    {activePage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={activePage >= totalPages || loading}
+                    onClick={() => handlePageChange(activePage + 1)}
+                    className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] font-semibold text-[#0E1D4F] cursor-pointer"
+                    aria-label="Trang sau"
+                  >
+                    Sau
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Ticket Detail & Staff Replies (7 cols) */}
@@ -244,11 +368,15 @@ export default function ProfileFeedbackTab() {
                       <div className="flex items-center justify-between gap-2 border-b border-[#0E1D4F]/5 pb-2">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-[#08B3C6]/20 text-[#08B3C6] flex items-center justify-center font-bold text-xs">
-                            VQ
+                            <Icon name="support_agent" className="size-4 text-[#08B3C6]" />
                           </div>
                           <div>
-                            <span className="font-bold text-xs text-[#0E1D4F]">{reply.senderName}</span>
-                            <span className="text-[11px] text-[#4B5875] ml-1.5 font-medium">({reply.senderRole})</span>
+                            <span className="font-bold text-xs text-[#0E1D4F]">
+                              {reply.senderName || reply.senderRole || 'Bộ phận hỗ trợ'}
+                            </span>
+                            {reply.senderName && reply.senderRole && (
+                              <span className="text-[11px] text-[#4B5875] ml-1.5 font-medium">({reply.senderRole})</span>
+                            )}
                           </div>
                         </div>
                         <span className="text-[11px] text-[#4B5875]">{reply.timestamp}</span>
@@ -328,13 +456,17 @@ export default function ProfileFeedbackTab() {
                       }
                       className="w-full text-xs px-3 py-2 rounded-xl border border-[#0E1D4F]/15 focus:outline-none focus:border-[#205BD6] text-[#0E1D4F]"
                     />
+                    {rateError && (
+                      <p className="text-xs text-red-600 font-semibold">{rateError}</p>
+                    )}
                     <div className="flex justify-end">
                       <button
                         type="button"
+                        disabled={isSubmittingRating}
                         onClick={() => handleRateSubmit(selectedTicket.id)}
-                        className="px-4 py-2 bg-[#205BD6] hover:bg-[#1847a8] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-xs"
+                        className="px-4 py-2 bg-[#205BD6] hover:bg-[#1847a8] disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-xs"
                       >
-                        Gửi đánh giá
+                        {isSubmittingRating ? 'Đang gửi...' : 'Gửi đánh giá'}
                       </button>
                     </div>
                   </div>

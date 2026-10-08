@@ -1,25 +1,38 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Icon from '@/components/ui/Icon';
 import { useFeedback } from '@/context/FeedbackContext';
-import { FeedbackCategory, TicketSeverity } from '@/types/feedback';
+import { useUserAuth } from '@/lib/userAuth';
+import Link from 'next/link';
+
+const useIdentityEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export default function FeedbackLauncher() {
   const pathname = usePathname();
   const router = useRouter();
   const { addTicket } = useFeedback();
+  const { user, isLoggedIn } = useUserAuth();
+  const identity = isLoggedIn ? user?.id ?? 'guest' : 'guest';
 
   const [isOpen, setIsOpen] = useState(false);
-  const [category, setCategory] = useState<FeedbackCategory>('Vấn đề giao diện (UX)');
-  const [severity, setSeverity] = useState<TicketSeverity>('Trung bình');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
-  const [userName, setUserName] = useState('Du khách VISTRA');
-  const [userEmail, setUserEmail] = useState('traveler@vistra.vn');
   const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
+  const submissionGeneration = useRef(0);
+  const [previousIdentity, setPreviousIdentity] = useState(identity);
+  if (previousIdentity !== identity) {
+    setPreviousIdentity(identity);
+    setSubmittedTicketId(null);
+    setSubmitError(null);
+    setSubject('');
+    setDescription('');
+    setIsSubmitting(false);
+  }
 
   // Hidden on landing page, auth routes, and admin pages
   const isExcluded =
@@ -30,12 +43,17 @@ export default function FeedbackLauncher() {
     pathname.includes('register');
 
   const handleResetAndClose = () => {
+    submissionGeneration.current += 1;
+    setIsSubmitting(false);
     setIsOpen(false);
     setSubmittedTicketId(null);
+    setSubmitError(null);
     setSubject('');
     setDescription('');
     toggleBtnRef.current?.focus();
   };
+
+  useIdentityEffect(() => () => { submissionGeneration.current += 1; }, [identity]);
 
   // Handle Escape key to close dialog
   useEffect(() => {
@@ -53,21 +71,30 @@ export default function FeedbackLauncher() {
     return null;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subject.trim() || !description.trim()) return;
+    if (!subject.trim() || !description.trim() || isSubmitting) return;
+    const generation = ++submissionGeneration.current;
 
-    const newTicket = addTicket({
-      subject: subject.trim(),
-      description: description.trim(),
-      userName: userName.trim() || 'Du khách VISTRA',
-      userEmail: userEmail.trim() || 'traveler@vistra.vn',
-      routeOrigin: pathname,
-      category,
-      severity,
-    });
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+      // Creation only subject/description/route; do not claim unsupported category/severity
+      const newTicket = await addTicket({
+        subject: subject.trim(),
+        description: description.trim(),
+        routeOrigin: pathname || '/',
+      });
 
-    setSubmittedTicketId(newTicket.id);
+      if (submissionGeneration.current === generation) setSubmittedTicketId(newTicket.id);
+    } catch (err: unknown) {
+      // Mutation failure visible; form text retained
+      if (submissionGeneration.current === generation) setSubmitError(
+        err instanceof Error ? err.message : 'Không thể gửi phản hồi. Vui lòng thử lại sau.'
+      );
+    } finally {
+      if (submissionGeneration.current === generation) setIsSubmitting(false);
+    }
   };
 
   const handleGoToProfile = () => {
@@ -77,7 +104,7 @@ export default function FeedbackLauncher() {
 
   return (
     <>
-      {/* Floating Trigger Button (FIX-04 & UX-FB-01):
+      {/* Floating Trigger Button:
           Compact icon circle by default; expands label on hover or keyboard focus;
           contextually positioned so it never overlaps chat composer on /planner or comparison bar on /destinations */}
       <div
@@ -137,7 +164,12 @@ export default function FeedbackLauncher() {
 
             {/* Modal Content */}
             <div className="p-6 overflow-y-auto">
-              {submittedTicketId ? (
+              {!isLoggedIn ? (
+                <div className="text-center text-sm text-[#4B5875] py-6">
+                  <p>Đăng nhập để gửi phản hồi và theo dõi câu trả lời.</p>
+                  <Link href="/login" className="inline-block mt-3 px-4 py-3 text-[#205BD6] font-semibold underline">Đăng nhập</Link>
+                </div>
+              ) : submittedTicketId ? (
                 <div className="text-center py-6 space-y-4">
                   <div className="w-16 h-16 rounded-full bg-[#08B3C6]/15 text-[#08B3C6] flex items-center justify-center mx-auto">
                     <Icon name="check_circle" className="size-8" />
@@ -147,7 +179,8 @@ export default function FeedbackLauncher() {
                   </h4>
                   <p className="text-sm text-[#4B5875] max-w-sm mx-auto leading-relaxed">
                     Hồ sơ phản hồi của bạn đã được ghi nhận với mã{' '}
-                    <strong className="text-[#205BD6] font-mono">{submittedTicketId}</strong>. Đội ngũ vận hành sẽ kiểm tra và phản hồi sớm nhất.
+                    <strong className="text-[#205BD6] font-mono">{submittedTicketId}</strong>.
+                    Đội ngũ VISTRA sẽ tiếp nhận, phân loại và phản hồi sớm nhất.
                   </p>
 
                   <div className="p-4 rounded-xl bg-[#EBF1F0] text-xs text-left space-y-1.5 border border-[#0E1D4F]/10 max-w-sm mx-auto">
@@ -156,12 +189,16 @@ export default function FeedbackLauncher() {
                       <span className="font-mono font-bold text-[#0E1D4F]">{submittedTicketId}</span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="text-[#4B5875]">Tiêu đề:</span>
+                      <span className="font-medium text-[#0E1D4F] truncate max-w-[200px]">{subject}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-[#4B5875]">Trang phát sinh:</span>
                       <span className="font-mono text-[#0E1D4F] truncate max-w-[200px]">{pathname}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#4B5875]">Danh mục:</span>
-                      <span className="font-medium text-[#0E1D4F]">{category}</span>
+                      <span className="text-[#4B5875]">Trạng thái:</span>
+                      <span className="font-semibold text-amber-700">Chờ phân loại (unassigned)</span>
                     </div>
                   </div>
 
@@ -189,65 +226,20 @@ export default function FeedbackLauncher() {
                     <span>Trang ghi nhận tự động: <code className="font-mono text-[#0E1D4F] font-bold">{pathname}</code></span>
                   </div>
 
-                  {/* Category Selection */}
-                  <div>
-                    <label className="block text-xs font-semibold text-[#0E1D4F] mb-1.5">
-                      Danh mục phản hồi <span className="text-red-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(
-                        [
-                          'Vấn đề giao diện (UX)',
-                          'Lỗi logic hành trình',
-                          'Chức năng chưa hoạt động',
-                          'Đề xuất cải tiến',
-                        ] as FeedbackCategory[]
-                      ).map((cat) => (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => setCategory(cat)}
-                          className={`text-left text-xs p-2.5 rounded-xl border transition-all cursor-pointer ${
-                            category === cat
-                              ? 'bg-[#205BD6]/10 border-[#205BD6] text-[#205BD6] font-bold'
-                              : 'bg-white border-[#0E1D4F]/15 text-[#4B5875] hover:bg-[#EBF1F0]'
-                          }`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
+                  {submitError && (
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-semibold flex items-center gap-2" role="alert">
+                      <Icon name="error" className="size-4 shrink-0 text-red-600" />
+                      <span>{submitError}</span>
                     </div>
-                  </div>
-
-                  {/* Severity Selection */}
-                  <div>
-                    <label className="block text-xs font-semibold text-[#0E1D4F] mb-1.5">
-                      Mức độ ưu tiên / ảnh hưởng
-                    </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {(['Thấp', 'Trung bình', 'Cao', 'Nghiêm trọng'] as TicketSeverity[]).map((sev) => (
-                        <button
-                          key={sev}
-                          type="button"
-                          onClick={() => setSeverity(sev)}
-                          className={`text-center text-xs py-2 px-1 rounded-xl border transition-all cursor-pointer ${
-                            severity === sev
-                              ? 'bg-[#0E1D4F] text-white border-[#0E1D4F] font-bold'
-                              : 'bg-white border-[#0E1D4F]/15 text-[#4B5875] hover:bg-[#EBF1F0]'
-                          }`}
-                        >
-                          {sev}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  )}
 
                   {/* Subject Input */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#0E1D4F] mb-1.5">
+                    <label htmlFor="feedback-subject-input" className="block text-xs font-semibold text-[#0E1D4F] mb-1.5">
                       Tiêu đề vấn đề <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="feedback-subject-input"
                       type="text"
                       required
                       value={subject}
@@ -259,43 +251,18 @@ export default function FeedbackLauncher() {
 
                   {/* Description Input */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#0E1D4F] mb-1.5">
+                    <label htmlFor="feedback-description-input" className="block text-xs font-semibold text-[#0E1D4F] mb-1.5">
                       Nội dung chi tiết <span className="text-red-500">*</span>
                     </label>
                     <textarea
+                      id="feedback-description-input"
                       required
-                      rows={3}
+                      rows={4}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Mô tả cụ thể hành vi bất thường hoặc đề xuất mong muốn..."
                       className="w-full text-xs p-3.5 rounded-xl border border-[#0E1D4F]/15 focus:outline-none focus:border-[#205BD6] focus:ring-1 focus:ring-[#205BD6] text-[#0E1D4F] resize-none"
                     />
-                  </div>
-
-                  {/* Optional User Info */}
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <label className="block text-[11px] font-medium text-[#4B5875] mb-1">
-                        Họ và tên
-                      </label>
-                      <input
-                        type="text"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
-                        className="w-full text-xs px-3 py-2 rounded-xl border border-[#0E1D4F]/15 focus:outline-none focus:border-[#205BD6] text-[#0E1D4F]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-medium text-[#4B5875] mb-1">
-                        Email liên hệ
-                      </label>
-                      <input
-                        type="email"
-                        value={userEmail}
-                        onChange={(e) => setUserEmail(e.target.value)}
-                        className="w-full text-xs px-3 py-2 rounded-xl border border-[#0E1D4F]/15 focus:outline-none focus:border-[#205BD6] text-[#0E1D4F]"
-                      />
-                    </div>
                   </div>
 
                   {/* Submit Button */}
@@ -309,11 +276,14 @@ export default function FeedbackLauncher() {
                     </button>
                     <button
                       type="submit"
-                      disabled={!subject.trim() || !description.trim()}
+                      disabled={isSubmitting || !subject.trim() || !description.trim()}
                       className="px-5 py-2 rounded-xl bg-[#205BD6] hover:bg-[#1847a8] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                     >
-                      <Icon name="send" className="size-3.5" />
-                      <span>Gửi phản hồi</span>
+                      <Icon
+                        name={isSubmitting ? 'sync' : 'send'}
+                        className={`size-3.5 ${isSubmitting ? 'animate-spin' : ''}`}
+                      />
+                      <span>{isSubmitting ? 'Đang gửi...' : 'Gửi phản hồi'}</span>
                     </button>
                   </div>
                 </form>

@@ -48,7 +48,7 @@ export default function HeroDraftBoard() {
             <Icon name="description" className="size-5" />
           </div>
           <div>
-            <h2 className={styles.boardHeaderTitle}>
+            <h2 className={styles.boardHeaderTitle} title="Bàn lập kế hoạch · Bản nháp ban đầu">
               Bàn lập kế hoạch · Bản nháp ban đầu
             </h2>
             <p className={styles.boardHeaderSub}>

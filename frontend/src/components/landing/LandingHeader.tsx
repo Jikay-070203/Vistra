@@ -27,14 +27,53 @@ export default function LandingHeader() {
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
+  const isNavClickingRef = useRef(false);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    setActiveSection(targetId);
+    isNavClickingRef.current = true;
+    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    clickTimeoutRef.current = setTimeout(() => {
+      isNavClickingRef.current = false;
+    }, 900);
+
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      const headerOffset = 76;
+      const elementPosition = targetEl.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+      history.replaceState(null, '', `#${targetId}`);
+    }
+  };
+
   // Handle Escape key and body scroll lock for mobile menu
   useEffect(() => {
     if (!mobileMenuOpen) return;
+
+    drawerRef.current?.querySelector<HTMLElement>('button')?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setMobileMenuOpen(false);
         toggleBtnRef.current?.focus();
+      } else if (e.key === 'Tab') {
+        const items = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])') ?? []);
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
 
@@ -49,7 +88,6 @@ export default function LandingHeader() {
   }, [mobileMenuOpen]);
 
   useEffect(() => {
-    // 1. Throttled scroll listener using appConfig threshold
     const scrollThreshold = appConfig.header.morphScrollThresholdPx || 80;
     let ticking = false;
 
@@ -58,6 +96,29 @@ export default function LandingHeader() {
         window.requestAnimationFrame(() => {
           const scrolled = window.scrollY > scrollThreshold;
           setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+
+          if (!isNavClickingRef.current) {
+            const headerOffset = 110;
+            const scrollPos = window.scrollY + headerOffset;
+
+            const heroEl = document.getElementById('y-tuong');
+            if (heroEl && scrollPos < heroEl.offsetTop + heroEl.offsetHeight * 0.7) {
+              setActiveSection('');
+            } else {
+              const sectionIds = ['tong-quan', 'kham-pha', 'cung-xay', 'xac-nhan', 'trai-nghiem'];
+              let matchedId = '';
+              for (const id of sectionIds) {
+                const el = document.getElementById(id);
+                if (el) {
+                  if (scrollPos >= el.offsetTop - 30) {
+                    matchedId = id;
+                  }
+                }
+              }
+              setActiveSection(matchedId);
+            }
+          }
+
           ticking = false;
         });
         ticking = true;
@@ -67,41 +128,9 @@ export default function LandingHeader() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
-    // 2. IntersectionObserver to track active sections accurately
-    const sectionIds = ['y-tuong', 'tong-quan', 'kham-pha', 'cung-xay', 'xac-nhan', 'trai-nghiem'];
-    const elements = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
-
-    let observer: IntersectionObserver | null = null;
-    if (typeof IntersectionObserver !== 'undefined' && elements.length > 0) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          const intersecting = entries.filter((e) => e.isIntersecting);
-          if (intersecting.length > 0) {
-            intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-            const topId = intersecting[0].target.id;
-            let targetActive = topId;
-            if (topId === 'y-tuong') {
-              targetActive = '';
-            }
-            setActiveSection((prev) => (prev !== targetActive ? targetActive : prev));
-          }
-        },
-        {
-          rootMargin: '-76px 0px -40% 0px',
-          threshold: [0, 0.15, 0.5],
-        }
-      );
-
-      elements.forEach((el) => observer!.observe(el));
-    }
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (observer) {
-        observer.disconnect();
-      }
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
     };
   }, []);
 
@@ -131,8 +160,9 @@ export default function LandingHeader() {
               <a
                 key={item.id}
                 href={item.href}
+                onClick={(e) => handleNavClick(e, item.id)}
                 className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
-                aria-current={isActive ? 'page' : undefined}
+                aria-current={isActive ? 'location' : undefined}
               >
                 <span>{item.label}</span>
               </a>
@@ -142,21 +172,21 @@ export default function LandingHeader() {
 
         {/* Right CTA with tuned surface alpha */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <a
-            href="/create-trip"
+          <Link
+            href="/community"
             className={`${styles.btnPrimary} ${styles.headerCta}`}
-            aria-label="Bắt đầu khám phá (chuyển đến Khám phá)"
+            aria-label="Khám phá hành trình cộng đồng"
           >
             <span>Khám phá</span>
             <Icon name="arrow_forward" className="size-3.5 sm:size-4 shrink-0" />
-          </a>
+          </Link>
 
           {/* Mobile menu button */}
           <button
             ref={toggleBtnRef}
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#20312B] hover:bg-[#DCE7D8] transition-colors shrink-0 cursor-pointer"
+            className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-[#20312B] hover:bg-[#DCE7D8] transition-colors shrink-0 cursor-pointer"
             aria-label={mobileMenuOpen ? 'Đóng danh mục điều hướng' : 'Mở danh mục điều hướng'}
             aria-expanded={mobileMenuOpen}
           >
@@ -184,7 +214,7 @@ export default function LandingHeader() {
           role="dialog"
           aria-modal="true"
           aria-label="Danh mục điều hướng di động"
-          className="md:hidden fixed top-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-5 py-4 shadow-2xl animate-in slide-in-from-top duration-200"
+          className="md:hidden fixed top-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto bg-white border-b border-[#0E1D4F]/10 px-5 py-4 shadow-2xl animate-in slide-in-from-top duration-200"
         >
           {/* Drawer Header with Close Button */}
           <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#0E1D4F]/10">
@@ -197,26 +227,26 @@ export default function LandingHeader() {
                 setMobileMenuOpen(false);
                 toggleBtnRef.current?.focus();
               }}
-              className="p-1.5 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] cursor-pointer"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-[#4B5875] hover:bg-[#EBF1F0] transition-colors cursor-pointer"
               aria-label="Đóng danh mục điều hướng"
             >
               <Icon name="close" className="size-5" />
             </button>
           </div>
 
-          {/* Primary Product Routes (UX-02 / F07) */}
+          {/* Primary Product Routes (NAV-02: Cộng đồng → Điểm đến → Chuyến đi của tôi, bỏ Lên kế hoạch) */}
           <div className="mb-3 pb-3 border-b border-[#0E1D4F]/10">
             <span className="text-[11px] font-label-caps uppercase font-bold tracking-wider text-[#205BD6] block mb-2 px-1">
               Khám phá sản phẩm
             </span>
             <nav className="flex flex-col gap-1" aria-label="Lối vào sản phẩm chính">
               <Link
-                href="/my-trips"
+                href="/community"
                 onClick={() => setMobileMenuOpen(false)}
                 className="min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold text-[#0E1D4F] hover:bg-[#EBF1F0] transition-colors"
               >
-                <Icon name="luggage" className="size-4 text-[#205BD6]" />
-                <span>Chuyến đi của tôi</span>
+                <Icon name="groups" className="size-4 text-[#E7AD2E]" />
+                <span>Cộng đồng</span>
               </Link>
               <Link
                 href="/destinations"
@@ -227,20 +257,12 @@ export default function LandingHeader() {
                 <span>Điểm đến</span>
               </Link>
               <Link
-                href="/community"
+                href="/my-trips"
                 onClick={() => setMobileMenuOpen(false)}
                 className="min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold text-[#0E1D4F] hover:bg-[#EBF1F0] transition-colors"
               >
-                <Icon name="groups" className="size-4 text-[#E7AD2E]" />
-                <span>Cộng đồng</span>
-              </Link>
-              <Link
-                href="/create-trip"
-                onClick={() => setMobileMenuOpen(false)}
-                className="min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-white bg-[#205BD6] hover:bg-[#1847a8] transition-colors mt-1 shadow-xs"
-              >
-                <Icon name="add" className="size-4" />
-                <span>Lên kế hoạch</span>
+                <Icon name="luggage" className="size-4 text-[#205BD6]" />
+                <span>Chuyến đi của tôi</span>
               </Link>
             </nav>
           </div>
@@ -257,13 +279,16 @@ export default function LandingHeader() {
                   <a
                     key={item.id}
                     href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`min-h-[40px] flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      handleNavClick(e, item.id);
+                    }}
+                    className={`min-h-[44px] flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       isActive
                         ? 'text-[#205BD6] bg-[#205BD6]/10 font-bold'
                         : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/60'
                     }`}
-                    aria-current={isActive ? 'page' : undefined}
+                    aria-current={isActive ? 'location' : undefined}
                   >
                     {item.label}
                   </a>

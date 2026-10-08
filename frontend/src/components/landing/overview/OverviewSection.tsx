@@ -97,125 +97,10 @@ export default function OverviewSection() {
       className={styles.overviewSection}
       aria-label="Tổng quan: Hành trình giữa ý định và chuyến đi thực tế"
     >
-      {/* Background Metaphor: Two Hands Approaching + Connecting Strands */}
-      <div className={styles.metaphorBackground} aria-hidden="true">
-        <svg
-          className={styles.metaphorSvg}
-          viewBox="0 0 1440 600"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <defs>
-            <linearGradient id="userHandGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#08B3C6" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#08B3C6" stopOpacity="0.45" />
-            </linearGradient>
-
-            <linearGradient id="planHandGrad" x1="1" y1="0" x2="0" y2="0">
-              <stop offset="0%" stopColor="#205BD6" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#205BD6" stopOpacity="0.45" />
-            </linearGradient>
-
-            <linearGradient id="strandGlow" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#08B3C6" />
-              <stop offset="50%" stopColor="#F4DB38" />
-              <stop offset="100%" stopColor="#205BD6" />
-            </linearGradient>
-          </defs>
-
-          {/* Left Hand: User Intent (Approaching from left toward center) */}
-          <g transform="translate(180, 220)">
-            {/* Palm & Wrist */}
-            <path
-              d="M -120 180 C -60 140, 40 120, 160 110 C 220 105, 290 80, 340 70 C 360 65, 380 75, 390 90 C 370 120, 310 160, 240 180 C 160 200, 20 230, -120 220 Z"
-              fill="url(#userHandGrad)"
-              stroke="#08B3C6"
-              strokeWidth="1.5"
-              strokeDasharray="4 4"
-            />
-            {/* Fingers reaching */}
-            <path
-              d="M 340 70 C 380 60, 430 55, 470 65 C 480 68, 480 78, 470 82 C 430 90, 380 95, 340 90"
-              stroke="#08B3C6"
-              strokeWidth="2"
-              fill="none"
-            />
-            <path
-              d="M 330 95 C 380 88, 440 90, 480 102 C 490 106, 490 116, 480 120 C 430 125, 370 125, 320 120"
-              stroke="#08B3C6"
-              strokeWidth="2"
-              fill="none"
-            />
-            <text x="180" y="210" fill="#08B3C6" fontSize="12" fontWeight="700" letterSpacing="0.08em">
-              Ý ĐỊNH NGƯỜI DÙNG
-            </text>
-          </g>
-
-          {/* Right Hand: Structured Plan (Approaching from right toward center) */}
-          <g transform="translate(760, 220)">
-            {/* Palm & Wrist */}
-            <path
-              d="M 620 180 C 560 140, 460 120, 340 110 C 280 105, 210 80, 160 70 C 140 65, 120 75, 110 90 C 130 120, 190 160, 260 180 C 340 200, 480 230, 620 220 Z"
-              fill="url(#planHandGrad)"
-              stroke="#205BD6"
-              strokeWidth="1.5"
-              strokeDasharray="4 4"
-            />
-            {/* Fingers reaching */}
-            <path
-              d="M 160 70 C 120 60, 70 55, 30 65 C 20 68, 20 78, 30 82 C 70 90, 120 95, 160 90"
-              stroke="#205BD6"
-              strokeWidth="2"
-              fill="none"
-            />
-            <path
-              d="M 170 95 C 120 88, 60 90, 20 102 C 10 106, 10 116, 20 120 C 70 125, 130 125, 180 120"
-              stroke="#205BD6"
-              strokeWidth="2"
-              fill="none"
-            />
-            <text x="320" y="210" fill="#205BD6" fontSize="12" fontWeight="700" letterSpacing="0.08em">
-              KẾ HOẠCH VÀO NẾP
-            </text>
-          </g>
-
-          {/* The Connecting Strands in the Space Between Hands (The System) */}
-          <g opacity={activeIndex === 0 ? 0.6 : activeIndex === 1 ? 0.95 : 0.75}>
-            {/* Strand 1 */}
-            <path
-              d="M 640 285 C 680 250, 730 260, 780 290"
-              stroke="url(#strandGlow)"
-              strokeWidth="3"
-              strokeDasharray="4 6"
-              fill="none"
-            />
-            {/* Strand 2 */}
-            <path
-              d="M 630 310 C 690 340, 720 330, 790 305"
-              stroke="url(#strandGlow)"
-              strokeWidth="2.5"
-              fill="none"
-            />
-            {/* Strand 3 */}
-            <path
-              d="M 650 335 C 700 370, 740 360, 785 330"
-              stroke="#08B3C6"
-              strokeWidth="1.5"
-              strokeDasharray="2 4"
-              fill="none"
-            />
-            {/* Central Synthesis Beacon */}
-            <circle cx="710" cy="305" r="8" fill="#F4DB38" fillOpacity="0.8" />
-            <circle cx="710" cy="305" r="16" stroke="#F4DB38" strokeWidth="1" strokeDasharray="3 3" fill="none" />
-          </g>
-        </svg>
-      </div>
-
       <div className={styles.container}>
         {/* Section Header */}
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>
+          <h2 className={styles.sectionTitle} title="Khi mong muốn gặp gỡ cung đường.">
             Khi mong muốn gặp gỡ cung đường.
           </h2>
           <p className={styles.sectionSubtitle}>
@@ -239,22 +124,37 @@ export default function OverviewSection() {
                 className={`${styles.cardItem} ${isActive ? styles.cardItemActive : ''}`}
                 onClick={() => handleSelectCard(idx)}
               >
-                <div>
+                <div className="relative z-10">
                   <div className={styles.cardBody}>
-                    <h3 className={styles.cardTitle}>{card.title}</h3>
+                    <h3 className={styles.cardTitle} title={card.title}>{card.title}</h3>
                     <p className={styles.cardKeyword}>{card.keyword}</p>
                     <p className={styles.cardEvidence}>{card.evidence}</p>
                   </div>
                 </div>
 
-                <div className={styles.cardBottom}>
-                  <div className={styles.progressBarTrack} aria-hidden="true">
-                    <div
-                      className={styles.progressBarFill}
-                      style={{ width: `${cardProgress}%` }}
+                {/* LPF-03: Progressive perimeter border stroke (no percentage number) */}
+                {isActive && (
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none rounded-2xl z-20"
+                    style={{ overflow: 'visible' }}
+                  >
+                    <rect
+                      x="1.5"
+                      y="1.5"
+                      width="calc(100% - 3px)"
+                      height="calc(100% - 3px)"
+                      rx="16"
+                      ry="16"
+                      fill="none"
+                      stroke="#205BD6"
+                      strokeWidth="3"
+                      pathLength="100"
+                      strokeDasharray="100"
+                      strokeDashoffset={`${Math.max(0, 100 - cardProgress)}`}
+                      strokeLinecap="round"
                     />
-                  </div>
-                </div>
+                  </svg>
+                )}
               </button>
             );
           })}

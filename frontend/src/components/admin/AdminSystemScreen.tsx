@@ -21,12 +21,20 @@ export default function AdminSystemScreen() {
     setSelectedLog,
     notFoundTraceId,
     setNotFoundTraceId,
+    traceDetailError,
+    setTraceDetailError,
+    isLoadingDetail,
+    retryDetail,
     paginatedLogs,
     totalLogsCount,
     filteredCount,
     currentPage,
     setCurrentPage,
     totalPages,
+    pageSize,
+    isLoadingTraces,
+    tracesError,
+    retryTraces,
   } = useAdminController();
 
   return (
@@ -37,51 +45,60 @@ export default function AdminSystemScreen() {
           <div className="flex items-center gap-3">
             <Icon name="warning" className="size-5 text-amber-600 shrink-0" />
             <div className="text-xs">
-              <strong>Không tìm thấy bản ghi Trace:</strong> Mã <code>{notFoundTraceId}</code> không tồn tại
+              <strong>Không tìm thấy bản ghi Trace (404):</strong> Mã <code>{notFoundTraceId}</code> không tồn tại
               hoặc đã hết hạn lưu vết trong phiên làm việc hiện tại.
             </div>
           </div>
           <button
             type="button"
             onClick={() => setNotFoundTraceId(null)}
-            className="text-xs text-[#4B5875] hover:text-[#0E1D4F] font-bold p-1"
+            className="text-xs text-[#4B5875] hover:text-[#0E1D4F] font-bold p-1 cursor-pointer"
           >
             ✕
           </button>
         </div>
       )}
 
+      {/* Trace Detail Error (Network / 403 / 500) */}
+      {traceDetailError && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-between gap-4 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <Icon name="error" className="size-5 text-rose-600 shrink-0" />
+            <div className="text-xs">
+              <strong>Lỗi tải chi tiết Trace:</strong> {traceDetailError}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={retryDetail}
+              className="text-xs px-2.5 py-1 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700 cursor-pointer"
+            >
+              Thử lại
+            </button>
+            <button
+              type="button"
+              onClick={() => setTraceDetailError(null)}
+              className="text-xs text-rose-600 hover:text-rose-900 font-bold p-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header Banner (ADM-SYS-01A: No JSON import button in header title) */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-label-caps text-xs text-[#205BD6] uppercase font-bold tracking-wider">
-              TRUNG TÂM HẠ TẦNG KỸ THUẬT &amp; QUẢN TRỊ DỮ LIỆU
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#08B3C6]"></span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-[#0E1D4F]/10 text-[#0E1D4F] font-semibold">
-              ADMIN CONTROL PLANE
-            </span>
-          </div>
-          <h2 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
+          <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
             Hạ tầng Agent AI &amp; Quản trị Dữ liệu Thực thể
-          </h2>
-          <p className="text-xs sm:text-sm text-[#4B5875] mt-1 max-w-2xl leading-relaxed">
-            Giám sát độ trễ vi khí hậu RAG, nhật ký trace agent, bộ dữ liệu chuẩn (Golden Dataset), kiểm thử phòng thủ injection và quản trị cấu trúc 5 bảng thực thể.
-          </p>
+          </h1>
         </div>
 
-        {/* Status Pills */}
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Hệ thống Thử nghiệm: Sẵn sàng
-          </span>
-        </div>
       </div>
 
       {/* Primary Tab Navigation between System Health & System Management (ADM-SYS-01C) */}
-      <div className="flex items-center gap-2 p-1.5 bg-white rounded-2xl border border-[#0E1D4F]/10 w-fit shadow-2xs">
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white rounded-2xl border border-[#0E1D4F]/10 w-fit max-w-full shadow-2xs">
         <button
           type="button"
           onClick={() => setActiveSystemTab('health')}
@@ -123,23 +140,33 @@ export default function AdminSystemScreen() {
             filteredCount={filteredCount}
             currentPage={currentPage}
             totalPages={totalPages}
+            pageSize={pageSize}
+            isLoading={isLoadingTraces}
+            error={tracesError}
+            onRetry={retryTraces}
             onPageChange={setCurrentPage}
             onFilterChange={setFilterStatus}
             onSelectLog={setSelectedLog}
           />
           <TraceDetailDialog
             log={selectedLog}
-            onClose={() => setSelectedLog(null)}
+            isLoading={isLoadingDetail}
+            error={traceDetailError}
+            onRetry={retryDetail}
+            onClose={() => {
+              setSelectedLog(null);
+              setTraceDetailError(null);
+            }}
           />
 
-          {/* 3. Benchmarks & Latency breakdown (Stacked vertically) */}
+          {/* 3. Golden Dataset & Safety Guardrail Panels (Shared row on desktop, stacked on mobile - balanced height) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <GoldenDatasetPanel />
+            <SafetyGuardrailPanel />
+          </div>
+
+          {/* 4. Benchmarks & Latency breakdown (Nhóm tín hiệu) */}
           <BenchmarkPanel />
-
-          {/* 4. Golden Dataset Evaluation Panel (ADM-SYS-02) */}
-          <GoldenDatasetPanel />
-
-          {/* 5. Adversarial Prompt & Safety Guardrail Test Bench (ADM-SYS-03) */}
-          <SafetyGuardrailPanel />
         </div>
       )}
 

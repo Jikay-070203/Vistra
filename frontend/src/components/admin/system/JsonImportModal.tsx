@@ -1,423 +1,568 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Icon from '@/components/ui/Icon';
+import MockBadge from '../demo/MockBadge';
 import {
-  TableName,
-  SCHEMA_REGISTRY,
-  validateBatchJson,
-  executeBatchImport,
-  BatchValidationResult,
-  ValidatedRecordItem,
-} from '@/lib/adminDataStore';
+  DEMO_ENTITY_TABLES,
+  DemoEntityTable,
+  validateRecordAgainstSchema,
+  ValidatedRecord,
+} from './demoSchema';
 
 interface JsonImportModalProps {
   isOpen: boolean;
-  activeTable?: TableName;
+  activeTable?: string;
   onClose: () => void;
-  onImportSuccess: (count: number, tableName: string) => void;
+  onImportSuccess?: (count: number, tableName: string) => void;
 }
 
-const SAMPLE_JSONS: Record<TableName, string> = {
-  destinations: JSON.stringify(
-    [
-      {
-        id: 'DEST-NEW-01',
-        name: 'Cao Bằng - Thác Bản Giốc',
-        region: 'Đông Bắc',
-        duration: '3N2Đ',
-        estimatedCost: '3.800.000 ₫',
-        visualMatch: 92,
-        budgetMatch: 89,
-        goldenHour: '06:30 Bình minh thác',
-      },
-      {
-        id: 'DEST-NEW-02',
-        name: 'Y Tý - Biển Mây Mường Hum',
-        region: 'Tây Bắc',
-        duration: '3N2Đ',
-        estimatedCost: '3.400.000 ₫',
-        visualMatch: 95,
-        budgetMatch: 91,
-        goldenHour: '16:45 Hoàng hôn ngắm mây',
-      },
-    ],
-    null,
-    2
-  ),
-  plans: JSON.stringify(
-    [
-      {
-        id: 'PLAN-NEW-01',
-        userId: 'USR-101',
-        title: 'Hành trình Mùa thu Tây Bắc',
-        destination: 'Sa Pa',
-        status: 'draft',
-        isPublished: true,
-        duration: '3N2Đ',
-        budget: '7.500.000 ₫',
-        createdAt: '03/10/2026',
-      },
-    ],
-    null,
-    2
-  ),
-  itinerary_days: JSON.stringify(
-    [
-      {
-        id: 'DAY-NEW-01',
-        planId: 'sapa-autumn-retreat',
-        dayNumber: 4,
-        title: 'Ngày 4: Bản Tả Van & Chợ phiên',
-        theme: 'Văn hóa bản địa & Trải nghiệm thong thả',
-      },
-    ],
-    null,
-    2
-  ),
-  activities: JSON.stringify(
-    [
-      {
-        id: 'ACT-NEW-01',
-        dayId: 'DAY-sapa-autumn-retreat-1',
-        time: '16:30',
-        title: 'Thưởng trà chiều ngắm thung lũng Mường Hoa',
-        location: 'Eco-Lodge Cafe',
-        category: 'Thư giãn',
-        cost: '150.000 ₫',
-      },
-    ],
-    null,
-    2
-  ),
-  feedback_tickets: JSON.stringify(
-    [
-      {
-        id: 'FB-NEW-01',
-        userName: 'Trần Văn Hoàng',
-        userEmail: 'hoang.tran@gmail.com',
-        category: 'Lỗi logic hành trình',
-        severity: 'Trung bình',
-        status: 'Chờ phân loại',
-        subject: 'Cần cập nhật giờ xe buýt đưa đón Fansipan',
-        createdAt: '03/10/2026 10:15',
-      },
-    ],
-    null,
-    2
-  ),
-};
+export type ImportMode = 'single_form' | 'bulk_json';
 
 export default function JsonImportModal({
   isOpen,
-  activeTable = 'destinations',
+  activeTable = 'provinces',
   onClose,
   onImportSuccess,
 }: JsonImportModalProps) {
-  const [targetTable, setTargetTable] = useState<TableName>(activeTable);
-  const [step, setStep] = useState<'input' | 'review'>('input');
-  const [jsonInput, setJsonInput] = useState<string>(SAMPLE_JSONS[activeTable] || '');
-  const [validationResult, setValidationResult] = useState<BatchValidationResult | null>(null);
-  const [reviewedRecords, setReviewedRecords] = useState<ValidatedRecordItem[]>([]);
-
-  const [prevProps, setPrevProps] = useState({ activeTable, isOpen });
-  if (activeTable !== prevProps.activeTable || isOpen !== prevProps.isOpen) {
-    setPrevProps({ activeTable, isOpen });
-    setTargetTable(activeTable);
-    setJsonInput(SAMPLE_JSONS[activeTable] || '');
-    setStep('input');
-    setValidationResult(null);
-  }
-
   if (!isOpen) return null;
+  return (
+    <JsonImportModalInner
+      activeTableId={activeTable}
+      onClose={onClose}
+      onImportSuccess={onImportSuccess}
+    />
+  );
+}
 
-  const currentSchema = SCHEMA_REGISTRY[targetTable];
+function JsonImportModalInner({
+  activeTableId,
+  onClose,
+  onImportSuccess,
+}: {
+  activeTableId: string;
+  onClose: () => void;
+  onImportSuccess?: (count: number, tableName: string) => void;
+}) {
+  const [selectedTableId, setSelectedTableId] = useState(activeTableId);
+  const currentTable: DemoEntityTable = useMemo(() => {
+    return (
+      DEMO_ENTITY_TABLES.find((t) => t.id === selectedTableId) || DEMO_ENTITY_TABLES[0]
+    );
+  }, [selectedTableId]);
 
-  const handleTableChange = (newTable: TableName) => {
-    setTargetTable(newTable);
-    setJsonInput(SAMPLE_JSONS[newTable] || '');
-    setStep('input');
-    setValidationResult(null);
-    setReviewedRecords([]);
-  };
+  const [mode, setMode] = useState<ImportMode>('bulk_json');
 
-  // Step 1: Validate
-  const handleValidate = () => {
-    const result = validateBatchJson(targetTable, jsonInput);
-    setValidationResult(result);
-    if (result.isSyntaxValid) {
-      setReviewedRecords(result.records);
-      setStep('review');
+  // Single Form State
+  const [singleFormData, setSingleFormData] = useState<Record<string, string>>({});
+  const [singleFormTouched, setSingleFormTouched] = useState(false);
+
+  // Bulk JSON State
+  const [jsonText, setJsonText] = useState(currentTable.sampleJson);
+
+  // Simulation Status
+  const [simulationResult, setSimulationResult] = useState<{
+    count: number;
+    table: string;
+  } | null>(null);
+
+  // Validate single form record
+  const singleRecordValidation = useMemo<ValidatedRecord>(() => {
+    const rawData: Record<string, unknown> = {};
+    for (const field of currentTable.fields) {
+      const val = singleFormData[field.name];
+      if (val === undefined || val === '') {
+        continue;
+      }
+      if (field.type === 'number') {
+        const num = Number(val);
+        rawData[field.name] = Number.isNaN(num) ? val : num;
+      } else if (field.type === 'array') {
+        rawData[field.name] = val
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      } else {
+        rawData[field.name] = val;
+      }
     }
+
+    return validateRecordAgainstSchema(rawData, currentTable, 0);
+  }, [singleFormData, currentTable]);
+
+  // Validate bulk JSON
+  const bulkValidationResult = useMemo<{
+    isValidJson: boolean;
+    syntaxError: string | null;
+    records: ValidatedRecord[];
+    validCount: number;
+    invalidCount: number;
+  }>(() => {
+    if (!jsonText.trim()) {
+      return { isValidJson: true, syntaxError: null, records: [], validCount: 0, invalidCount: 0 };
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (err: unknown) {
+      return {
+        isValidJson: false,
+        syntaxError: err instanceof Error ? err.message : 'Lỗi cú pháp JSON',
+        records: [],
+        validCount: 0,
+        invalidCount: 0,
+      };
+    }
+
+    if (!Array.isArray(parsed)) {
+      if (typeof parsed === 'object' && parsed !== null) {
+        // Single object entered in JSON bulk mode
+        const single = validateRecordAgainstSchema(parsed, currentTable, 0);
+        return {
+          isValidJson: true,
+          syntaxError: null,
+          records: [single],
+          validCount: single.isValid ? 1 : 0,
+          invalidCount: single.isValid ? 0 : 1,
+        };
+      }
+      return {
+        isValidJson: false,
+        syntaxError: 'Dữ liệu JSON phải là một mảng các đối tượng (Array of objects)',
+        records: [],
+        validCount: 0,
+        invalidCount: 0,
+      };
+    }
+
+    const validatedList = parsed.map((item, idx) =>
+      validateRecordAgainstSchema(item, currentTable, idx)
+    );
+
+    const validCount = validatedList.filter((r) => r.isValid).length;
+    const invalidCount = validatedList.length - validCount;
+
+    return {
+      isValidJson: true,
+      syntaxError: null,
+      records: validatedList,
+      validCount,
+      invalidCount,
+    };
+  }, [jsonText, currentTable]);
+
+  // Load sample template
+  const handleLoadSample = () => {
+    setJsonText(currentTable.sampleJson);
   };
 
-  // Allow removing an invalid or unwanted record in review step
-  const handleRemoveRecord = (index: number) => {
-    setReviewedRecords((prev) => prev.filter((r) => r.index !== index));
+  // Handle single form input change
+  const handleFieldChange = (name: string, value: string) => {
+    setSingleFormData((prev) => ({ ...prev, [name]: value }));
+    setSingleFormTouched(true);
   };
 
-  // Step 2: Confirm & Import
-  const validRecordsToImport = reviewedRecords.filter((r) => r.isValid);
-  const remainingInvalidCount = reviewedRecords.filter((r) => !r.isValid).length;
-  const canConfirm = validRecordsToImport.length > 0 && remainingInvalidCount === 0;
+  // Perform Simulation
+  const handleConfirmSimulation = () => {
+    const count =
+      mode === 'single_form'
+        ? singleRecordValidation.isValid
+          ? 1
+          : 0
+        : bulkValidationResult.validCount;
 
-  const handleConfirmImport = () => {
-    const dataList = validRecordsToImport.map((r) => r.data);
-    const { importedCount } = executeBatchImport(targetTable, dataList);
-    onImportSuccess(importedCount, targetTable);
-    handleResetAndClose();
-  };
+    if (count === 0) return;
 
-  const handleResetAndClose = () => {
-    setStep('input');
-    setValidationResult(null);
-    setReviewedRecords([]);
-    onClose();
+    setSimulationResult({ count, table: currentTable.name });
+    if (onImportSuccess) {
+      onImportSuccess(count, currentTable.id);
+    }
   };
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') handleResetAndClose();
+      aria-labelledby="json-import-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0E1D4F]/60 backdrop-blur-xs animate-in fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
       }}
-      tabIndex={-1}
     >
-      <div className="bg-white max-w-2xl w-full rounded-2xl shadow-2xl border border-[#0E1D4F]/10 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header (FIX-12: aria-label on close button) */}
-        <div className="p-5 bg-[#EBF1F0] border-b border-[#0E1D4F]/10 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-label-caps text-[11px] uppercase tracking-wider text-[#205BD6] font-bold">
-                CÔNG CỤ NHẬP LIỆU DỮ LIỆU JSON CHUẨN HÓA
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-white text-[#0E1D4F] font-semibold border border-[#0E1D4F]/10">
-                Bước {step === 'input' ? '1: Nhập mã' : '2: Kiểm định (Review & Confirm)'}
-              </span>
+      <div className="bg-white max-w-3xl w-full rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+        {/* Modal Header */}
+        <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 id="json-import-modal-title" className="font-bold text-base text-[#0E1D4F]">
+                  Nhập dữ liệu thực thể (JSON Import)
+                </h3>
+                <MockBadge size="sm" />
+              </div>
+              <p className="text-xs text-[#4B5875] mt-0.5">
+                Mô phỏng quy trình nhập dữ liệu vào bảng thực thể • Backend chưa hỗ trợ API import
+              </p>
             </div>
-            <h3 className="font-headline-sm text-lg text-[#0E1D4F] font-bold">
-              {step === 'input'
-                ? `Nhập Dữ liệu Bảng [${targetTable}] qua JSON`
-                : `Kiểm định Cấu trúc Bảng [${targetTable}] & Xác nhận`}
-            </h3>
           </div>
           <button
             type="button"
-            onClick={handleResetAndClose}
-            className="w-8 h-8 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center text-[#0E1D4F] border border-[#0E1D4F]/10 cursor-pointer"
-            aria-label="Đóng hộp thoại nhập JSON"
+            onClick={onClose}
+            aria-label="Đóng cửa sổ"
+            className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
           >
-            <Icon name="close" className="size-5" />
+            <Icon name="close" size={16} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto space-y-4 text-xs">
-          {step === 'input' ? (
-            <>
-              {/* Table Selector (ADM-SYS-04B: source of truth from selected table) */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[#0E1D4F]">Bảng thực thể đích:</span>
-                  <select
-                    value={targetTable}
-                    onChange={(e) => handleTableChange(e.target.value as TableName)}
-                    className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-white font-mono font-bold text-[#205BD6] focus:outline-none"
-                  >
-                    {Object.values(SCHEMA_REGISTRY).map((s) => (
-                      <option key={s.tableName} value={s.tableName}>
-                        {s.tableName} ({s.name})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+        {/* Table Selector & Mode Switch Bar */}
+        <div className="px-6 py-3 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-slate-600">Bảng mục tiêu:</span>
+            <select
+              value={selectedTableId}
+              onChange={(e) => {
+                setSelectedTableId(e.target.value);
+                const tbl = DEMO_ENTITY_TABLES.find((t) => t.id === e.target.value);
+                if (tbl) setJsonText(tbl.sampleJson);
+                setSingleFormData({});
+                setSingleFormTouched(false);
+              }}
+              className="px-3 py-1.5 rounded-xl border border-slate-300 font-semibold text-[#0E1D4F] bg-slate-50"
+            >
+              {DEMO_ENTITY_TABLES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-                <button
-                  type="button"
-                  onClick={() => setJsonInput(SAMPLE_JSONS[targetTable] || '')}
-                  className="text-xs text-[#205BD6] font-semibold hover:underline self-start sm:self-auto cursor-pointer"
-                >
-                  Tải mẫu JSON hợp lệ cho bảng này
-                </button>
-              </div>
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setMode('single_form')}
+              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                mode === 'single_form'
+                  ? 'bg-white text-[#205BD6] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Nhập 1 bản ghi (Form)
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('bulk_json')}
+              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                mode === 'bulk_json'
+                  ? 'bg-white text-[#205BD6] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Dán JSON hàng loạt
+            </button>
+          </div>
+        </div>
 
-              {/* Syntax Error Notice */}
-              {validationResult && !validationResult.isSyntaxValid && (
-                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs flex items-center gap-2">
-                  <Icon name="error" className="size-4 shrink-0" />
-                  <span>
-                    <strong>Lỗi cú pháp:</strong> {validationResult.syntaxError}
-                  </span>
-                </div>
-              )}
+        {/* Simulation Success Screen */}
+        {simulationResult ? (
+          <div className="p-8 text-center space-y-4 my-auto">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+              <Icon name="check_circle" size={32} />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-bold text-lg text-[#0E1D4F]">
+                Mô phỏng kiểm tra thành công!
+              </h4>
+              <p className="text-xs text-slate-600 max-w-md mx-auto">
+                Đã kiểm tra cú pháp và cấu trúc hợp lệ cho{' '}
+                <strong className="text-emerald-700">{simulationResult.count} bản ghi</strong> của{' '}
+                <strong>{simulationResult.table}</strong>.
+              </p>
+            </div>
 
-              {/* JSON Textarea */}
-              <div>
-                <label className="block text-xs font-semibold text-[#0E1D4F] mb-1.5">
-                  Dán nội dung mảng JSON các bản ghi cần nhập:
-                </label>
-                <textarea
-                  rows={10}
-                  value={jsonInput}
-                  onChange={(e) => setJsonInput(e.target.value)}
-                  placeholder={'[\n  {\n    "id": "..."\n  }\n]'}
-                  className="w-full p-3.5 rounded-xl border border-[#0E1D4F]/15 bg-gray-50 font-mono text-[11px] text-[#0E1D4F] focus:outline-none focus:border-[#205BD6] leading-relaxed"
-                />
-              </div>
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 max-w-md mx-auto">
+              <p className="font-semibold flex items-center justify-center gap-1">
+                <Icon name="science" size={14} />
+                Lưu ý: Dữ liệu minh họa
+              </p>
+              <p className="text-[11px] mt-0.5">
+                Các bản ghi chưa được ghi vào cơ sở dữ liệu thật vì Backend chưa có API import thực thể.
+              </p>
+            </div>
 
-              {/* Schema Fields Reference */}
-              <div className="p-3.5 rounded-xl bg-[#EBF1F0]/50 border border-[#0E1D4F]/10 space-y-1.5">
-                <span className="font-semibold text-[#0E1D4F] block">
-                  Các trường trong schema <code>{targetTable}</code>:
+            <div className="pt-4 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSimulationResult(null)}
+                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-100"
+              >
+                Nhập tiếp
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 rounded-xl bg-[#205BD6] text-white text-xs font-bold hover:bg-[#1847a8]"
+              >
+                Hoàn tất &amp; Đóng
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Main Form / JSON Area */
+          <div className="p-6 overflow-y-auto flex-1 space-y-5 text-xs">
+            {/* Schema guidance box */}
+            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[#0E1D4F] flex items-center gap-1">
+                  <Icon name="schema" size={14} className="text-[#205BD6]" />
+                  Quy tắc Schema minh họa ({currentTable.fields.length} trường)
                 </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {currentSchema.fields.map((f) => (
-                    <span
-                      key={f.name}
-                      className="px-2 py-0.5 rounded bg-white border border-[#0E1D4F]/10 text-[10px] font-mono text-[#4B5875]"
-                    >
-                      {f.name}
-                      {f.required ? ' *' : ''} ({f.type})
-                    </span>
-                  ))}
-                </div>
+                <span className="text-[11px] text-[#4B5875]">
+                  Dữ liệu demo • Chưa kết nối DB
+                </span>
               </div>
-
-              {/* Actions Footer */}
-              <div className="pt-3 border-t border-[#0E1D4F]/10 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleResetAndClose}
-                  className="px-4 py-2 rounded-xl bg-white border border-[#0E1D4F]/15 text-[#0E1D4F] font-semibold hover:bg-[#EBF1F0] transition-colors cursor-pointer"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="button"
-                  onClick={handleValidate}
-                  disabled={!jsonInput.trim()}
-                  className="px-5 py-2 rounded-xl bg-[#205BD6] hover:bg-[#1847a8] disabled:opacity-40 text-white font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Icon name="fact_check" className="size-4" />
-                  <span>Kiểm tra &amp; Xem trước (Validate)</span>
-                </button>
-              </div>
-            </>
-          ) : (
-            /* STEP 2: Review & Confirm (ADM-DATA-06B, ADM-DATA-06C, ADM-DATA-06D) */
-            <div className="space-y-4">
-              <div className="p-3.5 rounded-xl bg-gray-50 border border-[#0E1D4F]/10 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-[#0E1D4F]">
-                    Tổng số bản ghi: {reviewedRecords.length}
-                  </span>
-                  <div className="text-[11px] text-[#4B5875] mt-0.5">
-                    Hợp lệ: <strong className="text-emerald-600">{validRecordsToImport.length}</strong> ·{' '}
-                    Lỗi: <strong className="text-red-600">{remainingInvalidCount}</strong>
-                  </div>
-                </div>
-
-                {validationResult?.hasDuplicates && (
-                  <span className="px-2.5 py-1 rounded-lg bg-red-100 text-red-800 text-[10px] font-bold border border-red-200">
-                    ✕ Phát hiện ID trùng lặp
-                  </span>
-                )}
-              </div>
-
-              {/* Duplicate ID Warning Banner (ADM-DATA-06C) */}
-              {validationResult?.hasDuplicates && (
-                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs space-y-1">
-                  <div className="font-bold flex items-center gap-1.5">
-                    <Icon name="block" className="size-4" />
-                    <span>Lô nhập bị chặn do trùng lặp mã định danh (Primary Key):</span>
-                  </div>
-                  <p className="text-[11px] text-red-600">
-                    Các mã xung đột: <strong>{validationResult.duplicateIds.join(', ')}</strong>. Vui lòng
-                    chỉnh sửa mã hoặc bấm nút loại bỏ (Xóa) bản ghi lỗi bên dưới.
-                  </p>
-                </div>
-              )}
-
-              {/* Record by record review list */}
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                {reviewedRecords.map((r) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                {currentTable.fields.map((f) => (
                   <div
-                    key={r.index}
-                    className={`p-3.5 rounded-xl border transition-all ${
-                      r.isValid
-                        ? 'border-emerald-200 bg-emerald-50/20'
-                        : 'border-red-200 bg-red-50/20'
-                    }`}
+                    key={f.name}
+                    className="p-2 rounded-lg bg-white border border-slate-200/80 space-y-0.5"
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-[#0E1D4F]">
-                          Bản ghi #{r.index}:{' '}
-                          {String(r.data.name || r.data.title || r.data.id || 'Không có tên')}
-                        </span>
-                        {r.data.id ? (
-                          <span className="font-mono text-[10px] text-[#4B5875]">({String(r.data.id)})</span>
-                        ) : null}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
-                            r.isValid
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {r.isValid ? 'HỢP LỆ' : 'KHÔNG HỢP LỆ'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveRecord(r.index)}
-                          className="px-2 py-0.5 rounded text-[10px] text-red-600 hover:bg-red-50 font-semibold cursor-pointer border border-red-200"
-                          title="Loại bỏ bản ghi này khỏi lô nhập"
-                        >
-                          Loại bỏ
-                        </button>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-slate-800">{f.name}</span>
+                      <span className="text-slate-500 font-mono">
+                        {f.type} {f.required && <span className="text-red-500 font-bold">*</span>}
+                      </span>
                     </div>
-
-                    {!r.isValid && (
-                      <ul className="space-y-0.5 text-[11px] text-red-600 list-disc list-inside pt-1">
-                        {r.errors.map((err, i) => (
-                          <li key={i}>{err}</li>
-                        ))}
-                      </ul>
-                    )}
+                    <p className="text-slate-600 text-[10px]">{f.description}</p>
                   </div>
                 ))}
               </div>
+            </div>
 
-              {/* Actions Footer */}
-              <div className="pt-3 border-t border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => setStep('input')}
-                  className="px-4 py-2 rounded-xl bg-white border border-[#0E1D4F]/15 text-[#0E1D4F] font-semibold hover:bg-[#EBF1F0] transition-colors cursor-pointer"
-                >
-                  ← Quay lại chỉnh sửa JSON
-                </button>
+            {mode === 'single_form' ? (
+              /* SINGLE FORM MODE */
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {currentTable.fields.map((field) => (
+                    <div key={field.name} className="space-y-1">
+                      <label
+                        htmlFor={`field-${field.name}`}
+                        className="block font-semibold text-slate-700 text-xs"
+                      >
+                        {field.name}{' '}
+                        {field.required && <span className="text-red-500">*</span>}
+                        <span className="text-slate-400 font-normal ml-1">({field.type})</span>
+                      </label>
+                      <input
+                        id={`field-${field.name}`}
+                        type="text"
+                        value={singleFormData[field.name] || ''}
+                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                        placeholder={`Ví dụ: ${String(field.example)}`}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800 focus:border-[#205BD6]"
+                      />
+                      <p className="text-[10px] text-slate-500">{field.description}</p>
+                    </div>
+                  ))}
+                </div>
 
-                <div className="flex items-center gap-2">
+                {singleFormTouched && (
+                  <div
+                    className={`p-3 rounded-xl border text-xs ${
+                      singleRecordValidation.isValid
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-red-50 border-red-200 text-red-700'
+                    }`}
+                  >
+                    {singleRecordValidation.isValid ? (
+                      <p className="font-semibold flex items-center gap-1.5">
+                        <Icon name="check_circle" size={14} className="text-emerald-600" />
+                        Bản ghi hợp lệ theo quy tắc schema minh họa.
+                      </p>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="font-semibold flex items-center gap-1.5">
+                          <Icon name="error" size={14} className="text-red-500" />
+                          Phát hiện lỗi cấu trúc:
+                        </p>
+                        <ul className="list-disc list-inside text-[11px] space-y-0.5 ml-1">
+                          {singleRecordValidation.issues.map((issue, idx) => (
+                            <li key={idx}>{issue.message}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* BULK JSON MODE */
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="json-textarea-input" className="font-semibold text-slate-700">
+                    Dán nội dung JSON (Mảng các object):
+                  </label>
                   <button
                     type="button"
-                    disabled={!canConfirm}
-                    onClick={handleConfirmImport}
-                    className="px-5 py-2 rounded-xl bg-[#205BD6] hover:bg-[#1847a8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-all shadow-xs cursor-pointer"
+                    onClick={handleLoadSample}
+                    className="text-[11px] font-bold text-[#205BD6] hover:underline flex items-center gap-1"
                   >
-                    Xác nhận nhập ({validRecordsToImport.length} bản ghi)
+                    <Icon name="refresh" size={12} />
+                    Tải mẫu JSON hợp lệ
                   </button>
                 </div>
+
+                <div className="relative">
+                  <textarea
+                    id="json-textarea-input"
+                    rows={8}
+                    value={jsonText}
+                    onChange={(e) => {
+                      setJsonText(e.target.value);
+                    }}
+                    placeholder={'[\n  {\n    "code": 79,\n    "name": "TP. Hồ Chí Minh",\n    "region": "Miền Nam"\n  }\n]'}
+                    className={`w-full px-3 py-2.5 rounded-xl border font-mono text-xs text-slate-800 ${
+                      !bulkValidationResult.isValidJson
+                        ? 'border-red-400 bg-red-50/20'
+                        : 'border-slate-300 focus:border-[#205BD6]'
+                    }`}
+                  />
+                </div>
+
+                {/* Validation summary banner */}
+                {!bulkValidationResult.isValidJson ? (
+                  <div
+                    role="alert"
+                    className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2"
+                  >
+                    <Icon name="error" size={16} className="text-red-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">Lỗi cú pháp JSON (Syntax Error)</p>
+                      {bulkValidationResult.syntaxError && (
+                        <p className="text-[11px] font-mono text-red-800 bg-red-100/60 px-2 py-0.5 rounded mt-1">
+                          {bulkValidationResult.syntaxError}
+                        </p>
+                      )}
+                      <p className="text-[11px] mt-1 text-red-600">
+                        Chuỗi dán vào không phải là JSON hợp lệ hoặc thiếu dấu ngoặc đóng/mở. Hãy kiểm tra lại dấu phẩy, ngoặc kép và định dạng mảng.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-[#0E1D4F]">
+                        Kết quả phân tích ({bulkValidationResult.records.length} bản ghi)
+                      </span>
+                      <div className="flex items-center gap-2 text-[11px]">
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                          {bulkValidationResult.validCount} hợp lệ
+                        </span>
+                        {bulkValidationResult.invalidCount > 0 && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 font-bold">
+                            {bulkValidationResult.invalidCount} lỗi
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Records breakdown list */}
+                    {bulkValidationResult.records.length > 0 && (
+                      <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 divide-y divide-slate-100 text-xs">
+                        {bulkValidationResult.records.map((rec) => (
+                          <div
+                            key={rec.index}
+                            className="p-2.5 flex items-start justify-between gap-3 hover:bg-white transition-colors"
+                          >
+                            <div className="flex items-start gap-2 min-w-0 flex-1">
+                              {rec.isValid ? (
+                                <Icon
+                                  name="check_circle"
+                                  size={16}
+                                  className="text-emerald-500 shrink-0 mt-0.5"
+                                />
+                              ) : (
+                                <Icon
+                                  name="error"
+                                  size={16}
+                                  className="text-red-500 shrink-0 mt-0.5"
+                                />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-slate-800 font-mono text-[11px]">
+                                    #{rec.index + 1}
+                                  </span>
+                                  <span className="truncate text-slate-700">
+                                    {String(rec.data.name || rec.data.id || 'Bản ghi')}
+                                  </span>
+                                </div>
+                                {!rec.isValid && (
+                                  <ul className="mt-1 list-disc list-inside text-[10px] text-red-600 space-y-0.5">
+                                    {rec.issues.map((iss, i) => (
+                                      <li key={i}>{iss.message}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            </div>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                                rec.isValid
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {rec.isValid ? 'Hợp lệ' : 'Lỗi'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Modal Footer */}
+        {!simulationResult && (
+          <div className="p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+            <div className="text-[11px] text-[#4B5875] flex items-center gap-1.5">
+              <MockBadge size="sm" />
+              <span>Thao tác mô phỏng, không ghi vào database</span>
             </div>
-          )}
-        </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
+              >
+                Hủy
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmSimulation}
+                disabled={
+                  mode === 'single_form'
+                    ? !singleRecordValidation.isValid
+                    : !bulkValidationResult.isValidJson ||
+                      bulkValidationResult.validCount === 0
+                }
+                className="px-5 py-2 rounded-xl bg-[#205BD6] text-white font-bold hover:bg-[#1847a8] disabled:opacity-50 transition-colors shadow-xs"
+              >
+                {mode === 'single_form'
+                  ? 'Mô phỏng nhập 1 bản ghi'
+                  : `Mô phỏng nhập ${bulkValidationResult.validCount} bản ghi`}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
