@@ -86,6 +86,44 @@ class DatasetCreate(StrictModel):
     test_cases: list[dict] = Field(min_length=1, max_length=1000)
 
 
+class PlaceImportItem(StrictModel):
+    source_place_id: str = Field(min_length=1, max_length=120)
+    name: str = Field(min_length=1, max_length=300)
+    province: str = Field(min_length=1, max_length=120)
+    category: str = Field(min_length=1, max_length=80)
+    address: str | None = Field(default=None, max_length=1000)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    metadata: dict = Field(default_factory=dict)
+    source_updated_at: str | None = Field(default=None, max_length=40)
+
+
+class PlacesImportRequest(StrictModel):
+    source: str = Field(min_length=1, max_length=80)
+    batch_id: str = Field(min_length=1, max_length=120)
+    items: list[PlaceImportItem] = Field(min_length=1, max_length=100)
+
+
+class PlaceImageImportItem(StrictModel):
+    source_image_id: str = Field(min_length=1, max_length=160)
+    source_place_id: str = Field(min_length=1, max_length=120)
+    image_url: str = Field(pattern=r"^https://", max_length=2000)
+    thumbnail_url: str | None = Field(default=None, pattern=r"^https://", max_length=2000)
+    license: str | None = Field(default=None, max_length=160)
+    author: str | None = Field(default=None, max_length=300)
+    width: int | None = Field(default=None, ge=1, le=50000)
+    height: int | None = Field(default=None, ge=1, le=50000)
+    file_size_bytes: int | None = Field(default=None, ge=0, le=10 * 1024 * 1024)
+    sha256: str | None = Field(default=None, min_length=32, max_length=128)
+    metadata: dict = Field(default_factory=dict)
+
+
+class PlaceImagesImportRequest(StrictModel):
+    source: str = Field(min_length=1, max_length=80)
+    batch_id: str = Field(min_length=1, max_length=120)
+    items: list[PlaceImageImportItem] = Field(min_length=1, max_length=50)
+
+
 class Coordinates(StrictModel):
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)

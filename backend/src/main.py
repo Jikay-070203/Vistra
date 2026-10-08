@@ -6,6 +6,7 @@ import secrets
 import sqlite3
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 from urllib.parse import urlparse
@@ -22,7 +23,8 @@ from backend.db import connect, initialize, now, row, rows
 from backend.models import (CommitRequest, ExpenseCreate, GenerateSelection, Kind, LikeRequest, LoginRequest,
                             AdminFeedbackPatch, DatasetCreate, FeedbackCreate, FeedbackRating, FeedbackReply,
                             PlaceReview, PreviewRequest, ProfilePatch, PublicationRequest, RegisterRequest,
-                            TravelDnaPatch, TripCreate, VersionRequest)
+                            TravelDnaPatch, TripCreate, VersionRequest, PlacesImportRequest,
+                            PlaceImagesImportRequest)
 from backend.places import detail, resolve_duplicate, review
 from backend.planner import build
 from backend.recommendations import recommendations, candidates as place_candidates
@@ -153,6 +155,27 @@ def create_app(settings=None, services=None, gemini_client=None):
         if user["role"] not in ("staff", "admin"):
             raise HTTPException(403, detail={"code": "FORBIDDEN", "message": "Staff role required"})
         return user
+
+    def import_mapping():
+        path = Path(__file__).resolve().parent / "data" / "province_mapping.json"
+        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+    def import_body_limit(request: Request, limit: int):
+        length = request.headers.get("content-length")
+        if length and int(length) > limit:
+            raise HTTPException(413, detail={"code": "IMPORT_BODY_TOO_LARGE", "max_bytes": limit})
+
+    def import_kind(category: str) -> str:
+        category = category.lower()
+        if category in {"restaurant", "food", "fast_food", "bakery"}:
+            return "food"
+        if category in {"cafe", "bar"}:
+            return "cafe"
+        if category in {"hotel", "guest_house", "hostel", "motel"}:
+            return "stay"
+        if category in {"activity", "sports_centre", "theme_park", "marketplace"}:
+            return "activity"
+        return "attraction" if category not in {"other", "yes"} else "other"
 
     def feedback_payload(db, ticket):
         replies = rows(db, """SELECT r.id,r.message,r.created_at,u.role AS sender_role
@@ -931,6 +954,92 @@ def create_app(settings=None, services=None, gemini_client=None):
         db.execute("UPDATE feedback_tickets SET status='answered',updated_at=? WHERE id=?", (timestamp, ticket_id))
         return {"ticket": feedback_payload(db, row(db, "SELECT * FROM feedback_tickets WHERE id=?", (ticket_id,)))}
 
+    @app.post("/api/v1/admin/import/places")
+    def import_places(data: PlacesImportRequest, request: Request,
+                      vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        admin = require_admin(vistra_session, db)
+        import_body_limit(request, 2 * 1024 * 1024)
+        existing_batch = row(db, "SELECT * FROM data_import_batches WHERE batch_id=?", (data.batch_id,))
+        if existing_batch:
+            return {"batch_id": data.batch_id, "status": "already_processed", **existing_batch, "errors": []}
+        mapping = import_mapping()
+        counters = {"received": len(data.items), "inserted": 0, "updated": 0, "skipped": 0, "failed": 0}
+        errors = []
+        for index, item in enumerate(data.items):
+            province_code = mapping.get(item.province)
+            if not province_code:
+                counters["failed"] += 1
+                errors.append({"index": index, "code": "PROVINCE_UNMAPPED", "message": "Province has no destination mapping"})
+                continue
+            dest = row(db, "SELECT id FROM destinations WHERE province_code=? OR slug=?", (province_code, province_code))
+            if not dest:
+                counters["failed"] += 1
+                errors.append({"index": index, "code": "DESTINATION_NOT_FOUND", "message": "Destination mapping is not configured"})
+                continue
+            duplicate = row(db, "SELECT id FROM places WHERE source_place_id=?", (item.source_place_id,))
+            values = (dest["id"], item.name, item.name.lower(), item.address, item.latitude, item.longitude,
+                      import_kind(item.category), item.category, json.dumps(item.metadata, ensure_ascii=False),
+                      item.source_updated_at, now())
+            if duplicate:
+                db.execute("""UPDATE places SET destination_id=?,display_name=?,normalized_name=?,address=?,latitude=?,longitude=?,
+                    kind=?,source_category=?,source_metadata_json=?,source_updated_at=?,updated_at=? WHERE source_place_id=?""",
+                    (*values, item.source_place_id))
+                counters["updated"] += 1
+            else:
+                db.execute("""INSERT INTO places(destination_id,display_name,normalized_name,address,latitude,longitude,kind,
+                    source_place_id,source_category,source_metadata_json,source_updated_at,created_at,updated_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (dest["id"], item.name, item.name.lower(), item.address, item.latitude, item.longitude,
+                     import_kind(item.category), item.source_place_id, item.category,
+                     json.dumps(item.metadata, ensure_ascii=False), item.source_updated_at, now(), now()))
+                counters["inserted"] += 1
+        db.execute("""INSERT INTO data_import_batches(batch_id,source,kind,received,inserted,updated,skipped,failed,created_by,created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?)""", (data.batch_id, data.source, "places", counters["received"], counters["inserted"],
+            counters["updated"], counters["skipped"], counters["failed"], admin["id"], now()))
+        return {"batch_id": data.batch_id, "status": "completed_with_errors" if errors else "completed",
+                **counters, "errors": errors, "next_cursor": None}
+
+    @app.post("/api/v1/admin/import/place-images")
+    def import_place_images(data: PlaceImagesImportRequest, request: Request,
+                            vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        admin = require_admin(vistra_session, db)
+        import_body_limit(request, 1 * 1024 * 1024)
+        existing_batch = row(db, "SELECT * FROM data_import_batches WHERE batch_id=?", (data.batch_id,))
+        if existing_batch:
+            return {"batch_id": data.batch_id, "status": "already_processed", **existing_batch, "errors": []}
+        allowed_hosts = {"upload.wikimedia.org", "thumb.wikimedia.org", "res.cloudinary.com"}
+        counters = {"received": len(data.items), "inserted": 0, "updated": 0, "skipped": 0, "failed": 0}
+        errors = []
+        for index, item in enumerate(data.items):
+            host = (urlparse(item.image_url).hostname or "").lower()
+            if host not in allowed_hosts and not host.endswith(".cloudinary.com"):
+                counters["failed"] += 1
+                errors.append({"index": index, "code": "IMAGE_HOST_NOT_ALLOWED", "message": "Image URL host is not allowed"})
+                continue
+            place = row(db, "SELECT id FROM places WHERE source_place_id=?", (item.source_place_id,))
+            if not place:
+                counters["failed"] += 1
+                errors.append({"index": index, "code": "PLACE_NOT_FOUND", "message": "Source place has not been imported"})
+                continue
+            duplicate = row(db, "SELECT id FROM place_images WHERE source_image_id=? OR (sha256 IS NOT NULL AND sha256=?)",
+                            (item.source_image_id, item.sha256))
+            if duplicate:
+                counters["skipped"] += 1
+                continue
+            timestamp = now()
+            db.execute("""INSERT INTO place_images(id,place_id,source_image_id,image_url,thumbnail_url,source,license,author,
+                width,height,file_size_bytes,sha256,metadata_json,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (str(uuid4()), place["id"], item.source_image_id, item.image_url, item.thumbnail_url, data.source,
+                 item.license, item.author, item.width, item.height, item.file_size_bytes, item.sha256,
+                 json.dumps(item.metadata, ensure_ascii=False), timestamp, timestamp))
+            counters["inserted"] += 1
+        db.execute("""INSERT INTO data_import_batches(batch_id,source,kind,received,inserted,updated,skipped,failed,created_by,created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?)""", (data.batch_id, data.source, "place_images", counters["received"], counters["inserted"],
+            counters["updated"], counters["skipped"], counters["failed"], admin["id"], now()))
+        return {"batch_id": data.batch_id, "status": "completed_with_errors" if errors else "completed",
+                **counters, "errors": errors}
+
     @app.get("/admin/content")
     def admin_content(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
@@ -1127,7 +1236,9 @@ def create_app(settings=None, services=None, gemini_client=None):
     @app.get("/api/v1/catalog/{catalog_type}")
     def v1_catalog(catalog_type: str, db=Depends(database)):
         if catalog_type == "provinces":
-            return {"type": catalog_type, "items": rows(db, "SELECT id,slug,display_name AS name FROM destinations WHERE enabled=1 ORDER BY id")}
+            return {"type": catalog_type, "items": rows(db, """SELECT id,slug,COALESCE(province_code,slug) AS province_code,
+                display_name AS name,COALESCE(source_name,display_name) AS source_name
+                FROM destinations WHERE enabled=1 ORDER BY id""")}
         if catalog_type == "allergies":
             return {"type": catalog_type, "items": public_content(db)["allergyOptions"]}
         if catalog_type == "moodboard":
