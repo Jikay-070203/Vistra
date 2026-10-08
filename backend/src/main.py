@@ -1,4 +1,5 @@
 import json
+import asyncio
 import hashlib
 import logging
 import hmac
@@ -10,6 +11,8 @@ from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 from urllib.parse import urlparse
+
+import httpx
 
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,6 +35,58 @@ from backend.services import ExternalServices
 from backend.catalog import ATTRIBUTION, DESTINATIONS, normalized
 
 logger = logging.getLogger(__name__)
+
+
+async def ensure_qdrant_collections(settings: Settings) -> None:
+    """Create the configured Qdrant collections once, without failing the API startup.
+
+    Collection creation is idempotent: existing collections are left untouched. Vector
+    dimensions are explicit because Qdrant cannot change a collection's dimension later.
+    """
+    if not settings.qdrant_url.strip() or not settings.qdrant_auto_create:
+        logger.info("Qdrant collection bootstrap disabled")
+        return
+
+    base_url = settings.qdrant_url.rstrip("/")
+    headers = {"api-key": settings.qdrant_api_key} if settings.qdrant_api_key.strip() else {}
+    definitions = {
+        settings.qdrant_text_collection: settings.qdrant_text_vector_size,
+        settings.qdrant_image_collection: settings.qdrant_image_vector_size,
+    }
+    timeout = httpx.Timeout(settings.qdrant_startup_timeout_seconds)
+
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=timeout, headers=headers) as client:
+                ready = await client.get(f"{base_url}/readyz")
+                ready.raise_for_status()
+                response = await client.get(f"{base_url}/collections")
+                response.raise_for_status()
+                existing = {
+                    item.get("name")
+                    for item in response.json().get("result", {}).get("collections", [])
+                }
+                for name, size in definitions.items():
+                    if name in existing:
+                        logger.info("Qdrant collection already exists: %s", name)
+                        continue
+                    created = await client.put(
+                        f"{base_url}/collections/{name}",
+                        json={"vectors": {"size": size, "distance": settings.qdrant_distance}},
+                    )
+                    if created.status_code not in (200, 201, 202, 409):
+                        created.raise_for_status()
+                    logger.info(
+                        "Qdrant collection %s: %s",
+                        name,
+                        "created" if created.status_code != 409 else "already exists",
+                    )
+            return
+        except Exception as exc:
+            if attempt == 2:
+                logger.warning("Qdrant collection bootstrap skipped: %s", exc)
+            else:
+                await asyncio.sleep(2 * (attempt + 1))
 
 
 def _password_hash(password: str, salt: bytes | None = None) -> str:
@@ -68,6 +123,7 @@ def create_app(settings=None, services=None, gemini_client=None):
         with connect(settings.db_path) as db:
             for slug, config in DESTINATIONS.items():
                 db.execute("UPDATE destinations SET center_lat=?,center_lon=? WHERE slug=?", (*config["center"], slug))
+        await ensure_qdrant_collections(settings)
         app.state.gemini = gemini_client
         try:
             if gemini_client is None and settings.gemini_api_key and settings.gemini_model:

@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     auth_session_days: int = Field(default=30, ge=1, le=365)
     auth_access_minutes: int = Field(default=30, ge=5, le=1440)
     auth_refresh_days: int = Field(default=1, ge=1, le=365)
+    qdrant_url: str = ""
+    qdrant_api_key: str = ""
+    qdrant_auto_create: bool = True
+    qdrant_text_collection: str = "wikivoyage_voyage"
+    qdrant_image_collection: str = "scraped_images"
+    qdrant_text_vector_size: int = Field(default=2048, ge=1, le=4096)
+    qdrant_image_vector_size: int = Field(default=768, ge=1, le=4096)
+    qdrant_distance: str = "Cosine"
+    qdrant_startup_timeout_seconds: float = Field(default=10, ge=1, le=60)
 
     @field_validator("overpass_url")
     @classmethod
