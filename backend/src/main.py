@@ -1232,6 +1232,139 @@ def create_app(settings=None, services=None, gemini_client=None):
                 "status": trace["status"], "latencyMs": trace["latency_ms"], "confidence": trace["confidence"],
                 "context": json.loads(trace["context_json"]), "details": json.loads(trace["details_json"])}
 
+    # Admin contract used by the current frontend. These routes are deliberately
+    # allow-listed; arbitrary table names or SQL are never accepted from clients.
+    @app.get("/api/v1/admin/overview")
+    def v1_admin_overview(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        return {"data": {"users": db.execute("SELECT COUNT(*) FROM users").fetchone()[0],
+                          "places": db.execute("SELECT COUNT(*) FROM places").fetchone()[0],
+                          "trips": db.execute("SELECT COUNT(*) FROM trips WHERE deleted_at IS NULL").fetchone()[0],
+                          "feedback": db.execute("SELECT COUNT(*) FROM feedback_tickets").fetchone()[0],
+                          "updatedAt": now()}}
+
+    @app.get("/api/v1/admin/content")
+    def v1_admin_content(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return {"data": admin_content(vistra_session=vistra_session, db=db)}
+
+    @app.post("/api/v1/admin/content/{collection}", status_code=201)
+    def v1_create_content(collection: Literal["hero-plans", "intro-destinations", "allergy-options"], payload: dict,
+                           vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return {"data": create_content(collection, payload, vistra_session=vistra_session, db=db)["item"]}
+
+    @app.patch("/api/v1/admin/content/{collection}/{item_id}")
+    def v1_update_content(collection: str, item_id: str, payload: dict,
+                          vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return {"data": update_content(collection, item_id, payload, vistra_session=vistra_session, db=db)["item"]}
+
+    @app.delete("/api/v1/admin/content/{collection}/{item_id}", status_code=204)
+    def v1_delete_content(collection: str, item_id: str,
+                          vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return delete_content(collection, item_id, vistra_session=vistra_session, db=db)
+
+    @app.get("/api/v1/admin/revenue")
+    def v1_admin_revenue(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        # No payment/plan-history table exists yet; never infer revenue from trip budgets.
+        return {"data": {"currency": "VND", "total": None, "mrr": None, "items": [],
+                          "available": False, "message": "Payment history is not configured"}}
+
+    @app.get("/api/v1/admin/users")
+    def v1_admin_users(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+                       q: str = "", vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        like = f"%{q.strip()}%"
+        total = db.execute("SELECT COUNT(*) FROM users WHERE email LIKE ? OR full_name LIKE ?", (like, like)).fetchone()[0]
+        items = rows(db, """SELECT id,full_name,email,role,status,avatar_url,created_at,updated_at FROM users
+                         WHERE email LIKE ? OR full_name LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?""",
+                     (like, like, page_size, (page - 1) * page_size))
+        return {"data": {"items": items, "page": page, "pageSize": page_size, "total": total}}
+
+    @app.patch("/api/v1/admin/users/{user_id}/status")
+    def v1_admin_user_status(user_id: str, payload: dict,
+                             vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        status = payload.get("status")
+        if status not in ("active", "suspended", "disabled"):
+            raise HTTPException(422, detail={"code": "INVALID_STATUS", "allowed": ["active", "suspended", "disabled"]})
+        if db.execute("UPDATE users SET status=?,updated_at=? WHERE id=?", (status, now(), user_id)).rowcount != 1:
+            raise HTTPException(404, "User not found")
+        return {"data": {"id": user_id, "status": status}}
+
+    @app.get("/api/v1/admin/entities/metadata")
+    def v1_entity_metadata(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        specs = {
+            "destinations": ("Destinations", "Destination catalog", ["id", "slug", "display_name", "province_code", "enabled"]),
+            "plans": ("Plans", "Travel plans", ["id", "owner_user_id", "destination_id", "status", "is_published"]),
+            "itinerary_days": ("Itinerary days", "Trip itinerary versions", ["id", "trip_id", "version"]),
+            "activities": ("Activities", "Places and activities", ["id", "destination_id", "display_name", "kind"]),
+            "feedback_tickets": ("Feedback", "User feedback tickets", ["id", "user_id", "subject", "status"]),
+        }
+        tables = []
+        for table, (name, description, fields) in specs.items():
+            actual = {"plans": "trips", "itinerary_days": "itinerary_versions", "activities": "places"}.get(table, table)
+            count = db.execute(f"SELECT COUNT(*) FROM {actual}").fetchone()[0]
+            tables.append({"tableName": table, "name": name, "description": description,
+                           "recordCount": count, "fields": [{"name": f, "type": "string", "required": f == "id"}
+                                                               for f in fields]})
+        return {"data": {"tables": tables}}
+
+    @app.get("/api/v1/admin/entities/{table}/records")
+    def v1_entity_records(table: str, page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+                           q: str = "", vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        actual = {"destinations": "destinations", "plans": "trips", "itinerary_days": "itinerary_versions",
+                  "activities": "places", "feedback_tickets": "feedback_tickets"}.get(table)
+        if not actual:
+            raise HTTPException(404, "Entity not found")
+        allowed = {"destinations": ["id", "slug", "display_name", "province_code", "enabled"],
+                   "trips": ["id", "owner_user_id", "destination_id", "status", "is_published"],
+                   "itinerary_versions": ["id", "trip_id", "version"],
+                   "places": ["id", "destination_id", "display_name", "kind"],
+                   "feedback_tickets": ["id", "user_id", "subject", "status"]}[actual]
+        where, params = "", []
+        if q:
+            text_fields = [f for f in allowed if f not in ("id", "enabled", "is_published")]
+            where = " WHERE " + " OR ".join(f"CAST({f} AS TEXT) LIKE ?" for f in text_fields)
+            params = [f"%{q}%"] * len(text_fields)
+        total = db.execute(f"SELECT COUNT(*) FROM {actual}{where}", params).fetchone()[0]
+        items = rows(db, f"SELECT {','.join(allowed)} FROM {actual}{where} LIMIT ? OFFSET ?",
+                     [*params, page_size, (page - 1) * page_size])
+        return {"data": {"table": table, "items": items, "page": page, "pageSize": page_size, "total": total}}
+
+    @app.get("/api/v1/admin/golden-datasets")
+    def v1_golden_datasets(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return {"data": evaluation_datasets(vistra_session=vistra_session, db=db)}
+
+    @app.post("/api/v1/admin/golden-datasets")
+    def v1_create_golden_dataset(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        cases = payload.get("testCases") or payload.get("test_cases") or []
+        data = DatasetCreate(name=payload.get("name", ""), description=payload.get("description", ""),
+                             test_cases=[{"name": c.get("name", c.get("id", "case")), "input": c.get("input", {}),
+                                          "expected": c.get("expected", {})} for c in cases])
+        return {"data": create_dataset(data, vistra_session=vistra_session, db=db)["dataset"]}
+
+    @app.post("/api/v1/admin/golden-datasets/{dataset_id}/runs", status_code=202)
+    def v1_run_golden_dataset(dataset_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return {"data": start_evaluation({"datasetId": dataset_id}, vistra_session=vistra_session, db=db)}
+
+    @app.get("/api/v1/admin/safety-presets")
+    def v1_safety_presets(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        return {"data": {"mode": "reference", "items": []}}
+
+    @app.post("/api/v1/admin/safety-evaluations")
+    def v1_safety_evaluation(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        prompt = str(payload.get("prompt", "")).strip()
+        if not prompt:
+            raise HTTPException(422, detail={"code": "PROMPT_REQUIRED"})
+        return {"data": {"executionMode": "reference", "prompt": prompt, "presetId": payload.get("presetId"),
+                          "blocked": False, "blockedCount": 0, "attackType": None,
+                          "latencyMs": None, "defenseLayer": None, "sanitizedResponse": None,
+                          "expectedDefense": None}}
+
     # ------------------------------------------------------------------
     # Versioned frontend contract. Root routes above remain supported for
     # existing clients; these aliases are the canonical /api/v1 surface.

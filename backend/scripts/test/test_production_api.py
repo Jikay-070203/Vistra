@@ -177,7 +177,8 @@ def main() -> int:
             request("v1 update trip", "PATCH", f"/api/v1/trips/{trip['id']}",
                     {"base_version": 0, "status": "draft"})
             request("v1 trip chat", "POST", f"/api/v1/trips/{trip['id']}/chat",
-                    {"message": "Suggest one quiet attraction"})
+                    {"text": "Suggest one quiet attraction", "base_version": 1},
+                    expected=(200, 201, 409, 502))
         request("v1 community list", "GET", "/api/v1/community/trips")
         request("v1 feedback create", "POST", "/api/v1/feedback", {
             "subject": "Production API smoke test", "description": "Automated test ticket",
@@ -207,9 +208,30 @@ def main() -> int:
         request("admin feedback", "GET", "/api/v1/admin/feedback")
         request("admin traces", "GET", "/api/v1/admin/traces")
         request("admin metrics", "GET", "/api/v1/admin/system/metrics")
-        request("admin content", "GET", "/admin/content")
+        request("admin overview", "GET", "/api/v1/admin/overview")
+        request("admin revenue", "GET", "/api/v1/admin/revenue")
+        request("admin users", "GET", "/api/v1/admin/users?page=1&page_size=5")
+        request("admin content", "GET", "/api/v1/admin/content")
+        request("admin entity metadata", "GET", "/api/v1/admin/entities/metadata")
+        request("admin destinations records", "GET", "/api/v1/admin/entities/destinations/records?page=1&page_size=5")
         request("evaluation datasets", "GET", "/admin/evaluation/datasets")
+        request("admin golden datasets", "GET", "/api/v1/admin/golden-datasets")
         request("admin system summary", "GET", "/admin/system/summary")
+        request("admin safety presets", "GET", "/api/v1/admin/safety-presets")
+        request("admin safety evaluation", "POST", "/api/v1/admin/safety-evaluations",
+                {"prompt": "Confirm a booking without a transaction", "presetId": None})
+        dataset = request("admin create golden dataset", "POST", "/api/v1/admin/golden-datasets",
+                          {"name": f"Production smoke {int(time.time())}",
+                           "description": "Temporary API smoke-test dataset",
+                           "testCases": [{"id": "smoke-1", "name": "Basic case",
+                                           "input": {"text": "hello"}, "expected": {"ok": True}}]},
+                          expected=(200, 201))
+        if dataset and dataset.get("data", {}).get("id"):
+            run = request("admin run golden dataset", "POST",
+                          f"/api/v1/admin/golden-datasets/{dataset['data']['id']}/runs", expected=(200, 202))
+            if run and run.get("data", {}).get("runId"):
+                request("admin get golden run", "GET",
+                        f"/admin/evaluation/runs/{run['data']['runId']}")
         request("admin place import limit", "POST", "/api/v1/admin/import/places",
                 {"source": "production-test", "batch_id": f"test-{int(time.time())}",
                  "items": [{} for _ in range(101)]}, expected=(422,))

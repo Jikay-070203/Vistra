@@ -2,6 +2,58 @@
   "base": "https://vistra-backend-production.up.railway.app",
   "results": [
     {
+      "case": "qdrant ready",
+      "method": "GET",
+      "path": "/readyz",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "response": "all shards are ready"
+    },
+    {
+      "case": "qdrant collections",
+      "method": "GET",
+      "path": "/collections",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "response": {
+        "result": {
+          "collections": [
+            {
+              "name": "scraped_images"
+            },
+            {
+              "name": "wikivoyage_voyage"
+            }
+          ]
+        },
+        "status": "ok",
+        "time": 7.59e-06
+      }
+    },
+    {
+      "case": "qdrant required collections",
+      "method": "ASSERT",
+      "path": "/collections",
+      "status": 200,
+      "expected": [
+        "scraped_images",
+        "wikivoyage_voyage"
+      ],
+      "passed": true,
+      "response": {
+        "found": [
+          "scraped_images",
+          "wikivoyage_voyage"
+        ]
+      }
+    },
+    {
       "case": "health",
       "method": "GET",
       "path": "/health",
@@ -83,24 +135,16 @@
         ],
         "allergyOptions": [
           {
-            "id": "seafood",
+            "label": "Tôm",
+            "id": "8da1f045-f2b1-4190-8917-fc7c7ed592ef",
             "active": true,
-            "label": "Hải sản"
+            "order": 0
           },
           {
-            "id": "peanut",
+            "label": "Lạc",
+            "id": "a69e5a25-b8fe-4a38-b42a-9c0f6f19d66d",
             "active": true,
-            "label": "Đậu phộng"
-          },
-          {
-            "id": "dairy",
-            "active": true,
-            "label": "Sữa"
-          },
-          {
-            "id": "gluten",
-            "active": true,
-            "label": "Gluten"
+            "order": 0
           }
         ],
         "stats": {
@@ -125,22 +169,30 @@
           {
             "id": 1,
             "slug": "ha-noi",
-            "name": "Hà Nội"
+            "province_code": "ha-noi",
+            "name": "Hà Nội",
+            "source_name": "Hà Nội"
           },
           {
             "id": 2,
             "slug": "ninh-binh",
-            "name": "Ninh Bình"
+            "province_code": "ninh-binh",
+            "name": "Ninh Bình",
+            "source_name": "Ninh Bình"
           },
           {
             "id": 3,
             "slug": "tp-ho-chi-minh",
-            "name": "TP. Hồ Chí Minh"
+            "province_code": "ho-chi-minh",
+            "name": "TP. Hồ Chí Minh",
+            "source_name": "Hồ Chí Minh"
           },
           {
             "id": 4,
             "slug": "da-lat",
-            "name": "Đà Lạt"
+            "province_code": "da-lat",
+            "name": "Đà Lạt",
+            "source_name": "Đà Lạt"
           }
         ]
       }
@@ -159,24 +211,16 @@
         "type": "allergies",
         "items": [
           {
-            "id": "seafood",
+            "label": "Tôm",
+            "id": "8da1f045-f2b1-4190-8917-fc7c7ed592ef",
             "active": true,
-            "label": "Hải sản"
+            "order": 0
           },
           {
-            "id": "peanut",
+            "label": "Lạc",
+            "id": "a69e5a25-b8fe-4a38-b42a-9c0f6f19d66d",
             "active": true,
-            "label": "Đậu phộng"
-          },
-          {
-            "id": "dairy",
-            "active": true,
-            "label": "Sữa"
-          },
-          {
-            "id": "gluten",
-            "active": true,
-            "label": "Gluten"
+            "order": 0
           }
         ]
       }
@@ -278,7 +322,7 @@
             "details": null
           }
         ],
-        "generatedAt": "2026-10-07T08:27:43.801590+00:00"
+        "generatedAt": "2026-10-09T02:53:02.237613+00:00"
       }
     },
     {
@@ -320,15 +364,15 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+          "id": "533952a6-72f1-472f-9223-c98fa8fcf796",
           "full_name": "Railway API Test",
-          "email": "railway-api-test-1791361664@example.com",
+          "email": "railway-api-test-1791514382@example.com",
           "role": "traveler",
           "avatar_url": null
         },
         "session": {
-          "refreshExpiresAt": "2026-11-06T08:27:44.519699+00:00",
-          "expires_at": "2026-10-07T08:57:44.525414+00:00"
+          "refreshExpiresAt": "2026-10-10T02:53:03.162030+00:00",
+          "expires_at": "2026-10-09T03:23:03.166300+00:00"
         }
       }
     },
@@ -344,14 +388,14 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+          "id": "533952a6-72f1-472f-9223-c98fa8fcf796",
           "full_name": "Railway API Test",
-          "email": "railway-api-test-1791361664@example.com",
+          "email": "railway-api-test-1791514382@example.com",
           "role": "traveler",
           "avatar_url": null
         },
         "session": {
-          "expires_at": "2026-10-07T08:57:44.525414+00:00"
+          "expires_at": "2026-10-09T03:23:03.166300+00:00"
         }
       }
     },
@@ -367,15 +411,15 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+          "id": "533952a6-72f1-472f-9223-c98fa8fcf796",
           "full_name": "Railway API Test",
-          "email": "railway-api-test-1791361664@example.com",
+          "email": "railway-api-test-1791514382@example.com",
           "role": "traveler",
           "avatar_url": null
         },
         "session": {
-          "expires_at": "2026-10-07T08:57:45.211767+00:00",
-          "refresh_expires_at": "2026-11-06T08:27:45.208191+00:00"
+          "expires_at": "2026-10-09T03:23:03.828271+00:00",
+          "refresh_expires_at": "2026-10-10T02:53:03.826270+00:00"
         }
       }
     },
@@ -391,14 +435,14 @@
       "passed": true,
       "response": {
         "user": {
-          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+          "id": "533952a6-72f1-472f-9223-c98fa8fcf796",
           "full_name": "Railway API Test",
-          "email": "railway-api-test-1791361664@example.com",
+          "email": "railway-api-test-1791514382@example.com",
           "role": "traveler",
           "avatar_url": null
         },
         "session": {
-          "expires_at": "2026-10-07T08:57:45.211767+00:00"
+          "expires_at": "2026-10-09T03:23:03.828271+00:00"
         }
       }
     },
@@ -413,9 +457,9 @@
       ],
       "passed": true,
       "response": {
-        "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+        "id": "533952a6-72f1-472f-9223-c98fa8fcf796",
         "fullName": "Railway API Test",
-        "email": "railway-api-test-1791361664@example.com",
+        "email": "railway-api-test-1791514382@example.com",
         "phone": null,
         "defaultOrigin": null,
         "bio": null,
@@ -423,7 +467,7 @@
         "preferredStay": null,
         "dietaryPreference": null,
         "avatarUrl": null,
-        "joinedAt": "2026-10-07T08:27:44.476440+00:00"
+        "joinedAt": "2026-10-09T02:53:03.084898+00:00"
       }
     },
     {
@@ -438,9 +482,9 @@
       "passed": true,
       "response": {
         "profile": {
-          "id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+          "id": "533952a6-72f1-472f-9223-c98fa8fcf796",
           "fullName": "Railway API Test",
-          "email": "railway-api-test-1791361664@example.com",
+          "email": "railway-api-test-1791514382@example.com",
           "phone": null,
           "defaultOrigin": null,
           "bio": "production smoke test",
@@ -448,7 +492,7 @@
           "preferredStay": null,
           "dietaryPreference": null,
           "avatarUrl": null,
-          "joinedAt": "2026-10-07T08:27:44.476440+00:00"
+          "joinedAt": "2026-10-09T02:53:03.084898+00:00"
         },
         "emailChangePending": false
       }
@@ -497,7 +541,7 @@
           "sceneryFocus": null,
           "cuisinePriority": null
         },
-        "updatedAt": "2026-10-07T08:27:47.051470+00:00"
+        "updatedAt": "2026-10-09T02:53:05.526724+00:00"
       }
     },
     {
@@ -511,17 +555,21 @@
       ],
       "passed": true,
       "response": {
-        "id": "09448017-a123-4d11-b69c-d0c649f46827",
+        "id": "56993171-807d-468f-86fb-5090e88314e4",
         "destination_id": 2,
         "current_version": 0,
-        "created_at": "2026-10-07T08:27:47.387661+00:00",
+        "created_at": "2026-10-09T02:53:05.855312+00:00",
         "deleted_at": null,
         "generation_error": null,
-        "owner_user_id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+        "owner_user_id": "533952a6-72f1-472f-9223-c98fa8fcf796",
         "status": "draft",
         "is_published": 0,
         "confirmed_at": null,
         "published_at": null,
+        "dna_analysis_id": null,
+        "travel_dna_json": null,
+        "notes": "",
+        "updated_at": null,
         "request": {
           "destination": "ninh-binh",
           "start_date": "2026-11-01",
@@ -538,8 +586,12 @@
           "must_visit": [],
           "allow_unverified": false,
           "lodging_total_vnd": null,
-          "transport_total_vnd": null
+          "transport_total_vnd": null,
+          "notes": "",
+          "dna_analysis_id": null,
+          "travel_dna_override": null
         },
+        "travel_dna": null,
         "itinerary": null,
         "recommendations": {
           "attraction": [],
@@ -551,7 +603,7 @@
     {
       "case": "v1 get trip",
       "method": "GET",
-      "path": "/api/v1/trips/09448017-a123-4d11-b69c-d0c649f46827",
+      "path": "/api/v1/trips/56993171-807d-468f-86fb-5090e88314e4",
       "status": 200,
       "expected": [
         200,
@@ -559,17 +611,21 @@
       ],
       "passed": true,
       "response": {
-        "id": "09448017-a123-4d11-b69c-d0c649f46827",
+        "id": "56993171-807d-468f-86fb-5090e88314e4",
         "destination_id": 2,
         "current_version": 0,
-        "created_at": "2026-10-07T08:27:47.387661+00:00",
+        "created_at": "2026-10-09T02:53:05.855312+00:00",
         "deleted_at": null,
         "generation_error": null,
-        "owner_user_id": "24ff60fc-abe4-421e-ae86-1517aa9254b6",
+        "owner_user_id": "533952a6-72f1-472f-9223-c98fa8fcf796",
         "status": "draft",
         "is_published": 0,
         "confirmed_at": null,
         "published_at": null,
+        "dna_analysis_id": null,
+        "travel_dna_json": null,
+        "notes": "",
+        "updated_at": null,
         "request": {
           "destination": "ninh-binh",
           "start_date": "2026-11-01",
@@ -586,8 +642,12 @@
           "must_visit": [],
           "allow_unverified": false,
           "lodging_total_vnd": null,
-          "transport_total_vnd": null
+          "transport_total_vnd": null,
+          "notes": "",
+          "dna_analysis_id": null,
+          "travel_dna_override": null
         },
+        "travel_dna": null,
         "itinerary": null,
         "recommendations": {
           "attraction": [],
@@ -609,20 +669,20 @@
       "response": {
         "items": [
           {
-            "id": "09448017-a123-4d11-b69c-d0c649f46827",
+            "id": "56993171-807d-468f-86fb-5090e88314e4",
             "title": "Trip to Ninh Bình",
             "origin": null,
             "destination": "Ninh Bình",
             "coverImageUrl": null,
             "startDate": "2026-11-01",
-            "endDate": "2026-11-01",
+            "endDate": "2026-11-04",
             "durationDays": 4,
             "budgetMinVnd": 3200000,
             "budgetMaxVnd": 3200000,
             "estimatedCostVnd": null,
             "status": "draft",
             "isPublished": false,
-            "updatedAt": "2026-10-07T08:27:47.387661+00:00",
+            "updatedAt": null,
             "tags": [
               "attraction"
             ],
@@ -635,6 +695,70 @@
           "page_size": 10,
           "total_records": 1
         }
+      }
+    },
+    {
+      "case": "v1 update trip",
+      "method": "PATCH",
+      "path": "/api/v1/trips/56993171-807d-468f-86fb-5090e88314e4",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "id": "56993171-807d-468f-86fb-5090e88314e4",
+        "base_version": 0,
+        "status": "draft",
+        "is_published": false,
+        "message": "Trip updated successfully"
+      }
+    },
+    {
+      "case": "v1 trip chat",
+      "method": "POST",
+      "path": "/api/v1/trips/56993171-807d-468f-86fb-5090e88314e4/chat",
+      "status": 422,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "text"
+            ],
+            "msg": "Field required",
+            "input": {
+              "message": "Suggest one quiet attraction"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "base_version"
+            ],
+            "msg": "Field required",
+            "input": {
+              "message": "Suggest one quiet attraction"
+            }
+          },
+          {
+            "type": "extra_forbidden",
+            "loc": [
+              "body",
+              "message"
+            ],
+            "msg": "Extra inputs are not permitted",
+            "input": "Suggest one quiet attraction"
+          }
+        ]
       }
     },
     {
@@ -666,15 +790,15 @@
       "passed": true,
       "response": {
         "ticket": {
-          "id": "762909bf-1a5b-49a3-a978-9007a537438a",
+          "id": "a832b087-c8b4-43ba-ba5d-85f2edc37276",
           "subject": "Production API smoke test",
           "description": "Automated test ticket",
           "routeOrigin": "/test",
           "category": null,
           "severity": null,
           "status": "unassigned",
-          "createdAt": "2026-10-07T08:27:48.682047+00:00",
-          "updatedAt": "2026-10-07T08:27:48.682047+00:00",
+          "createdAt": "2026-10-09T02:53:07.859574+00:00",
+          "updatedAt": "2026-10-09T02:53:07.859574+00:00",
           "userAnswerRating": null,
           "ratingComment": null,
           "replies": []
@@ -694,15 +818,15 @@
       "response": {
         "items": [
           {
-            "id": "762909bf-1a5b-49a3-a978-9007a537438a",
+            "id": "a832b087-c8b4-43ba-ba5d-85f2edc37276",
             "subject": "Production API smoke test",
             "description": "Automated test ticket",
             "routeOrigin": "/test",
             "category": null,
             "severity": null,
             "status": "unassigned",
-            "createdAt": "2026-10-07T08:27:48.682047+00:00",
-            "updatedAt": "2026-10-07T08:27:48.682047+00:00",
+            "createdAt": "2026-10-09T02:53:07.859574+00:00",
+            "updatedAt": "2026-10-09T02:53:07.859574+00:00",
             "userAnswerRating": null,
             "ratingComment": null,
             "replies": []
@@ -733,9 +857,36 @@
           "avatar_url": null
         },
         "session": {
-          "refreshExpiresAt": "2026-11-06T08:27:49.380881+00:00",
-          "expires_at": "2026-10-07T08:57:49.384791+00:00"
+          "refreshExpiresAt": "2026-10-10T02:53:08.609058+00:00",
+          "expires_at": "2026-10-09T03:23:08.611808+00:00"
         }
+      }
+    },
+    {
+      "case": "admin import one VISTRA place",
+      "method": "POST",
+      "path": "/api/v1/admin/import/places",
+      "status": 200,
+      "expected": [
+        200
+      ],
+      "passed": true,
+      "response": {
+        "batch_id": "test-place-1791514388",
+        "status": "completed_with_errors",
+        "received": 1,
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 0,
+        "failed": 1,
+        "errors": [
+          {
+            "index": 0,
+            "code": "PROVINCE_UNMAPPED",
+            "message": "Province has no destination mapping"
+          }
+        ],
+        "next_cursor": null
       }
     },
     {
@@ -750,6 +901,48 @@
       "passed": true,
       "response": {
         "items": [
+          {
+            "id": "a832b087-c8b4-43ba-ba5d-85f2edc37276",
+            "subject": "Production API smoke test",
+            "description": "Automated test ticket",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-09T02:53:07.859574+00:00",
+            "updatedAt": "2026-10-09T02:53:07.859574+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
+          {
+            "id": "83a1cf7d-a982-411d-9dec-62f8c93e96a6",
+            "subject": "Production API smoke test",
+            "description": "Automated test ticket",
+            "routeOrigin": "/test",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-08T18:10:42.111998+00:00",
+            "updatedAt": "2026-10-08T18:10:42.111998+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
+          {
+            "id": "286cf02e-8601-460b-adf1-f82756273528",
+            "subject": "Báo cáo lỗi dropdown tỉnh thành bị trong suốt trên Create Trip",
+            "description": "Khi mở dropdown chọn tỉnh thành tại /create-trip, menu bị đè mờ và hiển thị chữ xuyên qua nhãn của form phía sau. Cần tăng độ mờ đục của background popover.",
+            "routeOrigin": "/profile",
+            "category": null,
+            "severity": null,
+            "status": "unassigned",
+            "createdAt": "2026-10-08T08:50:32.033964+00:00",
+            "updatedAt": "2026-10-08T08:50:32.033964+00:00",
+            "userAnswerRating": null,
+            "ratingComment": null,
+            "replies": []
+          },
           {
             "id": "762909bf-1a5b-49a3-a978-9007a537438a",
             "subject": "Production API smoke test",
@@ -851,10 +1044,10 @@
         ],
         "page": 1,
         "pageSize": 10,
-        "total": 7,
+        "total": 10,
         "totalPages": 1,
         "counts": {
-          "unassigned": 7,
+          "unassigned": 10,
           "in_progress": 0,
           "answered": 0,
           "resolved": 0
@@ -900,24 +1093,92 @@
           "p95": null
         },
         "planAcceptancePct": null,
-        "checkedAt": "2026-10-07T08:27:50.417989+00:00",
+        "checkedAt": "2026-10-09T02:53:09.952642+00:00",
         "benchmarkGroups": []
+      }
+    },
+    {
+      "case": "admin overview",
+      "method": "GET",
+      "path": "/api/v1/admin/overview",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin revenue",
+      "method": "GET",
+      "path": "/api/v1/admin/revenue",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin users",
+      "method": "GET",
+      "path": "/api/v1/admin/users?page=1&page_size=5",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
       }
     },
     {
       "case": "admin content",
       "method": "GET",
-      "path": "/admin/content",
-      "status": 200,
+      "path": "/api/v1/admin/content",
+      "status": 404,
       "expected": [
         200,
         201
       ],
-      "passed": true,
+      "passed": false,
       "response": {
-        "heroPlans": [],
-        "introDestinations": [],
-        "allergyOptions": []
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin entity metadata",
+      "method": "GET",
+      "path": "/api/v1/admin/entities/metadata",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin destinations records",
+      "method": "GET",
+      "path": "/api/v1/admin/entities/destinations/records?page=1&page_size=5",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
       }
     },
     {
@@ -936,6 +1197,217 @@
         "pageSize": 20,
         "total": 0,
         "totalPages": 0
+      }
+    },
+    {
+      "case": "admin golden datasets",
+      "method": "GET",
+      "path": "/api/v1/admin/golden-datasets",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin system summary",
+      "method": "GET",
+      "path": "/admin/system/summary",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "response": {
+        "availabilityPct": null,
+        "aiResponseLatencyMs": {
+          "avg": null,
+          "p95": null
+        },
+        "apiLatencyMs": {
+          "avg": null,
+          "p95": null
+        },
+        "planAcceptancePct": null,
+        "checkedAt": "2026-10-09T02:53:12.614159+00:00",
+        "benchmarkGroups": []
+      }
+    },
+    {
+      "case": "admin safety presets",
+      "method": "GET",
+      "path": "/api/v1/admin/safety-presets",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin safety evaluation",
+      "method": "POST",
+      "path": "/api/v1/admin/safety-evaluations",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin create golden dataset",
+      "method": "POST",
+      "path": "/api/v1/admin/golden-datasets",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "case": "admin place import limit",
+      "method": "POST",
+      "path": "/api/v1/admin/import/places",
+      "status": 422,
+      "expected": [
+        422
+      ],
+      "passed": true,
+      "response": {
+        "detail": [
+          {
+            "type": "too_long",
+            "loc": [
+              "body",
+              "items"
+            ],
+            "msg": "List should have at most 100 items after validation, not 101",
+            "input": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "ctx": {
+              "field_type": "List",
+              "max_length": 100,
+              "actual_length": 101
+            }
+          }
+        ]
       }
     },
     {
