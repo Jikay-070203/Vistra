@@ -4,6 +4,8 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
+# Used to encrypt provider API keys stored in PostgreSQL.
+RUN uv pip install --python /app/.venv/bin/python "cryptography>=43,<51"
 COPY src ./backend
 COPY scripts ./backend/scripts
 COPY seed/YourTripYourTry_Places_Schema.sql ./backend/seed/YourTripYourTry_Places_Schema.sql
