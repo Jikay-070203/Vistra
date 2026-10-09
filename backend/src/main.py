@@ -23,7 +23,7 @@ from backend.config import Settings
 from backend.agents.orchestrator import ChatRequest, chat
 from backend.agents.agent import IntentRequest
 from backend.agents.gemini import create_client
-from backend.db import connect, initialize, now, row, rows
+from backend.db import connect, ensure_ai_provider_table, initialize, now, row, rows
 from backend.models import (CommitRequest, ExpenseCreate, GenerateSelection, Kind, LikeRequest, LoginRequest,
                             AdminFeedbackPatch, DatasetCreate, FeedbackCreate, FeedbackRating, FeedbackReply,
                             PlaceReview, PreviewRequest, ProfilePatch, PublicationRequest, RegisterRequest,
@@ -147,6 +147,7 @@ def create_app(settings=None, services=None, gemini_client=None):
         initialize(settings.db_path)
         logger.warning("Database schema initialization completed")
         with connect(settings.db_path) as db:
+            ensure_ai_provider_table(db)
             for slug, config in DESTINATIONS.items():
                 db.execute("UPDATE destinations SET center_lat=?,center_lon=? WHERE slug=?", (*config["center"], slug))
             _load_ai_provider(settings, db)

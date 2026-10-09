@@ -241,6 +241,20 @@ def now() -> str:
     return datetime.now(UTC).isoformat(timespec="microseconds")
 
 
+def ensure_ai_provider_table(db) -> None:
+    """Safety net for deployments where migration 014 was marked but skipped."""
+    db._connection.execute("""
+        CREATE TABLE IF NOT EXISTS ai_provider_settings (
+            id INTEGER PRIMARY KEY,
+            provider TEXT NOT NULL DEFAULT 'gemini',
+            model TEXT NOT NULL,
+            encrypted_api_key TEXT NOT NULL,
+            updated_by TEXT,
+            updated_at TEXT NOT NULL
+        )
+    """)
+
+
 @contextmanager
 def connect(path: Path | str):
     if isinstance(path, str) and path.startswith(("postgres://", "postgresql://")):
