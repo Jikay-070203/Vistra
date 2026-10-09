@@ -29,7 +29,21 @@
     <button onclick="me()">Check session</button>
     <button onclick="refresh()">Refresh token</button>
     <button onclick="logout()">Logout</button>
+    <button onclick="aiStatus()">AI provider status</button>
   </div>
+  <hr>
+  <h2>AI provider (admin)</h2>
+  <p class="note">API key chỉ gửi khi bấm Save, không hiển thị lại trong response.</p>
+  <label>Provider</label>
+  <select id="provider" style="padding:9px;width:100%">
+    <option value="gemini">Gemini</option>
+    <option value="openai">OpenAI</option>
+  </select>
+  <label>Model (để trống dùng mặc định)</label>
+  <input id="model" placeholder="gemini-3.5-flash-lite hoặc gpt-4o-mini">
+  <label>API key</label>
+  <input id="providerKey" type="password" autocomplete="off" placeholder="Nhập key provider">
+  <button onclick="saveAI()">Save AI provider</button>
   <pre id="output">Chưa thực hiện request.</pre>
 
   <script>
@@ -62,6 +76,17 @@
     function me() { call('CURRENT SESSION', '/api/v1/auth/me'); }
     function refresh() { call('REFRESH TOKEN', '/api/v1/auth/refresh', {method: 'POST'}); }
     function logout() { call('LOGOUT', '/api/v1/auth/logout', {method: 'POST'}); }
+    function aiStatus() { call('AI PROVIDER STATUS', '/api/v1/admin/ai/provider'); }
+    function saveAI() {
+      call('UPDATE AI PROVIDER', '/api/v1/admin/ai/provider', {
+        method: 'PUT',
+        body: JSON.stringify({
+          provider: document.getElementById('provider').value,
+          model: document.getElementById('model').value,
+          apiKey: document.getElementById('providerKey').value
+        })
+      });
+    }
   </script>
 </body>
 </html>

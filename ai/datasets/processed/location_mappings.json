@@ -1,0 +1,21 @@
+{
+  "Phu Quoc": {
+    "aliases": ["Phú Quốc", "Phuquoc"],
+    "place_ids": [
+      "node/10736277208",
+      "node/13648647562",
+      "node/13657066125",
+      "node/3482735049",
+      "node/357411246",
+      "way/1270360767",
+      "way/1270360775",
+      "way/1276691661",
+      "way/1488988777",
+      "way/1495746338",
+      "way/464532957",
+      "way/467994898",
+      "way/660104575"
+    ],
+    "note": "Memberships reviewed from existing Phu Quoc names or addresses and local coordinates. This is a limited place list, not an island boundary."
+  }
+}

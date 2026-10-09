@@ -1,0 +1,13 @@
+{
+  "source_chunks_sha256": "ad17a9bcec83a9193108383ce6d619d4eb6bc209c2c9813c25f2ab064e6dbe53",
+  "source_articles_sha256": "8aa500a9e762f87b7b52b9d0adc6eb4b0c92e0ae29cd454c78a75ed630a09e60",
+  "input_records": 166392,
+  "output_records": 166036,
+  "changed_records": 407,
+  "removed_map_only_records": 356,
+  "removed_characters": 3011649,
+  "map_articles": 108,
+  "saved_maps": 251,
+  "unresolved_coordinate_records": [],
+  "candidate_sha256": "e8d286a48a10f8b3f452713cb5f525a78aad2ae90dae7ffce8d706c76876fec8"
+}

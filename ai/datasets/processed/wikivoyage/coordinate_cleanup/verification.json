@@ -1,0 +1,12 @@
+{
+  "verified_records": 166036,
+  "tokenizer_spot_checks": 112,
+  "real_cpu_embeddings": 3,
+  "longest_input_tested_tokens": 5280,
+  "qdrant_dimensions": 2048,
+  "qdrant_query_and_reopen": "passed",
+  "gpu_tested": false,
+  "code_and_configuration_hashes": "unchanged",
+  "source_sha256": "ad17a9bcec83a9193108383ce6d619d4eb6bc209c2c9813c25f2ab064e6dbe53",
+  "corrected_sha256": "821e83f87f3a5daac937e9870d1a910f83af8bc06d0d758925f6da7d8ace11f9"
+}
