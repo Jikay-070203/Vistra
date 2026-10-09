@@ -156,6 +156,37 @@ def _ensure_postgres_core_tables(db):
         )
 
 
+def _ensure_import_destinations(db):
+    """Keep the VISTRA province catalog available even if an old migration was marked applied."""
+    destinations = [
+        ("an-giang", "An Giang"), ("bac-ninh", "Bắc Ninh"), ("cao-bang", "Cao Bằng"),
+        ("ca-mau", "Cà Mau"), ("can-tho", "Cần Thơ"), ("gia-lai", "Gia Lai"),
+        ("hue", "Huế"), ("ha-tinh", "Hà Tĩnh"), ("hung-yen", "Hưng Yên"),
+        ("hai-phong", "Hải Phòng"), ("khanh-hoa", "Khánh Hòa"), ("lai-chau", "Lai Châu"),
+        ("lao-cai", "Lào Cai"), ("lam-dong", "Lâm Đồng"), ("lang-son", "Lạng Sơn"),
+        ("nghe-an", "Nghệ An"), ("phu-tho", "Phú Thọ"), ("quang-ngai", "Quảng Ngãi"),
+        ("quang-ninh", "Quảng Ninh"), ("quang-tri", "Quảng Trị"), ("son-la", "Sơn La"),
+        ("thanh-hoa", "Thanh Hóa"), ("thai-nguyen", "Thái Nguyên"), ("tuyen-quang", "Tuyên Quang"),
+        ("tay-ninh", "Tây Ninh"), ("vinh-long", "Vĩnh Long"), ("dien-bien", "Điện Biên"),
+        ("da-nang", "Đà Nẵng"), ("dak-lak", "Đắk Lắk"), ("dong-nai", "Đồng Nai"),
+        ("dong-thap", "Đồng Tháp"),
+    ]
+    for slug, name in destinations:
+        db._connection.execute(
+            "INSERT INTO destinations(slug,display_name,target_places,enabled) VALUES(%s,%s,300,1) "
+            "ON CONFLICT(slug) DO UPDATE SET display_name=EXCLUDED.display_name,enabled=1",
+            (slug, name),
+        )
+        db._connection.execute(
+            "UPDATE destinations SET province_code=%s,source_name=%s,updated_at=CURRENT_TIMESTAMP WHERE slug=%s",
+            (slug, name, slug),
+        )
+    db._connection.execute(
+        "UPDATE destinations SET province_code='ho-chi-minh',source_name='Hồ Chí Minh',updated_at=CURRENT_TIMESTAMP "
+        "WHERE slug='tp-ho-chi-minh'"
+    )
+
+
 POSTGRES_ID_TABLES = (
     "destinations", "sources", "crawl_runs", "source_pages", "raw_place_records",
     "places", "place_sources", "tags", "opening_intervals", "opening_exceptions",
@@ -297,6 +328,7 @@ def initialize(path: Path):
                 if not db.execute("SELECT 1 FROM schema_migrations WHERE version=?", (file.name,)).fetchone():
                     _execute_postgres_script(db, file.read_text(encoding="utf-8"))
                     db.execute("INSERT INTO schema_migrations(version) VALUES (?) ON CONFLICT DO NOTHING", (file.name,))
+            _ensure_import_destinations(db)
             # Parent rows must exist before seeding places because PostgreSQL
             # enforces places.destination_id as a foreign key.
             db._connection.execute(

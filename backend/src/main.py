@@ -1054,6 +1054,14 @@ def create_app(settings=None, services=None, gemini_client=None):
         errors = []
         for index, item in enumerate(data.items):
             province_code = mapping.get(item.province)
+            # Fallback to the canonical destination catalog. This keeps old
+            # deployments with a mojibake mapping file compatible after the
+            # destination rows have been repaired.
+            if not province_code:
+                destination_match = row(db, "SELECT province_code FROM destinations "
+                                        "WHERE source_name=? OR display_name=? LIMIT 1",
+                                        (item.province, item.province))
+                province_code = destination_match["province_code"] if destination_match else None
             if not province_code:
                 counters["failed"] += 1
                 errors.append({"index": index, "code": "PROVINCE_UNMAPPED", "message": "Province has no destination mapping"})
