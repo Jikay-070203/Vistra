@@ -1335,7 +1335,10 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     @app.get("/api/v1/admin/golden-datasets")
     def v1_golden_datasets(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
-        return {"data": evaluation_datasets(vistra_session=vistra_session, db=db)}
+        # Pass concrete values when reusing the root handler; FastAPI Query
+        # defaults are marker objects outside dependency injection.
+        return {"data": evaluation_datasets(page=1, page_size=20,
+                                              vistra_session=vistra_session, db=db)}
 
     @app.post("/api/v1/admin/golden-datasets")
     def v1_create_golden_dataset(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
