@@ -780,8 +780,11 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     @app.get("/agent/status", dependencies=auth)
     def agent_status():
-        return {"enabled": bool(settings.gemini_api_key and settings.gemini_model),
-                "model": settings.gemini_model or None, "provider": "google-genai",
+        enabled = bool((settings.gemini_api_key and settings.gemini_model) if settings.ai_provider == "gemini"
+                       else (settings.openai_api_key and settings.openai_model))
+        return {"enabled": enabled,
+                "model": settings.gemini_model if settings.ai_provider == "gemini" else settings.openai_model,
+                "provider": "google-genai" if settings.ai_provider == "gemini" else "openai",
                 "capabilities": ["trip_draft", "trip_context", "itinerary_preview"]}
 
     @app.get("/api/v1/status")
