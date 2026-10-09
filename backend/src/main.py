@@ -13,6 +13,7 @@ from uuid import uuid4
 from urllib.parse import urlparse
 
 import httpx
+from cryptography.fernet import Fernet, InvalidToken
 
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +36,31 @@ from backend.services import ExternalServices
 from backend.catalog import ATTRIBUTION, DESTINATIONS, normalized
 
 logger = logging.getLogger(__name__)
+
+
+def _ai_fernet(settings: Settings) -> Fernet:
+    if not settings.ai_config_encryption_key:
+        raise HTTPException(503, "AI_CONFIG_ENCRYPTION_KEY is not configured")
+    try:
+        return Fernet(settings.ai_config_encryption_key.encode())
+    except (ValueError, TypeError):
+        raise HTTPException(503, "AI_CONFIG_ENCRYPTION_KEY must be a valid Fernet key") from None
+
+
+def _load_ai_provider(settings: Settings, db) -> None:
+    config = row(db, "SELECT provider,model,encrypted_api_key FROM ai_provider_settings WHERE id=1")
+    if not config or not settings.ai_config_encryption_key:
+        return
+    try:
+        key = _ai_fernet(settings).decrypt(config["encrypted_api_key"].encode()).decode()
+    except (InvalidToken, UnicodeDecodeError, HTTPException):
+        logger.warning("Stored AI provider key could not be decrypted")
+        return
+    settings.ai_provider = config["provider"]
+    if config["provider"] == "gemini":
+        settings.gemini_api_key, settings.gemini_model = key, config["model"]
+    else:
+        settings.openai_api_key, settings.openai_model = key, config["model"]
 
 
 async def ensure_qdrant_collections(settings: Settings) -> None:
@@ -123,6 +149,7 @@ def create_app(settings=None, services=None, gemini_client=None):
         with connect(settings.db_path) as db:
             for slug, config in DESTINATIONS.items():
                 db.execute("UPDATE destinations SET center_lat=?,center_lon=? WHERE slug=?", (*config["center"], slug))
+            _load_ai_provider(settings, db)
         await ensure_qdrant_collections(settings)
         app.state.gemini = gemini_client
         try:
@@ -1268,6 +1295,49 @@ def create_app(settings=None, services=None, gemini_client=None):
         # No payment/plan-history table exists yet; never infer revenue from trip budgets.
         return {"data": {"currency": "VND", "total": None, "mrr": None, "items": [],
                           "available": False, "message": "Payment history is not configured"}}
+
+    @app.get("/api/v1/admin/ai/provider")
+    def v1_ai_provider_status(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        config = row(db, "SELECT provider,model,updated_at FROM ai_provider_settings WHERE id=1")
+        return {"data": {"provider": config["provider"] if config else settings.ai_provider,
+                          "model": config["model"] if config else (settings.gemini_model or settings.openai_model),
+                          "hasKey": bool(config), "updatedAt": config["updated_at"] if config else None,
+                          "supportedProviders": ["gemini", "openai"],
+                          "recommendedModels": {"gemini": ["gemini-3.5-flash-lite"],
+                                                 "openai": ["gpt-4o-mini"]}}}
+
+    @app.put("/api/v1/admin/ai/provider")
+    def v1_ai_provider_update(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        admin = require_admin(vistra_session, db)
+        provider = str(payload.get("provider", "")).lower()
+        api_key = str(payload.get("apiKey", "")).strip()
+        default_models = {"gemini": "gemini-3.5-flash-lite", "openai": "gpt-4o-mini"}
+        model = str(payload.get("model") or default_models[provider]).strip()
+        if provider not in ("gemini", "openai"):
+            raise HTTPException(422, detail={"code": "UNSUPPORTED_PROVIDER", "allowed": ["gemini", "openai"]})
+        if not api_key or len(api_key) > 500:
+            raise HTTPException(422, detail={"code": "API_KEY_REQUIRED"})
+        if not model or len(model) > 120:
+            raise HTTPException(422, detail={"code": "MODEL_REQUIRED"})
+        encrypted = _ai_fernet(settings).encrypt(api_key.encode()).decode()
+        timestamp = now()
+        db.execute("""INSERT INTO ai_provider_settings(id,provider,model,encrypted_api_key,updated_by,updated_at)
+                     VALUES (1,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET provider=excluded.provider,
+                     model=excluded.model,encrypted_api_key=excluded.encrypted_api_key,
+                     updated_by=excluded.updated_by,updated_at=excluded.updated_at""",
+                   (provider, model, encrypted, admin["id"], timestamp))
+        settings.ai_provider = provider
+        if provider == "gemini":
+            settings.gemini_api_key, settings.gemini_model = api_key, model
+        else:
+            settings.openai_api_key, settings.openai_model = api_key, model
+        # Force request-time client creation with the new provider configuration.
+        app.state.gemini = None
+        return {"data": {"provider": provider, "model": model, "hasKey": True,
+                          "updatedAt": timestamp, "message": "AI provider updated",
+                          "recommendedModels": {"gemini": ["gemini-3.5-flash-lite"],
+                                                 "openai": ["gpt-4o-mini"]}}}
 
     @app.get("/api/v1/admin/users")
     def v1_admin_users(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),

@@ -63,6 +63,39 @@ $env:DATABASE_URL="postgresql://app:local-postgres-password@localhost:5434/yourt
 Nếu chạy trong production, đặt `DATABASE_URL` PostgreSQL production trong biến môi trường của terminal hoặc Railway, không đưa password vào source code. Cả hai script đã kiểm tra compile thành công.
 ## API admin cho frontend
 
+### Cấu hình AI provider
+
+```text
+GET /api/v1/admin/ai/provider
+PUT /api/v1/admin/ai/provider
+```
+
+Request đổi provider:
+
+```json
+{
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "apiKey": "secret-key"
+}
+```
+
+`model` là tùy chọn. Nếu bỏ trống, backend tự chọn:
+
+```text
+gemini → gemini-3.5-flash-lite
+openai → gpt-4o-mini
+```
+
+Frontend có thể hiển thị hai model trên như lựa chọn nhanh. Admin cũng có thể
+nhập tên model khác; backend lưu nguyên tên model và dùng nó cho request mới.
+
+`provider` chỉ nhận `gemini` hoặc `openai`. API key được mã hóa và lưu trong
+PostgreSQL, không trả lại trong response. Backend cần biến môi trường
+`AI_CONFIG_ENCRYPTION_KEY` là Fernet key để mã hóa/giải mã; đây là khóa bảo vệ
+cấu hình, không phải API key của provider. Việc chuyển provider áp dụng cho các
+request AI mới và không cần rebuild image.
+
 Các API dưới đây yêu cầu cookie `vistra_session` của tài khoản role `admin` hoặc
 `staff`. Frontend phải gửi request với `credentials: "include"`.
 

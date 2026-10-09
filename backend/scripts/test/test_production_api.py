@@ -210,6 +210,7 @@ def main() -> int:
         request("admin metrics", "GET", "/api/v1/admin/system/metrics")
         request("admin overview", "GET", "/api/v1/admin/overview")
         request("admin revenue", "GET", "/api/v1/admin/revenue")
+        request("admin AI provider status", "GET", "/api/v1/admin/ai/provider")
         request("admin users", "GET", "/api/v1/admin/users?page=1&page_size=5")
         request("admin content", "GET", "/api/v1/admin/content")
         request("admin entity metadata", "GET", "/api/v1/admin/entities/metadata")

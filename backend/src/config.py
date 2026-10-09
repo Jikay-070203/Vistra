@@ -26,11 +26,15 @@ class Settings(BaseSettings):
     osrm_url: str = "https://router.project-osrm.org"
     weather_enabled: bool = True
     gemini_api_key: str = Field(default="", validation_alias=AliasChoices("GEMINI_API_KEY", "Geminai_API_KEY"))
-    gemini_model: str = ""
+    gemini_model: str = "gemini-3.5-flash-lite"
     auth_cookie_secure: bool = False
     auth_session_days: int = Field(default=30, ge=1, le=365)
     auth_access_minutes: int = Field(default=30, ge=5, le=1440)
     auth_refresh_days: int = Field(default=1, ge=1, le=365)
+    ai_provider: str = "gemini"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    ai_config_encryption_key: str = ""
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     qdrant_auto_create: bool = True

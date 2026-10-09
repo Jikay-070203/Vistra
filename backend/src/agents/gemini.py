@@ -1,10 +1,71 @@
 import random
 import time
+import json
 
 import httpx
 from fastapi import HTTPException
 from google import genai
 from google.genai import errors, types
+
+
+def _openai_messages(contents):
+    messages = []
+    for item in contents:
+        role = "user" if item.get("role") == "user" else "assistant"
+        text_parts, tool_calls, tool_results = [], [], []
+        for part in item.get("parts", []):
+            if "text" in part:
+                text_parts.append(str(part["text"]))
+            if "functionCall" in part:
+                call = part["functionCall"]
+                tool_calls.append({"id": part.get("id", f"call_{len(tool_calls)}"), "type": "function",
+                                   "function": {"name": call.get("name"), "arguments": json.dumps(call.get("args", {}))}})
+            if "functionResponse" in part:
+                response = part["functionResponse"]
+                tool_results.append({"role": "tool", "tool_call_id": response.get("id", ""),
+                                     "content": json.dumps(response.get("response", {}), ensure_ascii=False)})
+        if tool_results:
+            messages.extend(tool_results)
+        else:
+            message = {"role": role, "content": "\n".join(text_parts) or None}
+            if tool_calls:
+                message["tool_calls"] = tool_calls
+            messages.append(message)
+    return messages
+
+
+def _generate_openai(settings, contents, instruction, *, tools=None, json_output=False):
+    if not settings.openai_api_key or not settings.openai_model:
+        raise HTTPException(503, "Cần cấu hình OpenAI provider, API key và model.")
+    payload = {"model": settings.openai_model, "messages": [{"role": "system", "content": instruction},
+              *_openai_messages(contents)], "temperature": 0.2, "max_tokens": 4096}
+    if tools:
+        payload["tools"] = [{"type": "function", "function": {"name": tool["name"],
+                         "description": tool.get("description", ""), "parameters": tool.get("parameters", {})}}
+                         for tool in tools]
+    if json_output:
+        payload["response_format"] = {"type": "json_object"}
+    try:
+        response = httpx.post("https://api.openai.com/v1/chat/completions", headers={
+            "Authorization": f"Bearer {settings.openai_api_key}", "Content-Type": "application/json"},
+            json=payload, timeout=30)
+        if response.status_code in (401, 403):
+            raise HTTPException(503, "OpenAI từ chối API key hoặc quyền truy cập.")
+        if response.status_code == 429:
+            raise HTTPException(429, "OpenAI đã chạm giới hạn quota.")
+        response.raise_for_status()
+        message = response.json()["choices"][0]["message"]
+        parts = []
+        if message.get("content"):
+            parts.append({"text": message["content"]})
+        for call in message.get("tool_calls", []):
+            parts.append({"id": call["id"], "functionCall": {"name": call["function"]["name"],
+                         "args": json.loads(call["function"].get("arguments", "{}"))}})
+        return {"role": "model", "parts": parts}
+    except HTTPException:
+        raise
+    except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError):
+        raise HTTPException(502, "OpenAI chưa trả về kết quả hợp lệ. Vui lòng thử lại.") from None
 
 
 def create_client(settings, *, http_client=None):
@@ -16,6 +77,8 @@ def create_client(settings, *, http_client=None):
 
 
 def generate(settings, contents, instruction, *, tools=None, client=None, json_output=False):
+    if getattr(settings, "ai_provider", "gemini") == "openai":
+        return _generate_openai(settings, contents, instruction, tools=tools, json_output=json_output)
     if not settings.gemini_api_key or not settings.gemini_model:
         raise HTTPException(503, "Cần cấu hình GEMINI_API_KEY và GEMINI_MODEL trên máy chủ để bật trợ lý.")
     config = {"system_instruction": instruction, "temperature": 0.2, "max_output_tokens": 4096,
