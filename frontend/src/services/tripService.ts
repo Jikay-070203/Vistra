@@ -64,7 +64,10 @@ export async function sendTripMessage(id: string, text: string, baseVersion: num
 }
 
 export async function generateTrip(id: string) {
-  const result = await apiRequest(API_ENDPOINTS.TRIPS.GENERATE(id), getSessionProxyBaseUrl(), { method: 'POST' });
+    // Imported places are intentionally kept as `discovered` until reviewed.
+    // Generate a provisional draft from them; the backend marks the itinerary
+    // provisional and keeps review warnings instead of returning 422.
+    const result = await apiRequest(`${API_ENDPOINTS.TRIPS.GENERATE(id)}?allow_unverified=true`, getSessionProxyBaseUrl(), { method: 'POST' });
   return { ...result, data: savedItinerarySchema.parse(result.data) };
 }
 

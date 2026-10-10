@@ -38,6 +38,89 @@ from backend.catalog import ATTRIBUTION, DESTINATIONS, normalized
 logger = logging.getLogger(__name__)
 
 
+def _parse_json_object(text: str) -> dict:
+    value = text.strip()
+    if value.startswith("```"):
+        value = value.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+    parsed = json.loads(value)
+    if not isinstance(parsed, dict):
+        raise ValueError("Vision response must be a JSON object")
+    return parsed
+
+
+async def _analyze_images_with_vision(settings, client, images: list[tuple[bytes, str]], description: str) -> dict:
+    """Run the configured multimodal provider and return normalized Travel DNA JSON."""
+    instruction = (
+        "Phân tích các ảnh cảm hứng du lịch cho ứng dụng lập chuyến đi tại Việt Nam. "
+        "Chỉ trả về JSON với các khóa metrics, pace, scenery_focus, cuisine_priority, "
+        "suggested_interests, confidence. metrics must be an array of objects with "
+        "key (string), score (integer 0-100), and optional reason. Use visual evidence "
+        "only; do not identify people or infer sensitive traits. Use null when uncertain. "
+        "pace có một trong các giá trị relaxed, normal, busy. suggested_interests là mảng "
+        "chuỗi ngắn. Các giá trị label, reason, scenery_focus, cuisine_priority và "
+        "suggested_interests phải viết bằng tiếng Việt."
+    )
+    if description.strip():
+        instruction += " Traveler note: " + description[:2000]
+
+    try:
+        if settings.ai_provider == "openai":
+            if not settings.openai_api_key or not settings.openai_model:
+                raise HTTPException(503, "OpenAI Vision chưa được cấu hình.")
+            content = [{"type": "text", "text": instruction}]
+            for data, mime in images:
+                import base64
+                encoded = base64.b64encode(data).decode("ascii")
+                content.append({"type": "image_url", "image_url": {
+                    "url": f"data:{mime};base64,{encoded}", "detail": "low"
+                }})
+            async with httpx.AsyncClient(timeout=60) as http:
+                response = await http.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+                    json={"model": settings.openai_model,
+                          "messages": [{"role": "user", "content": content}],
+                          "temperature": 0.1, "max_tokens": 1200,
+                          "response_format": {"type": "json_object"}},
+                )
+            if response.status_code in (401, 403):
+                raise HTTPException(503, "OpenAI từ chối API key hoặc quyền Vision.")
+            if response.status_code == 429:
+                raise HTTPException(429, "OpenAI đã chạm giới hạn quota.")
+            response.raise_for_status()
+            return _parse_json_object(response.json()["choices"][0]["message"]["content"])
+
+        if not settings.gemini_api_key or not settings.gemini_model:
+            raise HTTPException(503, "Gemini Vision chưa được cấu hình.")
+        from google.genai import types
+        owned_client = client is None
+        client = client or create_client(settings)
+        parts = [types.Part.from_text(text=instruction)]
+        for data, mime in images:
+            parts.append(types.Part.from_bytes(data=data, mime_type=mime))
+
+        def call_gemini():
+            response = client.models.generate_content(
+                model=settings.gemini_model,
+                contents=[types.Content(role="user", parts=parts)],
+                config=types.GenerateContentConfig(
+                    temperature=0.1, max_output_tokens=1200,
+                    response_mime_type="application/json"),
+            )
+            return _parse_json_object(response.text or "")
+
+        try:
+            return await asyncio.to_thread(call_gemini)
+        finally:
+            if owned_client:
+                client.close()
+    except HTTPException:
+        raise
+    except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        logger.warning("Vision analysis failed: %s", exc)
+        raise HTTPException(502, "AI Vision chưa trả về kết quả hợp lệ. Vui lòng thử lại.") from None
+
+
 def _ai_fernet(settings: Settings) -> Fernet:
     if not settings.ai_config_encryption_key:
         raise HTTPException(503, "AI_CONFIG_ENCRYPTION_KEY is not configured")
@@ -507,7 +590,7 @@ def create_app(settings=None, services=None, gemini_client=None):
                 item["status"] = "rejected"
                 item["error"] = error
             else:
-                accepted.append((item, mime, len(content), hashlib.sha256(content).hexdigest()))
+                accepted.append((item, mime, len(content), hashlib.sha256(content).hexdigest(), content))
             sources.append(item)
         if not accepted:
             code = "IMAGE_TOO_LARGE" if all(item.get("error") == "IMAGE_TOO_LARGE" for item in sources) else "NO_VALID_IMAGES"
@@ -515,18 +598,56 @@ def create_app(settings=None, services=None, gemini_client=None):
         analysis_id = str(uuid4())
         created = now()
         expires = (datetime.now(UTC) + timedelta(hours=24)).isoformat(timespec="microseconds")
-        derived = {"metrics": [], "pace": None, "scenery_focus": None, "cuisine_priority": None,
-                   "suggested_interests": []}
+        vision = await _analyze_images_with_vision(
+            settings, app.state.gemini,
+            [(content, mime) for _, mime, _, _, content in accepted], description,
+        )
+        metric_labels = {
+            "cultural_significance": "Giá trị văn hóa",
+            "natural_beauty": "Vẻ đẹp thiên nhiên",
+            "architectural_diversity": "Đa dạng kiến trúc",
+            "historical_value": "Giá trị lịch sử",
+            "food_culture": "Văn hóa ẩm thực",
+            "adventure": "Mức độ khám phá",
+            "relaxation": "Mức độ thư giãn",
+            "urban_energy": "Năng lượng đô thị",
+        }
+        metrics = vision.get("metrics", [])
+        if not isinstance(metrics, list):
+            raise HTTPException(502, "AI Vision trả về metrics không hợp lệ.")
+        normalized_metrics = []
+        for metric in metrics[:30]:
+            if not isinstance(metric, dict) or not isinstance(metric.get("key"), str):
+                continue
+            item = dict(metric)
+            item["label"] = metric_labels.get(item["key"], item["key"].replace("_", " ").capitalize())
+            if isinstance(item.get("reason"), str):
+                item["reason"] = item["reason"]
+            normalized_metrics.append(item)
+        derived = {
+            "metrics": normalized_metrics,
+            "pace": vision.get("pace"),
+            "scenery_focus": vision.get("scenery_focus"),
+            "cuisine_priority": vision.get("cuisine_priority"),
+            "suggested_interests": vision.get("suggested_interests", []),
+        }
+        confidence = vision.get("confidence")
+        if confidence is not None:
+            try:
+                confidence = max(0.0, min(1.0, float(confidence)))
+            except (TypeError, ValueError):
+                confidence = None
         db.execute("""INSERT INTO dna_analyses(id,user_id,description,derived_dna_json,confidence,sources_json,status,created_at,expires_at)
-            VALUES (?,?,?,?,?,?,?,?,?)""", (analysis_id, user["id"], description, json.dumps(derived), None,
+            VALUES (?,?,?,?,?,?,?,?,?)""", (analysis_id, user["id"], description, json.dumps(derived), confidence,
                                                 json.dumps(sources), "completed", created, expires))
-        for item, content_type, size, digest in accepted:
+        for item, content_type, size, digest, _content in accepted:
             db.execute("""INSERT INTO dna_analysis_files(id,analysis_id,filename,content_type,size_bytes,sha256,status,error)
                 VALUES (?,?,?,?,?,?,?,?)""", (item["id"], analysis_id, item["filename"], content_type, size,
                                                digest, item["status"], None))
         return {"analysis_id": analysis_id, "status": "completed", "derived_dna": derived,
-                "suggested_trip_dna": derived, "confidence": None, "expires_at": expires,
-                "sources": sources, "notice": "Images validated; no vision model is configured yet."}
+                "suggested_trip_dna": derived, "confidence": confidence, "expires_at": expires,
+                "sources": sources,
+                "notice": "Travel DNA generated by the configured vision model."}
 
     @app.get("/auth/oauth/{provider}/start")
     def oauth_start(provider: Literal["google", "facebook"], return_to: str = "/"):
@@ -706,6 +827,15 @@ def create_app(settings=None, services=None, gemini_client=None):
             request.must_visit = data.must_visit
         if allow_unverified is not None:
             request.allow_unverified = allow_unverified
+        # A freshly imported VISTRA catalog is source-backed but remains in
+        # `discovered` until editorial review. Allow a provisional draft when
+        # no reviewed places exist, so the user gets an itinerary with the
+        # proper provisional warning instead of an opaque 422.
+        if not request.allow_unverified:
+            reviewed = place_candidates(db, current["destination_id"], False)
+            discovered = place_candidates(db, current["destination_id"], True)
+            if not reviewed and discovered:
+                request.allow_unverified = True
         payload = build(db, request, destination(db, request.destination), external)
         db.execute('UPDATE trips SET request_json=?,generation_error=NULL WHERE id=?', (request.model_dump_json(), trip_id))
         return save_version(db, trip_id, 0, payload)
@@ -1066,6 +1196,20 @@ def create_app(settings=None, services=None, gemini_client=None):
         if existing_batch:
             return {"batch_id": data.batch_id, "status": "already_processed", **existing_batch, "errors": []}
         mapping = import_mapping()
+        # Imported dataset records need an evidence link before they can be
+        # considered by the planner.  Keep them discovered (not reviewed),
+        # but make the provenance explicit and idempotent.
+        source_name = data.source.strip()
+        source = row(db, "SELECT id FROM sources WHERE name=?", (source_name,))
+        if not source:
+            db.execute("""INSERT INTO sources
+                (name,host,base_url,source_type,collection_approved,notes)
+                VALUES (?,?,?,?,?,?)""", (source_name,
+                f"import.{source_name.lower().replace(' ', '-')}.local",
+                f"import://{source_name}", "open_dataset", 1,
+                "Imported dataset; records require review before production promotion"))
+            source = row(db, "SELECT id FROM sources WHERE name=?", (source_name,))
+        source_id = source["id"]
         counters = {"received": len(data.items), "inserted": 0, "updated": 0, "skipped": 0, "failed": 0}
         errors = []
         for index, item in enumerate(data.items):
@@ -1095,15 +1239,27 @@ def create_app(settings=None, services=None, gemini_client=None):
                 db.execute("""UPDATE places SET destination_id=?,display_name=?,normalized_name=?,address=?,latitude=?,longitude=?,
                     kind=?,source_category=?,source_metadata_json=?,source_updated_at=?,updated_at=? WHERE source_place_id=?""",
                     (*values, item.source_place_id))
+                place_id = duplicate["id"]
                 counters["updated"] += 1
             else:
-                db.execute("""INSERT INTO places(destination_id,display_name,normalized_name,address,latitude,longitude,kind,
+                inserted_place = db.execute("""INSERT INTO places(destination_id,display_name,normalized_name,address,latitude,longitude,kind,
                     source_place_id,source_category,source_metadata_json,source_updated_at,created_at,updated_at)
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (dest["id"], item.name, item.name.lower(), item.address, item.latitude, item.longitude,
                      import_kind(item.category), item.source_place_id, item.category,
                      json.dumps(item.metadata, ensure_ascii=False), item.source_updated_at, now(), now()))
+                place_id = inserted_place.fetchone()["id"] if inserted_place.description and "id" in [d[0] for d in inserted_place.description] else None
+                if place_id is None:
+                    place_id = row(db, "SELECT id FROM places WHERE source_place_id=?", (item.source_place_id,))["id"]
                 counters["inserted"] += 1
+            timestamp = now()
+            db.execute("""INSERT INTO place_sources
+                (place_id,source_id,source_url,external_place_id,first_seen_at,last_seen_at)
+                VALUES (?,?,?,?,?,?)
+                ON CONFLICT (source_id, external_place_id) DO UPDATE SET
+                    place_id=excluded.place_id,last_seen_at=excluded.last_seen_at""",
+                (place_id, source_id, f"import://{source_name}/{item.source_place_id}",
+                 item.source_place_id, timestamp, timestamp))
         db.execute("""INSERT INTO data_import_batches(batch_id,source,kind,received,inserted,updated,skipped,failed,created_by,created_at)
             VALUES (?,?,?,?,?,?,?,?,?,?)""", (data.batch_id, data.source, "places", counters["received"], counters["inserted"],
             counters["updated"], counters["skipped"], counters["failed"], admin["id"], now()))
