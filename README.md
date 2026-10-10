@@ -1,194 +1,160 @@
-# AI20K Agent Template
+# VISTRA
 
-Template chính thức cho học viên VinUni AI20K Build Phase: cấu trúc dự án, code
-mẫu và hướng dẫn kỹ thuật để xây dựng một AI Agent hoàn chỉnh — từ kiến trúc,
-code, test cho đến deploy và nộp bài Demo Day.
+Ứng dụng lập kế hoạch du lịch cá nhân hóa bằng Travel DNA, hỗ trợ tạo lịch trình, bản đồ, điểm đến gợi ý và hội thoại với Vistra để chỉnh sửa lịch trình.
 
-Technical Guidebook: <https://phoenix.note.transformerlabs.ai/technical-book>
+## Trạng thái pipeline ảnh
 
-## Template có sẵn những gì
+Pipeline ảnh đã chạy hoàn tất thành công:
 
-- **Cấu trúc thư mục tách lớp** — `agents/`, `api/`, `services/`, `models/` đã
-  chia sẵn, không phải bàn lại từ đầu.
-- **Code mẫu chạy được** — LangGraph agent (state, node, tool), FastAPI routes,
-  Pydantic settings, schema.
-- **Docker và CI** — Dockerfile multi-stage, `docker-compose.yml`, workflow
-  GitHub Actions chạy `ruff` + `pytest` khi push lên `main`/`develop` và khi mở
-  pull request vào `main`.
-- **Technical Guidebook 10 chương** trong `docs/guide/`, đồng thời đọc được
-  online.
-- **Checklist 10 deliverables** của Demo Day.
-- **AI usage logging** — hook cài sẵn cho 6 công cụ AI, log tự động gửi lên
-  grading server mỗi lần `git push`.
+- Batch cuối: `48 imported, 0 skipped, 0 failed`.
+- Vector đã được upsert vào collection Qdrant `scraped_images`.
+- Kết thúc với: `Photo source exhausted; pipeline complete.`
+- File không có Cloudinary URL bị bỏ qua là dữ liệu không hợp lệ, không phải lỗi xử lý batch.
 
-## Yêu cầu
+## Công nghệ
 
-- Python 3.11 (phiên bản CI đang dùng)
-- Git
-- Docker — tuỳ chọn, chỉ cần nếu chạy `docker compose`
-
-## Bắt đầu
-
-### 1. Clone repo của đội
-
-Khi đội được chốt, hệ thống tự sinh repo cho đội từ template này, nằm trong org
-GitHub của khoá bạn đang học và đặt tên theo mã đội. Copy URL ở trang đội trên
-Phoenix rồi clone về:
-
-```bash
-git clone https://github.com/<ORG-CỦA-KHOÁ>/<MÃ-ĐỘI>.git
-cd <MÃ-ĐỘI>
-```
-
-Không cần `rm -rf .git`, `git init` hay `git remote add`: repo sinh từ template
-đã bắt đầu bằng lịch sử riêng của đội và remote trỏ sẵn đúng chỗ. Chưa thấy repo
-của đội thì báo BTC — repo tự tạo nằm ngoài org sẽ không được chấm.
-
-### 2. Cài môi trường
-
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 3. Cấu hình biến môi trường
-
-```bash
-cp .env.example .env
-```
-
-Mở `.env` và điền `OPENAI_API_KEY`. Riêng `AI_LOG_API_KEY`, mỗi thành viên tự
-tạo key riêng tại [dashboard Phoenix](https://phoenix.note.transformerlabs.ai/api-keys)
-rồi thay vào chỗ `<get-your-api-key-from-dashboard-phoenix>` — giá trị trong
-`.env.example` chỉ là placeholder, để nguyên thì log không vào được hệ thống chấm.
-
-### 4. Cài hook ghi log AI
-
-```bash
-bash scripts/setup_hooks.sh                                      # Linux / macOS / Git Bash
-powershell -ExecutionPolicy Bypass -File scripts\setup_hooks.ps1 # Windows PowerShell
-```
-
-Chạy một lần sau khi clone. Hook ghi lại prompt khi bạn dùng Claude Code, Cursor,
-Codex CLI, Gemini CLI, Antigravity hoặc GitHub Copilot, và cài pre-push hook để
-đẩy log lên server.
-
-### 5. Chạy server
-
-```bash
-uvicorn src.main:app --reload --port 8000
-```
-
-Swagger UI ở <http://localhost:8000/docs>. Hoặc dùng `make run`, `make test`,
-`make lint` — xem `Makefile`.
+- Backend: FastAPI, PostgreSQL, SQLAlchemy, Qdrant, OpenAI/Gemini.
+- Frontend: Next.js, TypeScript, pnpm.
+- Dữ liệu ảnh: Cloudinary và embedding tìm kiếm ảnh bằng SigLIP.
+- Bản đồ/lộ trình: dữ liệu địa điểm, geocoding và routing từ các dịch vụ cấu hình trong môi trường.
 
 ## Cấu trúc thư mục
 
-```
-src/
-  agents/            LangGraph agent
-    graph.py         State graph (nodes + edges)
-    state.py         State schema (TypedDict)
-    nodes/           Node functions
-    tools/           Agent tools (@tool)
-  api/routes.py      FastAPI endpoints
-  models/schemas.py  Pydantic schemas
-  services/llm.py    LLM client
-  config.py          Pydantic Settings
-  main.py            App entry point
-tests/               pytest suite
-scripts/             Hook ghi log AI + installer
-docs/
-  guide/             Technical Guidebook (nguồn của bản online)
-  architecture_diagram.md
-eval/                Kết quả evaluation
-presentation/        Slide và video Demo Day
-.claude/ .codex/ .cursor/ .gemini/ .agents/ .github/hooks/
-                     Config hook cho từng công cụ
-.github/workflows/   CI
-Dockerfile           Multi-stage build
-docker-compose.yml   Chạy backend bằng Docker
-README_boilerplate.md  Khung README cho dự án của đội
+```text
+backend/       API, database, migration, worker và photo pipeline
+frontend/      Next.js web application
+docker-compose.yml
+README.md
 ```
 
-## Technical Guidebook
+## Yêu cầu cài đặt
 
-| Chương | Nội dung | Thời gian |
-|---|---|---|
-| 1 | Lời mở đầu — mục tiêu, cách sử dụng | 15 phút |
-| 2 | Khởi tạo dự án — clone, setup, git workflow | 4 giờ |
-| 3 | Thiết kế kiến trúc — 3-tier, diagram, ADR | 6 giờ |
-| 4 | LangGraph Agent — state, node, edge, tool, RAG | 8 giờ |
-| 5 | FastAPI — routes, validation, error handling, streaming | 6 giờ |
-| 6 | Giao diện — Next.js và Streamlit | 6 giờ |
-| 7 | DevOps — Docker, CI/CD, deploy, logging | 6 giờ |
-| 8 | Kiểm thử — unit test, integration test, RAGAS | 4 giờ |
-| 9 | Demo Day — 10 deliverables, checklist | 2 giờ |
-| 10 | Tài nguyên — khoá học, tài liệu, BMAD method | tham khảo |
+- Windows PowerShell hoặc Linux/macOS.
+- Python 3.11+ và PostgreSQL 15+ nếu chạy thủ công.
+- Node.js 20+, pnpm.
+- Docker Desktop nếu chạy bằng Docker.
+- Các tài khoản/dịch vụ tùy tính năng: OpenAI hoặc Gemini, Qdrant, Cloudinary.
 
-Đọc online tại <https://phoenix.note.transformerlabs.ai/technical-book>: đăng
-nhập bằng GitHub (đúng account đã được BTC mời vào org của khoá), chọn tab
-**Technical Book** ở sidebar trái. Bản offline nằm trong `docs/guide/`, mở được
-bằng bất kỳ markdown viewer nào.
+## Chạy nhanh bằng Docker
 
-## 10 deliverables cho Demo Day
+Tạo/cập nhật file môi trường theo mẫu của dự án, sau đó chạy:
 
-| # | Deliverable | Vị trí | Template lo tới đâu |
-|---|---|---|---|
-| 1 | Source code | `src/` | Khung sẵn |
-| 2 | README | copy `README_boilerplate.md` thành `README.md` | Khung sẵn |
-| 3 | Architecture diagram | `docs/architecture_diagram.md` | Khung sẵn |
-| 4 | AI logs | LangSmith (3 biến môi trường) + auto AI usage logging | Cấu hình sẵn |
-| 5 | Live URL | deploy lên Render/Vercel | CI/CD sẵn |
-| 6 | Video demo | `presentation/` | Đội tự làm |
-| 7 | Pitch deck | `presentation/` | Đội tự làm |
-| 8 | Development journal | `JOURNAL.md` | Khung sẵn |
-| 9 | Worklog | `WORKLOG.md` | Khung sẵn |
-| 10 | Evaluation evidence | `eval/` | Đội tự làm |
-
-## Tech stack
-
-| Lớp | Công nghệ |
-|---|---|
-| Agent | LangGraph + LangChain 0.3 |
-| Backend | FastAPI 0.115 + Uvicorn |
-| LLM | OpenAI, mặc định `gpt-4o-mini` (đổi trong `src/config.py`) |
-| Giao diện | Next.js hoặc Streamlit (đội tự chọn, hướng dẫn ở chương 6) |
-| Lint / test | ruff + pytest 8 |
-| DevOps | Docker + GitHub Actions |
-
-## AI usage logging
-
-Mọi prompt được ghi vào `.ai-log/session.jsonl` và tự động gửi lên grading server
-ở bước pre-push.
-
-| Công cụ | Cấu hình | Thời điểm ghi |
-|---|---|---|
-| Claude Code | `.claude/settings.json` | mỗi prompt (`UserPromptSubmit`) |
-| Cursor | `.cursor/hooks.json` | mỗi prompt và khi dừng |
-| OpenAI Codex CLI | `.codex/hooks.json` | mỗi prompt và khi dừng |
-| Gemini CLI | `.gemini/settings.json` | mỗi lượt agent chạy |
-| GitHub Copilot | `.github/hooks/hooks.json` | mỗi prompt và cuối session |
-| Antigravity IDE | `.agents/hooks.json` | mỗi prompt, kèm lần quét lại lúc `git push` |
-
-Dùng ChatGPT hay công cụ web khác thì log thủ công:
-
-```bash
-bash scripts/_pyrun.sh scripts/log_manual.py --tool chatgpt --prompt "What you asked"
+```powershell
+cd D:\Sourcecode\vinai\project\demo\Vistra-backend
+docker compose up --build
 ```
 
-## Đóng góp
+Các địa chỉ thường dùng:
 
-Repo này là open source. Đọc [CONTRIBUTING.md](CONTRIBUTING.md) trước khi mở PR.
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
+- Swagger: http://localhost:8000/docs
+- Health check: http://localhost:8000/health
 
-Nội dung trong `docs/guide/` là nguồn của Technical Book và được đồng bộ lên bản
-online, nên mọi thay đổi ở đó cần review của
-[@AI20K-Build-Phase/book-maintainers](https://github.com/orgs/AI20K-Build-Phase/teams/book-maintainers)
-— xem [.github/CODEOWNERS](.github/CODEOWNERS).
+## Chạy backend thủ công trên Windows
 
-Báo lỗ hổng bảo mật theo [SECURITY.md](SECURITY.md), đừng mở public issue.
+```powershell
+cd D:\Sourcecode\vinai\project\demo\Vistra-backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt
+python -m uvicorn backend.src.main:app --reload --host 127.0.0.1 --port 8000
+```
 
-## License
+Nếu PowerShell chặn activate, có thể chạy trực tiếp:
 
-[MIT](LICENSE) — dùng tự do cho mục đích giáo dục.
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn backend.src.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+## Chạy frontend thủ công
+
+```powershell
+cd D:\Sourcecode\vinai\project\demo\Vistra-backend\frontend
+pnpm install
+pnpm.cmd run dev
+```
+
+Frontend mặc định chạy tại http://localhost:3000. Kiểm tra biến `API_BASE` hoặc biến proxy tương ứng trong `frontend/.env.local` để frontend gọi đúng backend.
+
+## Biến môi trường quan trọng
+
+Đặt biến trong file `.env` của backend và `.env.local` của frontend theo cấu hình hiện tại của dự án. Không commit secret thật lên Git.
+
+```env
+DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/vistra
+API_BASE=http://localhost:8000
+QDRANT_URL=https://your-qdrant-host
+QDRANT_API_KEY=your-qdrant-key
+OPENAI_API_KEY=your-openai-key
+GEMINI_API_KEY=your-gemini-key
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-key
+CLOUDINARY_API_SECRET=your-cloudinary-secret
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
+```
+
+Tên biến chính xác có thể khác theo module; hãy ưu tiên các biến đã có trong `.env.example`, `backend/.env` và `frontend/.env.local`.
+
+## Chạy photo pipeline tiếp tục từ checkpoint
+
+Pipeline có checkpoint nên khi tắt VS Code hoặc dừng tiến trình, chạy lại sẽ tiếp tục xử lý dữ liệu chưa hoàn tất, không cần upload lại các batch đã thành công.
+
+```powershell
+cd D:\Sourcecode\vinai\project\demo\Vistra-backend
+.\.venv\Scripts\Activate.ps1
+$env:QDRANT_URL="https://your-qdrant-host"
+$env:QDRANT_API_KEY="your-qdrant-key"
+python .\backend\scripts\photo\run_photo_pipeline.py `
+  --cycle-size 100 `
+  --batch-size 50 `
+  --interval-seconds 30 `
+  --error-backoff-seconds 120
+```
+
+Không xóa các thư mục/file checkpoint hoặc trạng thái import nếu muốn pipeline resume đúng vị trí. Cảnh báo `use_fast` của Transformers chỉ là cảnh báo; lỗi `QDRANT_URL` hoặc `torchvision` mới làm pipeline không chạy được.
+
+## Luồng sử dụng chính
+
+1. Mở `/create-trip`, chọn điểm đến, ngày đi và sở thích.
+2. Gửi Travel DNA để phân tích.
+3. Tạo chuyến đi và sinh lịch trình.
+4. Mở `/planner?trip_id=<TRIP_ID>` để xem lịch trình, bản đồ và toàn bộ điểm gợi ý.
+5. Chọn điểm gợi ý, đổi địa điểm, đổi thứ tự hoặc xóa điểm; hệ thống tạo bản nháp để review.
+6. Xác nhận thay đổi rồi bấm lưu lịch trình. Hủy sẽ giữ nguyên lịch trình cũ.
+
+## API quan trọng
+
+```text
+POST /api/v1/dna/analyze
+POST /api/v1/trips?generate_itinerary=true
+GET  /api/v1/trips/{trip_id}
+POST /api/v1/trips/{trip_id}/chat
+POST /api/v1/trips/{trip_id}/revisions/preview
+POST /api/v1/trips/{trip_id}/revisions/commit
+```
+
+## Kiểm tra nhanh
+
+```powershell
+python -m compileall backend
+cd frontend
+pnpm.cmd run lint
+```
+
+## Một số lỗi thường gặp
+
+- `401`: phiên đăng nhập hết hạn; đăng nhập lại hoặc kiểm tra cookie/auth refresh.
+- `503` khi generate: kiểm tra dịch vụ routing/geocoding và log backend.
+- `422` revision preview: kiểm tra payload điểm đến, ngày và `trip_id`.
+- `502` chat: kiểm tra provider AI, API key, timeout và log backend.
+- `Set QDRANT_URL`: khai báo `QDRANT_URL` trong PowerShell trước khi chạy photo pipeline.
+- `SiglipImageProcessorFast requires Torchvision`: cài đúng PyTorch/Torchvision hoặc dùng cấu hình processor chậm đã có trong pipeline.
+
+## Lưu ý phát triển
+
+- Giữ toàn bộ nội dung hiển thị cho người dùng bằng tiếng Việt.
+- Không đưa khóa API, mật khẩu database hoặc token Qdrant vào source control.
+- Sau khi thay đổi schema/database, kiểm tra migration và khởi động lại backend.
+- Khi sửa planner, kiểm tra cả preview, commit, rollback và trạng thái bản nháp trên frontend.
