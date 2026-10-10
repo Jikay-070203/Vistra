@@ -38,13 +38,26 @@ def chat(settings, db, current, data, make_preview, client=None):
         "The traveler may reorder, replace, or remove stops when explicitly requested. Unknown cost is not free. Explain missing data and tradeoffs. "
         "A preview is NOT saved: the traveler must accept it in the UI. If unclear, ask a concise question."
     )
+    if "xác nhận" in data.text.lower() or "xac nhan" in data.text.lower():
+        instruction += (
+            " This is an explicit confirmation. Do not only summarize the itinerary. "
+            "You MUST call get_trip_context and then preview_itinerary with the complete requested stop list, "
+            "including the requested reorder, replacement, or removal. Return a preview for the UI."
+        )
     trace, preview, context_read = [], None, False
+    confirmed_change = "xác nhận" in data.text.lower() or "xac nhan" in data.text.lower()
     for _ in range(4):
         content = generate(settings, contents, instruction, tools=TOOLS, client=client)
         contents.append(content)  # Preserve provider thought signatures verbatim.
         calls = [{"call": p["functionCall"], "id": p.get("id")}
                  for p in content["parts"] if "functionCall" in p]
         if not calls:
+            if confirmed_change and context_read and not preview:
+                # A confirmed change must produce a revision preview; do not
+                # accept a plain summary from the model as a completed action.
+                contents.append({"role": "user", "parts": [{"text":
+                    "Bạn chưa thực hiện thay đổi. Hãy gọi preview_itinerary ngay với đầy đủ danh sách điểm đã sắp xếp lại, thay thế hoặc xóa theo yêu cầu đã xác nhận; không trả lời tóm tắt."}]})
+                continue
             reply = "\n".join(p["text"] for p in content["parts"] if isinstance(p.get("text"), str) and not p.get("thought"))
             if not reply.strip() or not context_read:
                 raise HTTPException(502, "Gemini chưa kiểm tra dữ liệu chuyến đi. Vui lòng thử lại.")
@@ -63,12 +76,25 @@ def chat(settings, db, current, data, make_preview, client=None):
                     context_read = True
                 elif name == "preview_itinerary" and context_read:
                     request = PreviewRequest.model_validate({**args, "base_version": data.base_version})
-                    result = make_preview(request)
+                    try:
+                        result = make_preview(request)
+                    except HTTPException as exc:
+                        # When the model preserves stale times while moving
+                        # stops, let the planner recalculate a feasible day
+                        # schedule instead of looping on a time conflict.
+                        if exc.status_code in (400, 422):
+                            recalculated = PreviewRequest(
+                                base_version=data.base_version,
+                                stops=[{"place_id": stop.place_id, "day": stop.day} for stop in request.stops],
+                            )
+                            result = make_preview(recalculated)
+                        else:
+                            raise
                     preview = result
                 else:
                     result = {"error": "Unknown tool, invalid arguments, or get_trip_context required first"}
             except ValidationError:
-                result = {"error": "Invalid stops: use 1–18 unique place IDs, day 1–3, optional HH:MM"}
+                result = {"error": "Invalid stops: use 1–18 unique place IDs, day 1–14, optional HH:MM"}
             except HTTPException as exc:
                 if exc.status_code in (409, 503):
                     raise

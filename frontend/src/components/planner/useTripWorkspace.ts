@@ -50,6 +50,7 @@ export function useTripWorkspace(loadBudget = false) {
   useLayoutEffect(() => { currentKey.current = key; return () => { currentKey.current = ''; }; }, [key]);
   const [resource, setResource] = useState<{ key: string; trip: TripDetailDto } | null>(null);
   const [preview, setPreview] = useState<RevisionPreviewDto | null>(null);
+  const [confirmationResolved, setConfirmationResolved] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([]);
   const [budget, setBudget] = useState<TripBudgetResponse | null>(null);
   const [budgetError, setBudgetError] = useState<string | null>(null);
@@ -101,15 +102,25 @@ export function useTripWorkspace(loadBudget = false) {
     }
   }
 
-  async function send(text: string): Promise<boolean> {
+  async function send(text: string, commitReplyPreview = false): Promise<boolean> {
     if (!trip || trip.status === 'confirmed' || !text.trim() || actionLock.current || preview) return false;
+    const messageText = text.trim();
+    setMessages(items => [...items, { role: 'user', text: messageText }]);
     let sent = false;
     await run(async valid => {
-      const { data } = await sendTripMessage(id, text.trim(), trip.current_version);
+      const { data } = await sendTripMessage(id, messageText, trip.current_version);
       if (!valid()) return;
       if (data.base_version !== trip.current_version) throw new Error('Phản hồi dựa trên phiên bản khác. Hãy tải lại hành trình.');
-      setMessages(items => [...items, { role: 'user', text: text.trim() }, { role: 'assistant', text: data.reply }]);
-      setPreview(data.preview); sent = true;
+      let nextTrip = trip;
+      if (data.preview && commitReplyPreview) {
+        const committed = await commitTripRevision(id, data.preview.preview_id, data.preview.base_version);
+        if (!valid()) return;
+        nextTrip = { ...trip, itinerary: committed.data, current_version: committed.data.version };
+      }
+      setResource({ key, trip: nextTrip });
+      setConfirmationResolved(false);
+      setMessages(items => [...items, { role: 'assistant', text: data.reply }]);
+      setPreview(commitReplyPreview ? null : data.preview); sent = true;
     });
     return sent;
   }
@@ -162,12 +173,29 @@ export function useTripWorkspace(loadBudget = false) {
     });
   }
 
+  async function replacePlace(suggestedId: number, targetId: number) {
+    if (!trip?.itinerary || trip.status !== 'draft' || preview || suggestedId === targetId) return;
+    const activities = trip.itinerary.activities;
+    const target = activities.find(item => item.place_id === targetId);
+    if (!target || activities.some(item => item.place_id === suggestedId)) return;
+    await run(async valid => {
+      const { data } = await previewTripRevision(id, {
+        base_version: trip.current_version,
+        stops: activities.map(item => ({
+          place_id: item.place_id === targetId ? suggestedId : item.place_id,
+          day: item.day,
+        })),
+      });
+      if (valid()) setPreview(data);
+    });
+  }
+
   const savePreview = () => run(async valid => {
     if (!trip || !preview) return;
     const { data } = await commitTripRevision(id, preview.preview_id, preview.base_version);
     if (valid()) {
       setResource({ key, trip: { ...trip, itinerary: data, current_version: data.version } });
-      setPreview(null); setBudget(null);
+      setPreview(null); setConfirmationResolved(true); setBudget(null);
     }
   });
 
@@ -202,6 +230,7 @@ export function useTripWorkspace(loadBudget = false) {
   return { id, isLoggedIn, isAuthLoaded: isLoaded, trip, itinerary: trip ? preview?.itinerary ?? trip.itinerary : null,
     preview: trip ? preview : null, messages: trip ? messages : [], budget: trip ? budget : null, budgetError,
     error, loading: !isLoaded || loading || (!!key && !!id && resource?.key !== key && !error), busy,
-    retry: () => setReload(value => value + 1), send, move, remove, addPlaces, generate, savePreview, confirm, togglePublication,
-    discardPreview: () => { if (!actionLock.current) setPreview(null); } };
+    retry: () => setReload(value => value + 1), send, move, remove, addPlaces, replacePlace, generate, savePreview, confirm, togglePublication,
+    discardPreview: () => { if (!actionLock.current) { setPreview(null); setConfirmationResolved(true); } },
+    confirmationResolved };
 }

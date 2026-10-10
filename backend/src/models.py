@@ -175,7 +175,7 @@ class Stop(StrictModel):
 
 class PreviewRequest(StrictModel):
     base_version: int = Field(ge=1)
-    stops: list[Stop] = Field(min_length=1, max_length=18)
+    stops: list[Stop] = Field(min_length=1, max_length=100)
 
 
 class CommitRequest(StrictModel):
