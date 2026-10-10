@@ -144,8 +144,7 @@ export function useTripWorkspace(loadBudget = false) {
   }
 
   async function remove(placeId: number) {
-    if (!trip?.itinerary || trip.status !== 'draft' || preview || actionLock.current ||
-      trip.request.must_visit.includes(placeId)) return;
+    if (!trip?.itinerary || trip.status !== 'draft' || preview || actionLock.current) return;
     const activities = trip.itinerary.activities;
     const remaining = activities.filter(item => item.place_id !== placeId);
     if (remaining.length < 1 || remaining.length === activities.length) return;

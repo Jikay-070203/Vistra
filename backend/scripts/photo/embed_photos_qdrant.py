@@ -53,7 +53,9 @@ def main() -> int:
             "python -m pip install -r backend/scripts/photo/requirements.txt"
         ) from exc
 
-    processor = AutoProcessor.from_pretrained(args.model)
+    # Keep the compatible processor because SiglipImageProcessorFast requires
+    # torchvision, which is not required by the rest of this worker.
+    processor = AutoProcessor.from_pretrained(args.model, use_fast=False)
     model = SiglipVisionModel.from_pretrained(args.model)
     model.eval()
     collection = qdrant_request(args.qdrant_url, f"/collections/{args.collection}")
@@ -77,7 +79,7 @@ def main() -> int:
             with urllib.request.urlopen(url, timeout=120) as response:
                 image = Image.open(response).convert("RGB")
             inputs = processor(images=image, return_tensors="pt")
-            with torch.no_grad():
+            with torch.inference_mode():
                 vector = model(**inputs).pooler_output[0].float().cpu()
             norm = float(torch.linalg.vector_norm(vector))
             if norm:

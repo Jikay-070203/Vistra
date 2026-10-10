@@ -7,6 +7,21 @@ HERE = Path(__file__).resolve().parent
 UPLOAD = HERE / "import_vistra_photos.py"
 EMBED = HERE / "embed_photos_qdrant.py"
 
+
+def load_dotenv() -> None:
+    """Load local project env files before spawning upload/embed workers."""
+    root = HERE.parents[3]
+    for env_file in (root / ".env", root / "backend" / ".env",
+                     root / "frontend" / ".env", root / "frontend" / ".env.local"):
+        if not env_file.exists():
+            continue
+        for line in env_file.read_text(encoding="utf-8", errors="ignore").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
 def checkpoint(path: Path) -> int:
     if not path.exists(): return 0
     return int(json.loads(path.read_text(encoding="utf-8")).get("next_line", 0))
@@ -35,6 +50,7 @@ def pending_qdrant_batches() -> int:
     return pending
 
 def main() -> int:
+    load_dotenv()
     parser = argparse.ArgumentParser(description="Sequential photo upload and Qdrant pipeline.")
     parser.add_argument("--batch-size", type=int, default=50, help="API request size; maximum 50.")
     parser.add_argument("--cycle-size", type=int, default=100, help="Images per cycle; implemented as multiple API batches.")

@@ -115,7 +115,11 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
     itinerary?.activities.filter(item => item.day === selectedDay) ?? []
   ).length > 0;
   const editable = trip.status === 'draft';
-  const recommendedPlaces = trip.recommendations.attraction;
+  const recommendedPlaces = Array.from(new Map([
+    ...trip.recommendations.attraction,
+    ...trip.recommendations.food,
+    ...trip.recommendations.stay,
+  ].map(place => [place.id, place])).values());
   const canAddPlaces = editable && trip.current_version === 0 && !itinerary;
   const selectedPlaces = recommendedPlaces.filter(item => selectedIds.includes(item.id));
   const confirmationSent = [...messages].reverse().some(item => item.role === 'user' &&
@@ -187,7 +191,7 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
             ))}
             {busy && <p role="status" className="text-sm text-[#4B5875]">Đang xử lý yêu cầu...</p>}
           </div>
-          {canAddPlaces && recommendedPlaces.length > 0 && (
+          {false && canAddPlaces && recommendedPlaces.length > 0 && (
             <div className="mt-3 rounded-xl border border-[#205BD6]/20 bg-[#205BD6]/5 p-3 space-y-3" aria-label="Điểm đến gợi ý">
               <div>
                 <h3 className="text-sm font-bold">Điểm đến Vistra gợi ý</h3>

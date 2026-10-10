@@ -27,5 +27,8 @@ def recommendations(db, destination, itinerary=None):
         anchor = (0.0, 0.0)
     places.sort(key=lambda p: (p['quality_status'] == 'discovered',
                               distance_km(anchor, (p['latitude'], p['longitude'])), p['id']))
-    return {kind: [p for p in places if p['kind'] == kind][:6]
+    # Return every eligible, source-backed place. The frontend controls the
+    # visible panel height with scrolling; recommendations must not be
+    # silently truncated to a fixed number.
+    return {kind: [p for p in places if p['kind'] == kind]
             for kind in ('attraction', 'food', 'stay')}
