@@ -799,11 +799,19 @@ def create_app(settings=None, services=None, gemini_client=None):
         Until the admin content tables are introduced, destinations are exposed
         as stable, cache-friendly intro cards rather than returning mock data.
         """
-        destinations_data = rows(db, """SELECT id, slug, display_name, admin_name,
-            target_places FROM destinations WHERE enabled=1 ORDER BY id""")
+        destinations_data = rows(db, """SELECT d.id, d.slug, d.display_name, d.admin_name,
+            d.target_places,
+            (SELECT COALESCE(NULLIF(pi.thumbnail_url, ''), pi.image_url)
+               FROM places p
+               JOIN place_images pi ON pi.place_id = p.id
+              WHERE p.destination_id = d.id
+                AND COALESCE(NULLIF(pi.thumbnail_url, ''), pi.image_url) IS NOT NULL
+              ORDER BY pi.created_at ASC, pi.id ASC
+              LIMIT 1) AS image_url
+            FROM destinations d WHERE d.enabled=1 ORDER BY d.id""")
         intro = [{"id": str(item["id"]), "active": True, "order": item["id"],
                   "label": item["display_name"], "provinceCode": item["slug"],
-                  "imageUrl": None, "tagline": None} for item in destinations_data]
+                  "imageUrl": item["image_url"], "tagline": None} for item in destinations_data]
         allergies = [
             {"id": "seafood", "active": True, "label": "Hải sản"},
             {"id": "peanut", "active": True, "label": "Đậu phộng"},
@@ -839,13 +847,21 @@ def create_app(settings=None, services=None, gemini_client=None):
         This endpoint intentionally does not invent weather, prices, or images;
         unavailable facts are represented as null as required by the contract.
         """
-        data = rows(db, "SELECT id,slug,display_name,admin_name FROM destinations "
-                     "WHERE enabled=1 ORDER BY id LIMIT 5")
+        data = rows(db, """SELECT d.id, d.slug, d.display_name, d.admin_name,
+            (SELECT COALESCE(NULLIF(pi.thumbnail_url, ''), pi.image_url)
+               FROM places p
+               JOIN place_images pi ON pi.place_id = p.id
+              WHERE p.destination_id = d.id
+                AND COALESCE(NULLIF(pi.thumbnail_url, ''), pi.image_url) IS NOT NULL
+              ORDER BY pi.created_at ASC, pi.id ASC
+              LIMIT 1) AS image_url
+            FROM destinations d
+            WHERE d.enabled=1 ORDER BY d.id LIMIT 5""")
         items = []
         for item in data:
             items.append({"id": item["slug"], "name": item["display_name"],
                           "region": item["admin_name"], "country": "Vietnam",
-                          "imageUrl": None, "durationDays": None,
+                          "imageUrl": item["image_url"], "durationDays": None,
                           "estimatedCostVnd": None, "visualMatchPct": None,
                           "budgetMatchPct": None, "seasonMatchPct": None,
                           "vibe": None, "tags": [], "goldenHour": None,
