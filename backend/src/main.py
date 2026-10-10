@@ -1527,7 +1527,8 @@ def create_app(settings=None, services=None, gemini_client=None):
     def v1_catalog(catalog_type: str, db=Depends(database)):
         if catalog_type == "provinces":
             return {"type": catalog_type, "items": rows(db, """SELECT id,slug,COALESCE(province_code,slug) AS province_code,
-                display_name AS name,COALESCE(source_name,display_name) AS source_name
+                display_name AS name,COALESCE(source_name,display_name) AS source_name,
+                parent_destination_id, destination_type
                 FROM destinations WHERE enabled=1 ORDER BY id""")}
         if catalog_type == "allergies":
             return {"type": catalog_type, "items": public_content(db)["allergyOptions"]}
@@ -1544,11 +1545,20 @@ def create_app(settings=None, services=None, gemini_client=None):
         requested = [part.strip() for part in (ids.split(",") if ids else [destination_id]) if part.strip()]
         result = []
         for value in requested:
-            item = row(db, "SELECT id,slug,display_name,admin_name,center_lat,center_lon,target_places FROM destinations WHERE (slug=? OR CAST(id AS TEXT)=?) AND enabled=1", (value, value))
+            item = row(db, """SELECT d.id,d.slug,d.display_name,d.admin_name,d.center_lat,d.center_lon,d.target_places,
+                       parent.id AS parent_id, parent.slug AS parent_slug, parent.display_name AS parent_name,
+                       d.destination_type
+                       FROM destinations d
+                       LEFT JOIN destinations parent ON parent.id=d.parent_destination_id
+                       WHERE (d.slug=? OR CAST(d.id AS TEXT)=?) AND d.enabled=1""", (value, value))
             if item:
                 result.append({"id": item["id"], "slug": item["slug"], "name": item["display_name"],
                                "region": item["admin_name"], "coordinates": {"lat": item["center_lat"], "lng": item["center_lon"]},
-                               "targetPlaces": item["target_places"], "highlights": []})
+                               "targetPlaces": item["target_places"], "highlights": [],
+                               "destinationType": item["destination_type"],
+                               "parentDestination": ({"id": item["parent_id"], "slug": item["parent_slug"],
+                                                       "name": item["parent_name"]}
+                                                      if item["parent_id"] is not None else None)})
         if not result: raise HTTPException(404, "Destination not found")
         return {"destinations": result}
 
