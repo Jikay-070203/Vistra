@@ -16,10 +16,15 @@ def candidates(db, destination_id, allow_unverified=False):
 
 
 def recommendations(db, destination, itinerary=None):
-    places = candidates(db, destination['id'], allow_unverified=True)
+    places = [p for p in candidates(db, destination['id'], allow_unverified=True)
+              if p.get('latitude') is not None and p.get('longitude') is not None]
     activities = (itinerary or {}).get('activities', [])
-    anchor = ((activities[0]['latitude'], activities[0]['longitude']) if activities
+    first = activities[0] if activities else None
+    anchor = ((first.get('latitude'), first.get('longitude'))
+              if first and first.get('latitude') is not None and first.get('longitude') is not None
               else (destination['center_lat'], destination['center_lon']))
+    if anchor[0] is None or anchor[1] is None:
+        anchor = (0.0, 0.0)
     places.sort(key=lambda p: (p['quality_status'] == 'discovered',
                               distance_km(anchor, (p['latitude'], p['longitude'])), p['id']))
     return {kind: [p for p in places if p['kind'] == kind][:6]

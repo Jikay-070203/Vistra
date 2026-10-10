@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ui/Icon';
+import { getTravelDnaLabel } from '@/config/travelDnaLabels';
 import type { TravelDnaMetric } from '@/types/tripDna';
 
 interface TravelDnaPanelProps {
@@ -58,7 +59,7 @@ export default function TravelDnaPanel({ metrics, status, error, onChange, onRes
           {metrics.map((metric) => (
             <label key={metric.key} className="block space-y-1.5">
               <span className="flex items-center justify-between gap-3 text-xs font-semibold text-[#0E1D4F]">
-                <span>{metric.label || metric.key.replaceAll('_', ' ')}</span>
+                <span>{getTravelDnaLabel(metric.key, metric.label)}</span>
                 <span aria-hidden="true" className="tabular-nums text-[#4B5875]">{metric.score}</span>
               </span>
               <input
@@ -69,7 +70,7 @@ export default function TravelDnaPanel({ metrics, status, error, onChange, onRes
                 value={metric.score}
                 onChange={(event) => onChange(metric.key, Number(event.target.value))}
                 className="w-full cursor-pointer accent-[#205BD6]"
-                aria-label={metric.label || metric.key}
+                aria-label={getTravelDnaLabel(metric.key, metric.label)}
               />
             </label>
           ))}

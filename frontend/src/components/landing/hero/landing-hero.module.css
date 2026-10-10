@@ -266,6 +266,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.carouselCounter.compactCounter {
+  display: inline-flex;
+}
+
 @media (max-width: 640px) {
   .heroSection {
     --header-offset: 65px;

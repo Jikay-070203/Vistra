@@ -161,6 +161,7 @@ async def ensure_qdrant_collections(settings: Settings) -> None:
     definitions = {
         settings.qdrant_text_collection: settings.qdrant_text_vector_size,
         settings.qdrant_image_collection: settings.qdrant_image_vector_size,
+        settings.qdrant_chat_memory_collection: settings.qdrant_chat_memory_vector_size,
     }
     timeout = httpx.Timeout(settings.qdrant_startup_timeout_seconds)
 
@@ -846,6 +847,10 @@ def create_app(settings=None, services=None, gemini_client=None):
         if current["current_version"] != data.base_version:
             raise HTTPException(409, "Stale base_version")
         request = TripCreate.model_validate(current["request"])
+        # A revision is an explicit replacement chosen by the traveler. The
+        # submitted stops therefore become the new required set, allowing a
+        # previously selected stop to be removed from the draft.
+        request.must_visit = [stop.place_id for stop in data.stops]
         payload = build(db, request, destination(db, request.destination), external, data.stops)
         preview_id = str(uuid4())
         db.execute("INSERT INTO revision_previews(id,trip_id,base_version,payload_json,created_at,expires_at) VALUES (?,?,?,?,?,?)",
@@ -856,8 +861,12 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     @app.post("/trips/{trip_id}/revisions/commit", dependencies=auth)
     def commit(trip_id: str, data: CommitRequest, db=Depends(database)):
-        # Serialize validation and CAS; a preview can be applied only once.
-        db.execute("BEGIN IMMEDIATE")
+        # Start a database transaction explicitly.  `BEGIN IMMEDIATE` is a
+        # SQLite-only statement and causes PostgreSQL/Railway to return 500.
+        # The compare-and-set in save_version, together with the committed
+        # flag update below, preserves the one-time preview semantics on both
+        # database backends.
+        db.execute("BEGIN")
         current = trip(db, trip_id)
         candidate = row(db, "SELECT * FROM revision_previews WHERE id=? AND trip_id=?", (data.preview_id, trip_id))
         if not candidate:
@@ -1106,8 +1115,30 @@ def create_app(settings=None, services=None, gemini_client=None):
             # Previews do not change the itinerary. Release the write lock before the next model call.
             db.commit()
             return result
-        return chat(settings, db, current, data, make_preview,
-                    client=app.state.gemini)
+        result = chat(settings, db, current, data, make_preview,
+                      client=app.state.gemini)
+        db.execute("""INSERT INTO chat_messages
+            (id,trip_id,user_id,role,content,metadata_json,created_at)
+            VALUES (?,?,?,?,?,?,?)""", (str(uuid4()), trip_id, user["id"], "user", data.text,
+            json.dumps({"base_version": data.base_version}, ensure_ascii=False), now()))
+        db.execute("""INSERT INTO chat_messages
+            (id,trip_id,user_id,role,content,metadata_json,created_at)
+            VALUES (?,?,?,?,?,?,?)""", (str(uuid4()), trip_id, user["id"], "assistant", result["reply"],
+            json.dumps({"tools_used": result.get("tools_used", []),
+                        "base_version": result.get("base_version")}, ensure_ascii=False), now()))
+        return result
+
+    @app.get("/trips/{trip_id}/chat/history", dependencies=auth)
+    def chat_history(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        user = require_session(vistra_session, db)
+        current = trip(db, trip_id)
+        if current.get("owner_user_id") != user["id"]:
+            raise HTTPException(404, "Trip not found")
+        items = rows(db, """SELECT id,role,content,metadata_json,created_at
+            FROM chat_messages WHERE trip_id=? AND user_id=? ORDER BY created_at,id""", (trip_id, user["id"]))
+        for item in items:
+            item["metadata"] = json.loads(item.pop("metadata_json") or "{}")
+        return {"trip_id": trip_id, "items": items}
 
     @app.post("/feedback/tickets", status_code=201)
     def create_feedback(data: FeedbackCreate, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
@@ -1815,6 +1846,10 @@ def create_app(settings=None, services=None, gemini_client=None):
     def v1_trip_chat(trip_id: str, data: ChatRequest,
                      vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         return travel_agent(trip_id, data, vistra_session, db)
+
+    @app.get("/api/v1/trips/{trip_id}/chat/history")
+    def v1_chat_history(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return chat_history(trip_id, vistra_session, db)
 
     @app.get("/api/v1/admin/feedback")
     def v1_admin_feedback(page: int = Query(default=1, ge=1), page_size: int = Query(default=10, ge=1, le=50),

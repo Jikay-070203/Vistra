@@ -28,8 +28,8 @@ export interface PlanActivityDto {
   place_updated_at: string;
   quality_status: string;
   duration_estimated: boolean;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   start_at: string;
   end_at: string;
   estimated_cost: { min_vnd: number; max_vnd: number } | null;

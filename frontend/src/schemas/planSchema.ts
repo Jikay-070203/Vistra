@@ -40,8 +40,8 @@ function activity(value: unknown): PlanActivityDto {
     place_updated_at: string(raw.place_updated_at, 'plan activity.place_updated_at'),
     quality_status: string(raw.quality_status, 'plan activity.quality_status'),
     duration_estimated: boolean(raw.duration_estimated, 'plan activity.duration_estimated'),
-    latitude: number(raw.latitude, 'plan activity.latitude'),
-    longitude: number(raw.longitude, 'plan activity.longitude'),
+    latitude: coordinate(raw.latitude, -90, 90),
+    longitude: coordinate(raw.longitude, -180, 180),
     start_at: string(raw.start_at, 'plan activity.start_at'),
     end_at: string(raw.end_at, 'plan activity.end_at'),
     estimated_cost: cost ? {
@@ -52,6 +52,10 @@ function activity(value: unknown): PlanActivityDto {
     indoor_outdoor: string(raw.indoor_outdoor, 'plan activity.indoor_outdoor'),
     reason: string(raw.reason, 'plan activity.reason'),
   };
+}
+
+function coordinate(value: unknown, min: number, max: number): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max ? value : null;
 }
 
 function routeLeg(value: unknown): PlanRouteLegDto {

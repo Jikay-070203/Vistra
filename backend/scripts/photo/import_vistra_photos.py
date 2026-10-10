@@ -29,16 +29,20 @@ def stamp() -> str:
 
 
 def load_dotenv() -> None:
-    env = Path(__file__).resolve().parents[3] / ".env"
-    if not env.exists():
-        return
-    for line in env.read_text(encoding="utf-8", errors="ignore").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
+    root = Path(__file__).resolve().parents[3]
+    # The frontend owns the Cloudinary public configuration, while the photo
+    # importer runs from backend/scripts. Load both locations without
+    # overriding explicit PowerShell environment variables.
+    for env in (root / ".env", root / "backend" / ".env", root / "frontend" / ".env", root / "frontend" / ".env.local"):
+        if not env.exists():
             continue
-        key, value = line.split("=", 1)
-        value = value.strip().strip('"').strip("'")
-        os.environ.setdefault(key.strip(), value)
+        for line in env.read_text(encoding="utf-8", errors="ignore").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key.strip(), value)
 
 
 def request_json(url: str, method: str = "GET", payload: dict | None = None, cookie: str = "") -> tuple[int, dict]:
@@ -170,9 +174,15 @@ def main() -> int:
             upload_results.append({"image_id": image_id, "cloudinary": result})
             place_id = (record.get("place_ids") or [None])[0]
             if place_id:
+                # The backend contract caps author/license fields. Some source
+                # records contain a concatenated attribution list thousands of
+                # characters long; keep the beginning without rejecting the
+                # whole 50-image batch.
+                author = str(metadata.get("author") or "")[:300] or None
+                license_name = str(metadata.get("license") or "")[:160] or None
                 items.append({"source_image_id": image_id, "source_place_id": place_id,
                               "image_url": result["secure_url"], "thumbnail_url": result.get("secure_url"),
-                              "license": metadata.get("license"), "author": metadata.get("author"),
+                              "license": license_name, "author": author,
                               "width": record.get("width") or metadata.get("width"), "height": record.get("height") or metadata.get("height"),
                               "file_size_bytes": metadata.get("bytes"), "sha256": metadata.get("sha256") or image_id,
                               "metadata": {"source": metadata.get("source", "commons"), "attribution": metadata.get("attribution")}})

@@ -3,18 +3,11 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Icon from '@/components/ui/Icon';
 import Link from 'next/link';
+import { getTravelDnaLabel } from '@/config/travelDnaLabels';
 import { getTravelDna, updateTravelDna } from '@/services/profileService';
 import { useUserAuth } from '@/lib/userAuth';
 
 const useIdentityEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
-const METRIC_KEY_TO_LABEL: Record<string, string> = {
-  nature: 'Cảnh quan & Thiên nhiên',
-  culture: 'Văn hóa & Di sản bản địa',
-  relaxation: 'Nghỉ dưỡng & Tĩnh lặng',
-  adventure: 'Khám phá & Trải nghiệm',
-  cuisine: 'Ẩm thực & Cà phê bản địa',
-};
 
 interface DnaDisplayItem {
   key: string;
@@ -95,7 +88,7 @@ export default function ProfileDnaTab() {
                   const validScore = typeof m.score === 'number' ? m.score : null;
                   return {
                     key: m.key,
-                    label: METRIC_KEY_TO_LABEL[m.key] || m.key,
+                    label: getTravelDnaLabel(m.key),
                     score: validScore,
                     rating: validScore !== null
                       ? (validScore >= 80 ? 'Rất cao' : validScore >= 60 ? 'Ưu tiên' : 'Vừa phải')
@@ -177,7 +170,7 @@ export default function ProfileDnaTab() {
                 const validScore = typeof m.score === 'number' ? m.score : null;
                 return {
                   key: m.key,
-                  label: METRIC_KEY_TO_LABEL[m.key] || m.key,
+                  label: getTravelDnaLabel(m.key),
                   score: validScore,
                   rating: validScore !== null
                     ? (validScore >= 80 ? 'Rất cao' : validScore >= 60 ? 'Ưu tiên' : 'Vừa phải')

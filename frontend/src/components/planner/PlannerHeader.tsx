@@ -9,9 +9,9 @@ import type { ProvinceCatalogItem } from "@/types/catalogApi";
 
 interface PlannerHeaderProps {
   trip?: TripDetailDto | null;
-  hasItinerary?: boolean;
   hasPreview?: boolean;
   busy?: boolean;
+  onDocument?: () => void;
   onConfirm?: () => void;
   onPublish?: () => void;
 }
@@ -79,9 +79,9 @@ export function useProvinceName(
 
 export default function PlannerHeader({
   trip,
-  hasItinerary = false,
   hasPreview = false,
   busy = false,
+  onDocument,
   onConfirm,
   onPublish,
 }: PlannerHeaderProps) {
@@ -133,23 +133,27 @@ export default function PlannerHeader({
         {/* Right: Actions & User Avatar */}
         {trip && (
           <>
-            {/* Trip Plan Document Link */}
-            <Link
-              href={`/trip-plan?id=${encodeURIComponent(trip.id)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#0E1D4F]/15 bg-white text-xs font-semibold text-[#0E1D4F] hover:bg-[#EBF1F0] transition-all shadow-2xs"
-              title="Xem tài liệu hành trình chi tiết hoặc in lịch trình"
+            {/* Trip Plan Document Popup */}
+            <button
+              type="button"
+              onClick={onDocument}
+              disabled={!onDocument}
+              className="inline-flex min-h-11 items-center gap-1.5 px-3 py-2 rounded-xl border border-[#0E1D4F]/15 bg-white text-xs font-semibold text-[#0E1D4F] hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:opacity-50 transition-all shadow-2xs cursor-pointer"
+              title="Xem tài liệu hành trình tại đây"
             >
               <Icon name="description" className="size-4 text-[#205BD6]" />
               <span className="hidden sm:inline">Tài liệu hành trình</span>
-            </Link>
+              <span className="sr-only sm:hidden">Tài liệu hành trình</span>
+            </button>
 
             {/* Confirm Plan Action (Draft status) */}
             {editable && onConfirm && (
               <button
                 type="button"
-                disabled={busy || !hasItinerary || hasPreview}
+                disabled={busy || hasPreview}
                 onClick={onConfirm}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#205BD6] hover:bg-[#0739A8] text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                aria-label="Chốt lịch trình"
+                className="inline-flex min-h-11 min-w-11 items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#205BD6] hover:bg-[#0739A8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 title="Chốt lịch trình để hoàn thiện và khóa phiên bản"
               >
                 <Icon name="check_circle" className="size-4" />

@@ -19,6 +19,7 @@ export default function LoginScreen() {
     isLoading,
     feedbackMessage,
     handleLoginSubmit,
+    redirectNotice,
   } = useLoginController();
   const [comingSoonOpen, setComingSoonOpen] = React.useState(false);
   const [comingSoonTitle, setComingSoonTitle] = React.useState('Tính năng đang phát triển');
@@ -47,6 +48,14 @@ export default function LoginScreen() {
             Đăng nhập tài khoản
           </h1>
         </div>
+
+        {/* Redirect notice when redirected from protected action */}
+        {redirectNotice && (
+          <div role="status" className="p-3.5 rounded-xl bg-[#205BD6]/10 border border-[#205BD6]/25 text-xs text-[#0739A8] leading-relaxed flex items-start gap-2.5">
+            <Icon name="info" className="size-4 shrink-0 text-[#205BD6] mt-0.5" />
+            <span>{redirectNotice}</span>
+          </div>
+        )}
 
         {/* Feedback alert */}
         {feedbackMessage && (

@@ -1,86 +1,64 @@
-'use client';
+"use client";
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Icon from '@/components/ui/Icon';
 import styles from '../hero/landing-hero.module.css';
 
-const PLACE_SAMPLE_IMAGES = [
-  {
-    src: '/landing/place_sample/ammie-ngo-vcu-OZBxxRk-unsplash.jpg',
-    alt: 'Rừng thông Đà Lạt ngập trong sương sớm',
-  },
-  {
-    src: '/landing/place_sample/andreea-popa-PknaOrb1lVo-unsplash.jpg',
-    alt: 'Cung đường đèo uốn lượn tại Hà Giang',
-  },
-  {
-    src: '/landing/place_sample/giau-tran-ZMdXvd6jGww-unsplash.jpg',
-    alt: 'Phố cổ Hội An rực rỡ đèn lồng buổi chiều tà',
-  },
-  {
-    src: '/landing/place_sample/juan-bacab-A3PS6Ffu20s-unsplash.jpg',
-    alt: 'Bãi biển xanh mát và rặng dừa tại Phú Quốc',
-  },
-  {
-    src: '/landing/place_sample/pexels-hoang-hi-u-nguy-n-2163979614-39365021.jpg',
-    alt: 'Khung cảnh non nước hữu tình tại Ninh Bình',
-  },
-  {
-    src: '/landing/place_sample/ryan-le-EKFPwbPkDec-unsplash.jpg',
-    alt: 'Đồi chè Mộc Châu xanh mướt trong sương',
-  },
-  {
-    src: '/landing/place_sample/silver-ringvee-niFWqrLdjlE-unsplash.jpg',
-    alt: 'Hoàng hôn buông trên dãy Hoàng Liên Sơn',
-  },
-  {
-    src: '/landing/place_sample/toomas-tartes-27HacQwqvA0-unsplash.jpg',
-    alt: 'Cửa hang động kỳ vĩ giữa rừng nguyên sinh Quảng Bình',
-  },
-];
-
 interface HeroPlanCarouselProps {
   children: React.ReactNode;
 }
 
+const IMAGES = [
+  { src: '/landing/place_sample/ammie-ngo-vcu-OZBxxRk-unsplash.jpg', alt: 'Thuyền tham quan giữa những đảo đá vôi ở vịnh Hạ Long' },
+  { src: '/landing/place_sample/andreea-popa-PknaOrb1lVo-unsplash.jpg', alt: 'Cầu Vàng uốn quanh đôi bàn tay đá giữa núi rừng' },
+  { src: '/landing/place_sample/giau-tran-ZMdXvd6jGww-unsplash.jpg', alt: 'Du khách ngắm núi đá và dòng sông ở Ninh Bình' },
+  { src: '/landing/place_sample/juan-bacab-A3PS6Ffu20s-unsplash.jpg', alt: 'Bãi biển nhiệt đới với hàng dừa và thuyền đánh cá' },
+  { src: '/landing/place_sample/pexels-hoang-hi-u-nguy-n-2163979614-39365021.jpg', alt: 'Hoàng hôn trên bãi đá ven biển Cái Chiên' },
+  { src: '/landing/place_sample/ryan-le-EKFPwbPkDec-unsplash.jpg', alt: 'Tàu chạy giữa phố đường ray đông đúc ở Hà Nội' },
+  { src: '/landing/place_sample/silver-ringvee-niFWqrLdjlE-unsplash.jpg', alt: 'Đường ray len giữa khu phố và những lá cờ Việt Nam' },
+  { src: '/landing/place_sample/toomas-tartes-27HacQwqvA0-unsplash.jpg', alt: 'Thuyền đi qua con phố ven sông với những ngôi nhà vàng' },
+];
+
 export default function HeroPlanCarousel({ children }: HeroPlanCarouselProps) {
+  const imageCount = IMAGES.length;
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const isPaused = isHovering || isFocused || prefersReducedMotion;
+  const slideIndex = Math.min(activeIndex, imageCount - 1);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
     updatePreference();
-    mediaQuery.addEventListener('change', updatePreference);
-    return () => mediaQuery.removeEventListener('change', updatePreference);
+    mediaQuery.addEventListener("change", updatePreference);
+    return () => mediaQuery.removeEventListener("change", updatePreference);
   }, []);
 
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || imageCount < 2) return;
     const timer = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % PLACE_SAMPLE_IMAGES.length);
+      setActiveIndex((current) => (Math.min(current, imageCount - 1) + 1) % imageCount);
     }, 5000);
     return () => window.clearInterval(timer);
-  }, [isPaused]);
+  }, [imageCount, isPaused]);
 
   const goToPrevious = () => {
-    setActiveIndex((current) => (current + PLACE_SAMPLE_IMAGES.length - 1) % PLACE_SAMPLE_IMAGES.length);
+    if (imageCount > 1) setActiveIndex((slideIndex + imageCount - 1) % imageCount);
   };
 
   const goToNext = () => {
-    setActiveIndex((current) => (current + 1) % PLACE_SAMPLE_IMAGES.length);
+    if (imageCount > 1) setActiveIndex((slideIndex + 1) % imageCount);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowLeft') {
+    if (event.key === "ArrowLeft") {
       event.preventDefault();
       goToPrevious();
-    } else if (event.key === 'ArrowRight') {
+    } else if (event.key === "ArrowRight") {
       event.preventDefault();
       goToNext();
     }
@@ -104,35 +82,39 @@ export default function HeroPlanCarousel({ children }: HeroPlanCarouselProps) {
       aria-roledescription="carousel"
       aria-label="Ảnh cảm hứng du lịch"
       aria-live={isPaused ? 'polite' : 'off'}
-      tabIndex={0}
+      tabIndex={imageCount > 1 ? 0 : undefined}
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       onFocus={() => setIsFocused(true)}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setIsFocused(false);
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setIsFocused(false);
       }}
       onTouchStart={(event) => {
-        touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        touchStart.current = {
+          x: event.touches[0].clientX,
+          y: event.touches[0].clientY,
+        };
       }}
       onTouchEnd={handleTouchEnd}
     >
-      {PLACE_SAMPLE_IMAGES.map((image, index) => (
+      {IMAGES.map((image, index) => (
         <div
           key={image.src}
-          className={`${styles.slide} ${index === activeIndex ? styles.activeSlide : ''}`}
+          className={`${styles.slide} ${index === slideIndex ? styles.activeSlide : ''}`}
           role="group"
           aria-roledescription="slide"
-          aria-label={`Ảnh ${index + 1} trên ${PLACE_SAMPLE_IMAGES.length}`}
-          aria-hidden={index !== activeIndex}
+          aria-label={`${image.alt} · ${index + 1} trên ${imageCount}`}
+          aria-hidden={index !== slideIndex}
         >
-          {(index === activeIndex || index === (activeIndex + 1) % PLACE_SAMPLE_IMAGES.length) && (
+          {(index === slideIndex || index === (slideIndex + 1) % imageCount) && (
             <Image
               src={image.src}
               alt={image.alt}
               fill
               sizes="100vw"
-              priority={index === 0}
+              preload={index === 0}
               className={styles.slideImage}
             />
           )}
@@ -145,7 +127,7 @@ export default function HeroPlanCarousel({ children }: HeroPlanCarouselProps) {
         {children}
       </div>
 
-      <div className={styles.carouselControls} role="group" aria-label="Điều khiển ảnh">
+      {imageCount > 1 && <div className={styles.carouselControls} role="group" aria-label="Điều khiển ảnh">
         <button
           type="button"
           onClick={goToPrevious}
@@ -155,24 +137,21 @@ export default function HeroPlanCarousel({ children }: HeroPlanCarouselProps) {
           <Icon name="chevron_left" className="size-5" />
         </button>
 
-        <div className={styles.carouselDots} role="group" aria-label="Chọn ảnh">
-          {PLACE_SAMPLE_IMAGES.map((image, index) => (
+        {imageCount <= 8 && <div className={styles.carouselDots} role="group" aria-label="Chọn ảnh">
+          {IMAGES.map((image, index) => (
             <button
               key={image.src}
               type="button"
               onClick={() => setActiveIndex(index)}
               className={styles.dotButton}
-              aria-label={`Chuyển đến ảnh ${index + 1}`}
-              aria-current={activeIndex === index ? 'true' : undefined}
+              aria-label={`Chuyển đến ảnh ${index + 1}: ${image.alt}`}
+              aria-current={slideIndex === index ? 'true' : undefined}
             >
-              <span className={`${styles.dot} ${activeIndex === index ? styles.activeDot : ''}`} />
+              <span className={`${styles.dot} ${slideIndex === index ? styles.activeDot : ''}`} />
             </button>
           ))}
-        </div>
+        </div>}
 
-        <span className={styles.carouselCounter} aria-hidden="true">
-          {String(activeIndex + 1).padStart(2, '0')} / {String(PLACE_SAMPLE_IMAGES.length).padStart(2, '0')}
-        </span>
         <button
           type="button"
           onClick={goToNext}
@@ -181,7 +160,7 @@ export default function HeroPlanCarousel({ children }: HeroPlanCarouselProps) {
         >
           <Icon name="chevron_right" className="size-5" />
         </button>
-      </div>
+      </div>}
     </div>
   );
 }

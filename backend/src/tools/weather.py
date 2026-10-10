@@ -116,7 +116,7 @@ class WeatherTool:
         if lat is None or lon is None:
             return {
                 "type": "unavailable",
-                "reason": "Destination coordinates missing",
+                "reason": "Điểm đến chưa có tọa độ",
             }
 
         today = datetime.now(UTC).astimezone(
@@ -206,7 +206,7 @@ class WeatherTool:
         if lat is None or lon is None:
             return {
                 "type": "unavailable",
-                "reason": "Destination coordinates missing",
+                "reason": "Điểm đến chưa có tọa độ",
             }
 
         try:

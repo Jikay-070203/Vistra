@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { getPublicLanding } from '@/services/publicLandingService';
-import type { PublicLandingView } from '@/types/publicLandingApi';
+import { useEffect, useRef, useState } from "react";
+import { getPublicLanding } from "@/services/publicLandingService";
+import type { PublicLandingView } from "@/types/publicLandingApi";
 
 export function useLandingContent() {
   const [data, setData] = useState<PublicLandingView | null>(null);
@@ -14,14 +14,30 @@ export function useLandingContent() {
   useEffect(() => {
     let active = true;
     const generation = requestGeneration.current;
-    getPublicLanding().then((data) => {
-      if (active && generation === requestGeneration.current) setData(data);
-    }).catch((cause: unknown) => {
-      if (active && generation === requestGeneration.current) setError(cause instanceof Error ? cause.message : 'Không thể tải nội dung trang chủ.');
-    }).finally(() => {
-      if (active && generation === requestGeneration.current) setLoading(false);
-    });
-    return () => { active = false; };
+    getPublicLanding()
+      .then((data) => {
+        if (active && generation === requestGeneration.current)
+          setData({
+            ...data,
+            heroPlans: data.heroPlans.slice(0, 8),
+            introDestinations: data.introDestinations.slice(0, 6),
+          });
+      })
+      .catch((cause: unknown) => {
+        if (active && generation === requestGeneration.current)
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : "Không thể tải nội dung trang chủ.",
+          );
+      })
+      .finally(() => {
+        if (active && generation === requestGeneration.current)
+          setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [attempt]);
 
   const retry = () => {

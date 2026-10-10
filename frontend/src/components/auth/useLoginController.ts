@@ -12,6 +12,21 @@ export function useLoginController() {
   const searchParams = useSearchParams();
   const nextParam = searchParams.get('next');
 
+  const isSafeNext = Boolean(
+    nextParam &&
+    nextParam.startsWith('/') &&
+    !nextParam.startsWith('//') &&
+    !nextParam.startsWith('/\\')
+  );
+
+  const redirectNotice = isSafeNext
+    ? nextParam?.startsWith('/create-trip')
+      ? 'Vui lòng đăng nhập để tiếp tục khởi tạo và lưu trữ kế hoạch chuyến đi của bạn.'
+      : nextParam?.startsWith('/planner')
+        ? 'Vui lòng đăng nhập để truy cập và quản lý lịch trình chuyến đi của bạn.'
+        : 'Vui lòng đăng nhập để tiếp tục thao tác và lưu trữ dữ liệu của bạn trên VISTRA.'
+    : null;
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -103,5 +118,7 @@ export function useLoginController() {
     feedbackMessage,
     setFeedbackMessage,
     handleLoginSubmit,
+    isSafeNext,
+    redirectNotice,
   };
 }

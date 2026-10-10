@@ -59,14 +59,21 @@ export default function IntroDestinationsSection({ data, loading, error, retry }
                   title={`Khám phá hành trình tại ${dest.label}`}
                 >
                   {/* Photo Background with crisp resolution and centered focal subject */}
-                  {dest.imageUrl && <Image
-                    src={dest.imageUrl}
-                    alt={dest.label}
-                    fill
-                    sizes="(max-width: 1280px) 33vw, 360px"
-                    className="object-cover object-center group-hover:scale-108 transition-transform duration-700 opacity-85 group-hover:opacity-100 motion-reduce:transition-none"
-                    priority={idx < 2}
-                  />}
+                  {dest.imageUrl ? (
+                    <Image
+                      src={dest.imageUrl}
+                      alt={dest.label}
+                      fill
+                      sizes="(max-width: 1280px) 33vw, 360px"
+                      className="object-cover object-center group-hover:scale-108 transition-transform duration-700 opacity-85 group-hover:opacity-100 motion-reduce:transition-none"
+                      priority={idx < 2}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-800/80 gap-2 pb-16">
+                      <Icon name="landscape" className="size-10 text-slate-400" />
+                      <span className="text-xs font-medium text-slate-300">Chưa có ảnh</span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
 
 
@@ -102,13 +109,20 @@ export default function IntroDestinationsSection({ data, loading, error, retry }
               className="group relative rounded-2xl overflow-hidden aspect-[3/4.2] border border-[#0E1D4F]/10 shadow-xs hover:shadow-md transition-all flex flex-col justify-end p-4 bg-[#0E1D4F] focus:outline-none focus:ring-2 focus:ring-[#205BD6]"
               title={`Khám phá hành trình tại ${dest.label}`}
             >
-              {dest.imageUrl && <Image
-                src={dest.imageUrl}
-                alt={dest.label}
-                fill
-                sizes="(max-width: 640px) 50vw, 33vw"
-                className="object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-85 group-hover:opacity-95"
-              />}
+              {dest.imageUrl ? (
+                <Image
+                  src={dest.imageUrl}
+                  alt={dest.label}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 33vw"
+                  className="object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-85 group-hover:opacity-95"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-800/80 gap-1.5 pb-14">
+                  <Icon name="landscape" className="size-8 text-slate-400" />
+                  <span className="text-[11px] font-medium text-slate-300">Chưa có ảnh</span>
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
 
 

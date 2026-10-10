@@ -50,7 +50,10 @@ def estimated_cost(place, people, day):
 
 
 def build(db, request: TripCreate, destination, services, stops: list[Stop] | None = None):
-    candidates = [p for p in place_candidates(db, destination['id'], request.allow_unverified) if p['kind'] != 'stay']
+    # Imported records can be valid metadata while still lacking coordinates.
+    # They must not enter route-distance calculations until coordinates exist.
+    candidates = [p for p in place_candidates(db, destination['id'], request.allow_unverified)
+                  if p['kind'] != 'stay' and p.get('latitude') is not None and p.get('longitude') is not None]
     for p in candidates:
         p['duration_estimated'] = p['suggested_duration_min'] is None
         if p['duration_estimated']:
@@ -70,13 +73,15 @@ def build(db, request: TripCreate, destination, services, stops: list[Stop] | No
     activities, legs, warnings, used = [], [], [], set()
     last_coord = ((request.origin.latitude, request.origin.longitude) if request.origin else
                   (destination['center_lat'], destination['center_lon']))
+    if last_coord[0] is None or last_coord[1] is None:
+        last_coord = None
     # The destination center orders the first candidates; it is not an inbound route.
     first_stop = True
     last_place = None
     target = {"relaxed": 3, "normal": 4, "busy": 5}[request.pace]
     break_min = {"relaxed": 30, "normal": 15, "busy": 10}[request.pace]
     if request.origin is None:
-        warnings.append("No origin provided: first inbound journey is excluded.")
+        warnings.append("Chưa cung cấp điểm xuất phát: không tính chặng di chuyển vào điểm đến.")
     for day_index in range(1, request.days+1):
         day = request.start_date + timedelta(days=day_index-1)
         cursor = 9*60
@@ -84,7 +89,7 @@ def build(db, request: TripCreate, destination, services, stops: list[Stop] | No
         food_selected = False
         pending = [s for s in stops or [] if s.day == day_index]
         if stops and not pending:
-            warnings.append(f"Day {day_index}: no activities.")
+            warnings.append(f"Ngày {day_index}: chưa có hoạt động phù hợp.")
         while pending if stops else count < target:
             if stops:
                 ordered = [available[pending[0].place_id]]
@@ -100,7 +105,8 @@ def build(db, request: TripCreate, destination, services, stops: list[Stop] | No
                     p["id"] not in request.must_visit,
                     not (meal_slot and p["kind"] == "food"),
                     p["kind"] not in request.interests if request.interests else False,
-                    distance_km(last_coord, (p["latitude"], p["longitude"])) if last_coord else 0,
+            distance_km(last_coord, (p["latitude"], p["longitude"]))
+            if last_coord and last_coord[0] is not None and last_coord[1] is not None else 0,
                     p["quality_status"] != "verified", p["id"]))[:15]
             chosen = None
             for place in ordered:
@@ -158,9 +164,9 @@ def build(db, request: TripCreate, destination, services, stops: list[Stop] | No
             if stops:
                 pending.pop(0)
         if not food_selected:
-            warnings.append(f"Day {day_index}: no food stop fits the reviewed candidate set; add a meal manually.")
+            warnings.append(f"Ngày {day_index}: chưa có điểm ăn uống phù hợp; bạn có thể thêm thủ công.")
         if count == 0 and not stops:
-            warnings.append(f"Day {day_index}: no reviewed activities fit the remaining candidates.")
+            warnings.append(f"Ngày {day_index}: chưa có hoạt động đã kiểm duyệt phù hợp với các lựa chọn còn lại.")
     missing = set(request.must_visit) - used
     if missing:
         raise HTTPException(422, {"code": "must_visit_cannot_fit", "place_ids": sorted(missing),
@@ -176,7 +182,7 @@ def build(db, request: TripCreate, destination, services, stops: list[Stop] | No
             if probabilities and max(probabilities) >= 60 and activity["indoor_outdoor"] != "indoor":
                 activity["notes"].append("Rain forecast >=60% during this activity; consider an indoor alternative.")
     else:
-        warnings.append("Weather unavailable for these dates; itinerary has not been optimized for weather.")
+        warnings.append("Chưa có dữ liệu thời tiết cho các ngày này; lịch trình chưa được tối ưu theo thời tiết.")
     budget = {category: {"min_vnd": 0, "max_vnd": 0, "unknown_items": 0}
               for category in ("transport", "food", "stay", "tickets", "other")}
     for activity in activities:
@@ -195,10 +201,10 @@ def build(db, request: TripCreate, destination, services, stops: list[Stop] | No
     limit = request.budget_vnd * (request.people if request.budget_scope == "per_person" else 1)
     incomplete = any(x["unknown_items"] for x in budget.values())
     if total > limit:
-        warnings.append(f"Known upper estimate exceeds budget by {total-limit} VND.")
+        warnings.append(f"Ước tính chi phí tối đa đã biết vượt ngân sách {total-limit:,} VNĐ.")
     if incomplete:
-        warnings.append("Budget is incomplete: unknown costs are not zero or a guarantee of staying within budget.")
-    warnings.append("Routes are car estimates without live traffic. Overnight hotel detours and return journey are excluded.")
+        warnings.append("Ngân sách chưa đầy đủ: chi phí chưa biết không được xem là bằng 0 hoặc chắc chắn nằm trong ngân sách.")
+    warnings.append("Tuyến đường là ước tính bằng ô tô, chưa tính giao thông trực tiếp; không bao gồm đường vòng đến khách sạn và chặng quay về.")
     return dict(activities=activities, route_legs=legs, weather=weather, warnings=warnings,
                 provisional=any(a['quality_status'] == 'discovered' for a in activities),
                 budget=dict(categories=budget, known_min_vnd=sum(x["min_vnd"] for x in budget.values()),

@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     qdrant_auto_create: bool = True
     qdrant_text_collection: str = "wikivoyage_voyage"
     qdrant_image_collection: str = "scraped_images"
+    qdrant_chat_memory_collection: str = "chat_memory"
+    qdrant_chat_memory_vector_size: int = Field(default=2048, ge=1, le=4096)
     qdrant_text_vector_size: int = Field(default=2048, ge=1, le=4096)
     qdrant_image_vector_size: int = Field(default=768, ge=1, le=4096)
     qdrant_distance: str = "Cosine"

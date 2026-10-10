@@ -22,7 +22,7 @@ import { planPublicationSchema } from '@/schemas/planSchema';
 import type { RevisionRequest } from '@/types/planApi';
 
 export async function createTrip(request: TripCreateRequest): Promise<ApiRequestResult<CreatedTripView>> {
-  const result = await apiRequest(API_ENDPOINTS.TRIPS.CREATE + '?generate_itinerary=true', getSessionProxyBaseUrl(), {
+  const result = await apiRequest(API_ENDPOINTS.TRIPS.CREATE + '?generate_itinerary=false', getSessionProxyBaseUrl(), {
     method: 'POST', jsonBody: request,
   });
   return { ...result, data: tripCreateResponseSchema.parse(result.data) };
@@ -63,11 +63,17 @@ export async function sendTripMessage(id: string, text: string, baseVersion: num
   return { ...result, data: tripChatSchema.parse(result.data) };
 }
 
-export async function generateTrip(id: string) {
-    // Imported places are intentionally kept as `discovered` until reviewed.
-    // Generate a provisional draft from them; the backend marks the itinerary
-    // provisional and keeps review warnings instead of returning 422.
-    const result = await apiRequest(`${API_ENDPOINTS.TRIPS.GENERATE(id)}?allow_unverified=true`, getSessionProxyBaseUrl(), { method: 'POST' });
+export async function generateTrip(
+  id: string,
+  selectedIds: number[],
+  allowUnverified: boolean,
+) {
+  const query = allowUnverified ? '?allow_unverified=true' : '';
+  const result = await apiRequest(
+    API_ENDPOINTS.TRIPS.GENERATE(id) + query,
+    getSessionProxyBaseUrl(),
+    { method: 'POST', jsonBody: { must_visit: selectedIds } },
+  );
   return { ...result, data: savedItinerarySchema.parse(result.data) };
 }
 

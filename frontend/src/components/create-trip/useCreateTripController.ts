@@ -332,14 +332,7 @@ export function useCreateTripController() {
     }
     if (!Number.isInteger(budget.min) || !Number.isInteger(budget.max) ||
         budget.min < 0 || budget.max > 100_000_000_000 || budget.min > budget.max || notes.trim().length > 5000) {
-      setError({ accountId: accountRef.current, message: 'Ngân sách phải là số nguyên từ 0 đến 100 tỷ VNĐ; ghi chú tối đa 5.000 ký tự.' });
-      return;
-    }
-    if (selectedAllergies.length > 0 || budget.min !== budget.max) {
-      setError({
-        accountId: accountRef.current,
-        message: 'Chưa hỗ trợ lưu dị ứng hoặc khoảng ngân sách. Hãy bỏ chọn dị ứng và đặt ngân sách tối thiểu bằng tối đa để tạo chuyến đi.',
-      });
+      setError({ accountId: accountRef.current, message: 'Ngân sách phải là số nguyên từ 0 đến 100 tỷ VNĐ và mức tối thiểu không vượt quá tối đa; ghi chú tối đa 5.000 ký tự.' });
       return;
     }
     if (attachmentsRef.current.length > 0 && (attachmentsRef.current.some(item => item.uploadStatus !== 'uploaded' || item.analysisError) ||

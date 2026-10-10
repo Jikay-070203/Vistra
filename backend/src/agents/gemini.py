@@ -1,11 +1,15 @@
 import random
 import time
 import json
+import logging
 
 import httpx
 from fastapi import HTTPException
 from google import genai
 from google.genai import errors, types
+
+
+logger = logging.getLogger(__name__)
 
 
 def _openai_messages(contents):
@@ -24,14 +28,27 @@ def _openai_messages(contents):
                 response = part["functionResponse"]
                 tool_results.append({"role": "tool", "tool_call_id": response.get("id", ""),
                                      "content": json.dumps(response.get("response", {}), ensure_ascii=False)})
+        message = {"role": role, "content": "\n".join(text_parts) or None}
+        if tool_calls:
+            # OpenAI requires the assistant tool-call message to immediately
+            # precede the corresponding tool messages.
+            message["tool_calls"] = tool_calls
+            messages.append(message)
         if tool_results:
             messages.extend(tool_results)
-        else:
-            message = {"role": role, "content": "\n".join(text_parts) or None}
-            if tool_calls:
-                message["tool_calls"] = tool_calls
+        elif not tool_calls:
             messages.append(message)
     return messages
+
+
+def _openai_schema(value):
+    """Convert the Gemini tool schema spelling to OpenAI JSON Schema."""
+    if isinstance(value, dict):
+        return {key: (_openai_schema(item).lower() if key == "type" and isinstance(item, str)
+                      else _openai_schema(item)) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_openai_schema(item) for item in value]
+    return value
 
 
 def _generate_openai(settings, contents, instruction, *, tools=None, json_output=False):
@@ -41,7 +58,8 @@ def _generate_openai(settings, contents, instruction, *, tools=None, json_output
               *_openai_messages(contents)], "temperature": 0.2, "max_tokens": 4096}
     if tools:
         payload["tools"] = [{"type": "function", "function": {"name": tool["name"],
-                         "description": tool.get("description", ""), "parameters": tool.get("parameters", {})}}
+                         "description": tool.get("description", ""),
+                         "parameters": _openai_schema(tool.get("parameters", {}))}}
                          for tool in tools]
     if json_output:
         payload["response_format"] = {"type": "json_object"}
@@ -53,6 +71,9 @@ def _generate_openai(settings, contents, instruction, *, tools=None, json_output
             raise HTTPException(503, "OpenAI từ chối API key hoặc quyền truy cập.")
         if response.status_code == 429:
             raise HTTPException(429, "OpenAI đã chạm giới hạn quota.")
+        if response.is_error:
+            logger.warning("OpenAI chat request failed: status=%s body=%s", response.status_code,
+                           response.text[:1000])
         response.raise_for_status()
         message = response.json()["choices"][0]["message"]
         parts = []
@@ -65,7 +86,9 @@ def _generate_openai(settings, contents, instruction, *, tools=None, json_output
     except HTTPException:
         raise
     except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError):
-        raise HTTPException(502, "OpenAI chưa trả về kết quả hợp lệ. Vui lòng thử lại.") from None
+        logger.warning("OpenAI chat response was invalid: status=%s", response.status_code)
+        if True:
+                raise HTTPException(502, "OpenAI không chấp nhận yêu cầu hội thoại. Kiểm tra model, key hoặc quota.") from None
 
 
 def create_client(settings, *, http_client=None):
@@ -110,7 +133,8 @@ def generate(settings, contents, instruction, *, tools=None, client=None, json_o
                     raise HTTPException(429, "Gemini đã chạm giới hạn yêu cầu hoặc quota. Kiểm tra Google AI Studio.") from None
                 if exc.code == 404:
                     raise HTTPException(503, "Model Gemini không khả dụng. Kiểm tra GEMINI_MODEL và quyền truy cập.") from None
-                raise HTTPException(502, "Gemini từ chối yêu cầu. Vui lòng thử lại.") from None
+                logger.warning("Gemini API rejected chat request: code=%s message=%s", exc.code, exc)
+                raise HTTPException(502, "Gemini từ chối yêu cầu hội thoại. Vui lòng thử lại.") from None
         candidate = response.model_dump(mode="json", by_alias=True, exclude_none=True)["candidates"][0]
         if candidate.get("finishReason") not in (None, "STOP"):
             raise ValueError("Incomplete or blocked response")

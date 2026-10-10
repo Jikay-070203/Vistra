@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export interface BudgetRange {
   min: number;
@@ -24,11 +24,11 @@ export const DEFAULT_BUDGET_MAX = 500_000_000;
 export const DEFAULT_BUDGET_STEP = 500_000;
 
 export function formatVnd(value: number): string {
-  return `${value.toLocaleString('vi-VN')} đ`;
+  return `${value.toLocaleString("vi-VN")} đ`;
 }
 
 export function parseVndInput(str: string): number {
-  const digits = str.replace(/[^\d]/g, '');
+  const digits = str.replace(/[^\d]/g, "");
   return digits ? parseInt(digits, 10) : 0;
 }
 
@@ -40,30 +40,36 @@ export default function BudgetRangeField({
   step = DEFAULT_BUDGET_STEP,
   travelerCount,
   label,
-  className = '',
+  className = "",
   disabled = false,
 }: BudgetRangeFieldProps) {
   const currentMin = Math.max(minLimit, Math.min(value.min, maxLimit));
   const currentMax = Math.max(minLimit, Math.min(value.max, maxLimit));
 
-  const [minText, setMinText] = useState(currentMin.toLocaleString('vi-VN'));
-  const [maxText, setMaxText] = useState(currentMax.toLocaleString('vi-VN'));
+  const [minText, setMinText] = useState(currentMin.toLocaleString("vi-VN"));
+  const [maxText, setMaxText] = useState(currentMax.toLocaleString("vi-VN"));
   const [prevMin, setPrevMin] = useState(currentMin);
   const [prevMax, setPrevMax] = useState(currentMax);
 
   if (prevMin !== currentMin) {
     setPrevMin(currentMin);
-    setMinText(currentMin.toLocaleString('vi-VN'));
+    setMinText(currentMin.toLocaleString("vi-VN"));
   }
 
   if (prevMax !== currentMax) {
     setPrevMax(currentMax);
-    setMaxText(currentMax.toLocaleString('vi-VN'));
+    setMaxText(currentMax.toLocaleString("vi-VN"));
   }
 
   const rangeSpan = Math.max(1, maxLimit - minLimit);
-  const leftPercent = Math.max(0, Math.min(100, ((currentMin - minLimit) / rangeSpan) * 100));
-  const rightPercent = Math.max(0, Math.min(100, 100 - ((currentMax - minLimit) / rangeSpan) * 100));
+  const leftPercent = Math.max(
+    0,
+    Math.min(100, ((currentMin - minLimit) / rangeSpan) * 100),
+  );
+  const rightPercent = Math.max(
+    0,
+    Math.min(100, 100 - ((currentMax - minLimit) / rangeSpan) * 100),
+  );
 
   const handleSliderMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextVal = Number(e.target.value);
@@ -83,7 +89,7 @@ export default function BudgetRangeField({
     if (clamped > currentMax) {
       clamped = currentMax;
     }
-    setMinText(clamped.toLocaleString('vi-VN'));
+    setMinText(clamped.toLocaleString("vi-VN"));
     onChange({ min: clamped, max: currentMax });
   };
 
@@ -93,11 +99,12 @@ export default function BudgetRangeField({
     if (clamped < currentMin) {
       clamped = currentMin;
     }
-    setMaxText(clamped.toLocaleString('vi-VN'));
+    setMaxText(clamped.toLocaleString("vi-VN"));
     onChange({ min: currentMin, max: clamped });
   };
 
-  const hasTravelerCount = typeof travelerCount === 'number' && travelerCount > 0;
+  const hasTravelerCount =
+    typeof travelerCount === "number" && travelerCount > 0;
   const perPersonEstimate = hasTravelerCount
     ? Math.round(currentMax / Math.max(1, travelerCount))
     : 0;
@@ -109,9 +116,9 @@ export default function BudgetRangeField({
           <label className="text-xs font-bold text-[#0E1D4F] uppercase tracking-wide">
             {label}
           </label>
-          <span className="text-[11px] font-bold text-[#0E1D4F] bg-[#EBF1F0] px-2.5 py-1 rounded-md border border-[#0E1D4F]/10">
+          {/* <span className="text-[11px] font-bold text-[#0E1D4F] bg-[#EBF1F0] px-2.5 py-1 rounded-md border border-[#0E1D4F]/10">
             {formatVnd(currentMin)} — {formatVnd(currentMax)}
-          </span>
+          </span> */}
         </div>
       )}
 
@@ -161,7 +168,9 @@ export default function BudgetRangeField({
 
         <div className="flex justify-between text-[11px] text-[#4B5875] font-medium pt-0.5">
           <span>{formatVnd(minLimit)}</span>
-          <span className="hidden sm:inline text-[#4B5875]/80">Bước nhảy {formatVnd(step)}</span>
+          <span className="hidden sm:inline text-[#4B5875]/80">
+            Bước nhảy {formatVnd(step)}
+          </span>
           <span>{formatVnd(maxLimit)}</span>
         </div>
 
@@ -181,7 +190,7 @@ export default function BudgetRangeField({
                 onChange={(e) => setMinText(e.target.value)}
                 onBlur={handleMinInputBlur}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleMinInputBlur();
+                  if (e.key === "Enter") handleMinInputBlur();
                 }}
                 className="w-full px-3 py-1.5 bg-white rounded-lg border border-[#0E1D4F]/15 text-xs font-semibold text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-[#205BD6]"
                 placeholder="1.000.000"
@@ -206,7 +215,7 @@ export default function BudgetRangeField({
                 onChange={(e) => setMaxText(e.target.value)}
                 onBlur={handleMaxInputBlur}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleMaxInputBlur();
+                  if (e.key === "Enter") handleMaxInputBlur();
                 }}
                 className="w-full px-3 py-1.5 bg-white rounded-lg border border-[#0E1D4F]/15 text-xs font-semibold text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-[#205BD6]"
                 placeholder="500.000.000"
@@ -226,7 +235,7 @@ export default function BudgetRangeField({
                 type="text"
                 readOnly
                 aria-label="Ngân sách ước tính mỗi người"
-                value={`~${perPersonEstimate.toLocaleString('vi-VN')} đ/người`}
+                value={`~${perPersonEstimate.toLocaleString("vi-VN")} đ/người`}
                 className="w-full px-3 py-1.5 bg-[#EBF1F0] rounded-lg border border-[#0E1D4F]/10 text-xs font-semibold text-[#205BD6] select-all cursor-default"
                 title="Công thức: Ngân sách tối đa chia cho số người tham gia (Max / số người)"
               />

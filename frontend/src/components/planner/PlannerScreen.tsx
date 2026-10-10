@@ -1,27 +1,48 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ui/Icon';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import ItineraryView, { money, tripButtonClass, tripPanelClass } from '@/components/trip-plan/ItineraryView';
-import TripMap from '@/components/trip-plan/TripMap';
+import TripMap, { getCoordinateValidActivities } from '@/components/trip-plan/TripMap';
 import PlaceSources from './PlaceSources';
+import PlannerDocumentDialog from './PlannerDocumentDialog';
 import TripPageState from './TripPageState';
 import PlannerHeader, { useProvinceName } from './PlannerHeader';
 import { useTripWorkspace } from './useTripWorkspace';
 
+const MAX_SELECTED_PLACES = 12;
+
+function renderChatMarkdown(text: string) {
+  return text.split('\n').map((line, index) => {
+    const heading = line.match(/^#{1,6}\s+(.+)$/);
+    const bullet = line.match(/^\s*[-*]\s+(.+)$/);
+    const content = heading?.[1] ?? bullet?.[1] ?? line;
+    const inline = content.split(/(\*\*[^*]+\*\*)/g).map((part, partIndex) =>
+      part.startsWith('**') && part.endsWith('**')
+        ? <strong key={partIndex}>{part.slice(2, -2)}</strong>
+        : part
+    );
+    return (
+      <span key={index} className={heading ? 'block mt-2 font-bold' : bullet ? 'block pl-3 before:content-["•"] before:mr-1' : 'block'}>
+        {inline}
+      </span>
+    );
+  });
+}
+
 export default function PlannerScreen() {
   const workspace = useTripWorkspace();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [documentTripId, setDocumentTripId] = useState<string | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#EBF1F0] text-[#0E1D4F]">
       <PlannerHeader
         trip={workspace.trip}
-        hasItinerary={Boolean(workspace.itinerary)}
         hasPreview={Boolean(workspace.preview)}
         busy={workspace.busy}
+        onDocument={() => setDocumentTripId(workspace.trip?.id ?? null)}
         onConfirm={() => setConfirmOpen(true)}
         onPublish={() => setPublishOpen(true)}
       />
@@ -34,10 +55,20 @@ export default function PlannerScreen() {
         )}
       </main>
 
+      {workspace.trip && (
+        <PlannerDocumentDialog
+          open={documentTripId === workspace.trip.id}
+          onClose={() => setDocumentTripId(null)}
+          trip={workspace.trip}
+        />
+      )}
+
       <ConfirmModal
         isOpen={confirmOpen}
         title="Chốt lịch trình này?"
-        message="Xác nhận phương án đã lưu trên hệ thống. Sau khi chốt, bạn có thể chia sẻ lên cộng đồng."
+        message={workspace.trip?.itinerary
+          ? 'Xác nhận phương án đã lưu trên hệ thống. Sau khi chốt, bạn có thể chia sẻ lên cộng đồng.'
+          : 'Lịch trình chưa có chi tiết. Hệ thống sẽ kiểm tra yêu cầu chốt và báo nếu cần bổ sung thông tin.'}
         confirmVariant="primary"
         onCancel={() => setConfirmOpen(false)}
         onConfirm={() => {
@@ -73,12 +104,19 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
   const [day, setDay] = useState(1);
   const [place, setPlace] = useState<number | null>(null);
   const [text, setText] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const destinationName = useProvinceName(trip?.destination_id, trip?.request.destination);
 
   if (!trip) return null;
   const selectedDay = day <= trip.request.days ? day : 1;
   const selectedPlace = itinerary?.activities.some(item => item.day === selectedDay && item.place_id === place) ? place : null;
+  const hasMapCoordinates = getCoordinateValidActivities(
+    itinerary?.activities.filter(item => item.day === selectedDay) ?? []
+  ).length > 0;
   const editable = trip.status === 'draft';
+  const recommendedPlaces = trip.recommendations.attraction;
+  const canAddPlaces = editable && trip.current_version === 0 && !itinerary;
+  const selectedPlaces = recommendedPlaces.filter(item => selectedIds.includes(item.id));
 
   return (
     <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 flex flex-col">
@@ -112,35 +150,94 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
         </div>
       )}
 
-      {/* 3-Panel Workspace Layout: Col 1 (Chat), Col 2 (Itinerary), Col 3 (Map) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      {/* Keep the map column only when the selected day has valid coordinates. */}
+      <div className={`grid grid-cols-1 ${hasMapCoordinates ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4 items-start`}>
         {/* Column 1: AI Chat Assistant */}
         <section className={tripPanelClass} aria-label="Hội thoại với Vistra">
           <h2 className="text-lg font-bold mb-3">Hội thoại với Vistra</h2>
           <div className="h-[40dvh] lg:h-[50dvh] min-h-64 overflow-y-auto overscroll-contain space-y-3" aria-label="Tin nhắn" role="log" aria-live="polite">
-            {messages.length === 0 && <p className="text-[#4B5875] text-sm">Gửi yêu cầu để cùng Vistra điều chỉnh lịch trình.</p>}
+            {messages.length === 0 && (
+              <p className="text-[#4B5875] text-sm">
+                {!itinerary
+                  ? 'Bạn có thể tiếp tục trao đổi với Vistra hoặc chọn điểm đến gợi ý bên dưới.'
+                  : 'Gửi yêu cầu để cùng Vistra điều chỉnh lịch trình.'}
+              </p>
+            )}
             {messages.map((message, index) => (
               <div key={index} className={`rounded-xl border border-[#0E1D4F]/10 p-3 ${message.role === 'user' ? 'ml-4 bg-[#205BD6]/5' : 'mr-4 bg-[#EBF1F0]/40'}`}>
                 <p className="text-xs font-semibold mb-1">{message.role === 'user' ? 'Yêu cầu của bạn' : 'Vistra'}</p>
-                <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+                <div className="text-sm break-words">{renderChatMarkdown(message.text)}</div>
               </div>
             ))}
             {busy && <p role="status" className="text-sm text-[#4B5875]">Đang xử lý yêu cầu...</p>}
           </div>
+          {canAddPlaces && recommendedPlaces.length > 0 && (
+            <div className="mt-3 rounded-xl border border-[#205BD6]/20 bg-[#205BD6]/5 p-3 space-y-3" aria-label="Điểm đến gợi ý">
+              <div>
+                <h3 className="text-sm font-bold">Điểm đến Vistra gợi ý</h3>
+                <p className="text-xs text-[#4B5875] mt-1">Chọn các điểm bạn muốn thêm vào lịch trình.</p>
+              </div>
+              <p className="text-xs text-amber-900">Điểm đã thêm sẽ trở thành điểm đến bắt buộc; hiện chưa thể xóa khỏi lịch trình.</p>
+              <div role="group" aria-label="Chọn điểm đến" className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto overscroll-contain">
+                {recommendedPlaces.map(item => {
+                  const selected = selectedIds.includes(item.id);
+                  const unavailable = item.quality_status === 'archived';
+                  const unverified = item.quality_status !== 'verified' && item.quality_status !== 'schedulable';
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-pressed={selected}
+                      disabled={busy || unavailable || (!selected && selectedIds.length >= MAX_SELECTED_PLACES)}
+                      onClick={() => setSelectedIds(ids => ids.includes(item.id) ? ids.filter(id => id !== item.id) : ids.length < MAX_SELECTED_PLACES ? [...ids, item.id] : ids)}
+                      className={`min-h-11 rounded-lg border p-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:opacity-60 ${selected ? 'border-[#205BD6] bg-white shadow-sm' : 'border-[#0E1D4F]/15 bg-white/80 hover:border-[#205BD6]/60'}`}
+                    >
+                      <span className="flex items-start justify-between gap-2 text-sm font-semibold">
+                        <span>{item.display_name}</span>
+                        {selected && <span className="shrink-0 text-xs text-[#205BD6]">Đã chọn</span>}
+                      </span>
+                      {item.address && <span className="block text-xs text-[#4B5875] mt-1">{item.address}</span>}
+                      {unverified && <span className="block text-xs text-amber-800 mt-1">{unavailable ? 'Không khả dụng' : 'Chưa xác minh thông tin'}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p role="status" className="text-xs text-[#4B5875]">
+                  Đã chọn {selectedIds.length}/{MAX_SELECTED_PLACES} điểm đến
+                  {selectedIds.length >= MAX_SELECTED_PLACES && ' · Bỏ chọn một điểm để chọn điểm khác'}
+                </p>
+                <button
+                  type="button"
+                  disabled={busy || selectedIds.length === 0}
+                  className={`${tripButtonClass} bg-[#205BD6] text-white disabled:opacity-50`}
+                  onClick={async () => {
+                    const allowUnverified = selectedPlaces.some(item => item.quality_status !== 'verified' && item.quality_status !== 'schedulable');
+                    if (await workspace.generate(selectedIds, allowUnverified)) setSelectedIds([]);
+                  }}
+                >
+                  {busy ? 'Đang thêm điểm đến...' : 'Thêm điểm đến'}
+                </button>
+              </div>
+            </div>
+          )}
           <form className="mt-4 space-y-2" onSubmit={async (event) => { event.preventDefault(); if (await workspace.send(text)) setText(''); }}>
-            <label htmlFor="planner-message" className="text-sm font-semibold">Yêu cầu điều chỉnh</label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="planner-message" className="text-sm font-semibold">Yêu cầu điều chỉnh</label>
+            </div>
             <textarea
               id="planner-message"
               value={text}
               onChange={(event) => setText(event.target.value)}
               maxLength={4000}
               rows={3}
-              disabled={busy || !editable || !itinerary || !!preview}
+              placeholder={!itinerary ? 'Mô tả chuyến đi bạn muốn Vistra hỗ trợ…' : 'Nhập yêu cầu điều chỉnh…'}
+              disabled={busy || !editable || !!preview}
               className="w-full p-3 border border-[#0E1D4F]/15 rounded-xl text-base disabled:opacity-60"
             />
             <button
               type="submit"
-              disabled={busy || !editable || !itinerary || !text.trim() || !!preview}
+              disabled={busy || !editable || !text.trim() || !!preview}
               className={`${tripButtonClass} w-full bg-[#205BD6] text-white`}
             >
               Gửi yêu cầu
@@ -156,6 +253,7 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
             {preview && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-4" role="status">
                 <p className="font-semibold">Bản xem trước · Chưa lưu</p>
+                <p className="text-sm mt-1">Nếu vừa bỏ điểm đến, thay đổi chỉ có hiệu lực sau khi bạn chọn “Lưu thay đổi”.</p>
                 <p className="text-sm mt-2">Thay đổi chi phí đã biết: {money(preview.known_cost_delta_vnd)}</p>
                 <div className="flex flex-wrap gap-2 mt-3">
                   <button type="button" disabled={busy} className={tripButtonClass} onClick={workspace.savePreview}>
@@ -175,7 +273,8 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
               selectedPlace={selectedPlace}
               onPlace={setPlace}
               busy={busy}
-              onMove={editable ? workspace.move : undefined}
+              onMove={editable && !preview ? workspace.move : undefined}
+              onRemove={editable && !preview ? workspace.remove : undefined}
             />
           </div>
         ) : (
@@ -186,45 +285,68 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
                 Chưa có lịch trình
               </span>
             </div>
-            <p className="text-sm text-[#4B5875]">
-              {typeof trip.generation_error === 'string'
-                ? trip.generation_error
-                : 'Hành trình chưa có chặng dừng chi tiết. Nhấn nút bên dưới để Vistra tự động sinh lịch trình.'}
+            <p role={trip.generation_error ? 'status' : undefined} className="text-sm text-[#4B5875]">
+              {trip.generation_error
+                ? 'Vistra chưa tạo được lịch trình tự động. Bạn vẫn có thể tiếp tục trao đổi trong hội thoại.'
+                : recommendedPlaces.length > 0
+                  ? 'Chưa có lịch trình chi tiết. Bạn vẫn có thể trao đổi với Vistra hoặc chọn điểm đến gợi ý trong hội thoại.'
+                  : 'Chưa có lịch trình hay điểm đến gợi ý. Bạn vẫn có thể trao đổi với Vistra để tiếp tục.'}
             </p>
-            <button
-              type="button"
-              disabled={busy || trip.current_version !== 0}
-              className={`${tripButtonClass} bg-[#205BD6] text-white w-full`}
-              onClick={workspace.generate}
-            >
-              {busy ? 'Đang tạo lịch trình...' : 'Tạo lịch trình từ gợi ý'}
-            </button>
-            {trip.recommendations && Object.keys(trip.recommendations).length > 0 && (
-              <div className="pt-2 border-t border-[#0E1D4F]/10">
-                <p className="text-xs font-semibold text-[#0E1D4F] mb-2">Điểm đến đề xuất:</p>
-                <ul className="text-xs text-[#4B5875] space-y-1 list-disc pl-4 max-h-48 overflow-y-auto">
-                  {Object.values(trip.recommendations).flat().map((item) => (
-                    <li key={item.id}>{item.display_name}</li>
-                  ))}
-                </ul>
+            {canAddPlaces && recommendedPlaces.length > 0 && (
+              <div className="rounded-xl border border-[#205BD6]/20 bg-[#205BD6]/5 p-3 space-y-3" aria-label="Chọn điểm đến gợi ý">
+                <div>
+                  <h3 className="text-sm font-bold">Điểm đến gợi ý</h3>
+                  <p className="text-xs text-[#4B5875] mt-1">Chọn hoặc bỏ chọn các điểm trước khi tạo lịch trình.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                  {recommendedPlaces.map(item => {
+                    const selected = selectedIds.includes(item.id);
+                    return <button key={`detail-${item.id}`} type="button" aria-pressed={selected}
+                      disabled={busy || (!selected && selectedIds.length >= MAX_SELECTED_PLACES)}
+                      onClick={() => setSelectedIds(ids => ids.includes(item.id) ? ids.filter(id => id !== item.id) : [...ids, item.id])}
+                      className={`rounded-lg border p-2 text-left text-xs ${selected ? 'border-[#205BD6] bg-white' : 'border-[#0E1D4F]/15 bg-white/80'}`}>
+                      {selected ? '✓ ' : '+ '}{item.display_name}
+                    </button>;
+                  })}
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-[#4B5875]">Đã chọn {selectedIds.length}/{MAX_SELECTED_PLACES}</span>
+                  <button type="button" disabled={busy || selectedIds.length === 0}
+                    onClick={async () => { const allow = selectedPlaces.some(item => item.quality_status !== 'verified' && item.quality_status !== 'schedulable'); if (await workspace.generate(selectedIds, allow)) setSelectedIds([]); }}
+                    className={`${tripButtonClass} bg-[#205BD6] text-white disabled:opacity-50`}>
+                    {busy ? 'Đang tạo lịch trình...' : 'Tạo lịch trình từ điểm đã chọn'}
+                  </button>
+                </div>
               </div>
             )}
           </section>
         )}
 
-        {/* Column 3: Route Map or Dedicated Empty Map Frame */}
-        {itinerary ? (
-          <TripMap itinerary={itinerary} day={selectedDay} selectedPlace={selectedPlace} onPlace={setPlace} />
-        ) : (
-          <section className={`${tripPanelClass} flex flex-col items-center justify-center min-h-[350px] text-center p-6 space-y-3`} aria-label="Bản đồ tuyến đường">
-            <div className="size-12 rounded-2xl bg-[#EBF1F0] flex items-center justify-center text-[#4B5875]">
-              <Icon name="map" className="size-6 text-[#205BD6]" />
-            </div>
-            <h3 className="font-bold text-sm text-[#0E1D4F]">Bản đồ tuyến đường</h3>
-            <p className="text-xs text-[#4B5875] max-w-xs leading-relaxed">
-              Bản đồ trực quan sẽ hiển thị toàn bộ điểm dừng và tuyến đường nối sau khi lịch trình được khởi tạo.
-            </p>
-          </section>
+        {/* Map appears only when this day's itinerary has valid coordinates. */}
+        {hasMapCoordinates && itinerary && (
+          <div className="min-w-0 space-y-3">
+            <TripMap itinerary={itinerary} day={selectedDay} selectedPlace={selectedPlace} onPlace={setPlace} />
+            {editable && recommendedPlaces.length > 0 && (
+              <section className="rounded-xl border border-[#205BD6]/20 bg-white/90 p-3" aria-label="Điểm đến gợi ý">
+                <h3 className="text-sm font-bold">Điểm đến gợi ý</h3>
+                <p className="mt-1 text-xs text-[#4B5875]">Chọn điểm muốn thêm vào Ngày {selectedDay}. Các thay đổi sẽ được xem trước trước khi lưu.</p>
+                <div className="mt-2 max-h-36 space-y-1 overflow-y-auto">
+                  {recommendedPlaces.filter(item => !itinerary.activities.some(activity => activity.place_id === item.id)).map(item => (
+                    <label key={`map-suggestion-${item.id}`} className="flex min-h-9 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs hover:bg-[#EBF1F0]">
+                      <input type="checkbox" checked={selectedIds.includes(item.id)} disabled={busy || Boolean(preview)}
+                        onChange={() => setSelectedIds(ids => ids.includes(item.id) ? ids.filter(id => id !== item.id) : [...ids, item.id])} />
+                      <span className="truncate">{item.display_name}</span>
+                    </label>
+                  ))}
+                </div>
+                <button type="button" disabled={busy || Boolean(preview) || selectedIds.length === 0}
+                  onClick={async () => { await workspace.addPlaces(selectedIds, selectedDay); setSelectedIds([]); }}
+                  className={`${tripButtonClass} mt-2 w-full bg-[#205BD6] text-white disabled:opacity-50`}>
+                  {busy ? 'Đang tạo bản xem trước...' : 'Thêm điểm đã chọn'}
+                </button>
+              </section>
+            )}
+          </div>
         )}
       </div>
     </div>

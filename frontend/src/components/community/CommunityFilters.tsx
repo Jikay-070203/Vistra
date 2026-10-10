@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Icon from '@/components/ui/Icon';
-import VistraSelect from '@/components/shared/VistraSelect';
-import { BUDGET_MIN_DEFAULT, BUDGET_MAX_DEFAULT, BUDGET_STEP } from './useCommunityController';
+import React from "react";
+import Icon from "@/components/ui/Icon";
+import VistraSelect from "@/components/shared/VistraSelect";
+import {
+  BUDGET_MIN_DEFAULT,
+  BUDGET_MAX_DEFAULT,
+  BUDGET_STEP,
+} from "./useCommunityController";
 
 interface CommunityFiltersProps {
   searchQuery: string;
@@ -60,15 +64,15 @@ export default function CommunityFilters({
 }: CommunityFiltersProps) {
   const isFiltered = Boolean(
     searchQuery ||
-    selectedDuration !== 'all' ||
-    selectedTag !== 'all' ||
-    selectedProvince !== 'all' ||
+    selectedDuration !== "all" ||
+    selectedTag !== "all" ||
+    selectedProvince !== "all" ||
     showOnlyFavorites ||
-    isBudgetTouched
+    isBudgetTouched,
   );
 
   const formatVnd = (val: number) => {
-    return new Intl.NumberFormat('vi-VN').format(val) + ' đ';
+    return new Intl.NumberFormat("vi-VN").format(val) + " đ";
   };
 
   return (
@@ -92,11 +96,17 @@ export default function CommunityFilters({
 
       {/* 1. Search Box */}
       <div className="space-y-1.5">
-        <label htmlFor="comm-search" className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
+        <label
+          htmlFor="comm-search"
+          className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]"
+        >
           TỪ KHÓA / ĐIỂM ĐẾN
         </label>
         <div className="relative">
-          <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#4B5875]" />
+          <Icon
+            name="search"
+            className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#4B5875]"
+          />
           <input
             id="comm-search"
             type="text"
@@ -112,7 +122,9 @@ export default function CommunityFilters({
       <div className="p-3 bg-[#EBF1F0] rounded-xl text-xs text-[#4B5875] space-y-1">
         <div className="flex justify-between items-center">
           <span>Kết quả khớp:</span>
-          <strong className="text-[#0E1D4F] font-bold">{totalFilteredCount} hành trình</strong>
+          <strong className="text-[#0E1D4F] font-bold">
+            {totalFilteredCount} hành trình
+          </strong>
         </div>
         <div className="flex justify-between items-center">
           <span>Tổng số trang:</span>
@@ -130,17 +142,22 @@ export default function CommunityFilters({
           <button
             type="button"
             onClick={onToggleShowOnlyFavorites}
-            className={`w-full h-[38px] flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${showOnlyFavorites
-              ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-2xs'
-              : 'bg-[#EBF1F0] hover:bg-[#E4ECEB] border-[#0E1D4F]/10 text-[#0E1D4F]'
-              } focus-visible:outline-2 focus-visible:outline-[#205BD6]`}
+            className={`w-full h-[38px] flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+              showOnlyFavorites
+                ? "bg-rose-50 border-rose-300 text-rose-600 shadow-2xs"
+                : "bg-[#EBF1F0] hover:bg-[#E4ECEB] border-[#0E1D4F]/10 text-[#0E1D4F]"
+            } focus-visible:outline-2 focus-visible:outline-[#205BD6]`}
             aria-pressed={showOnlyFavorites}
-            title={showOnlyFavorites ? 'Đang bật lọc mục đã thích' : 'Lọc chỉ xem mục đã thích'}
+            title={
+              showOnlyFavorites
+                ? "Đang bật lọc mục đã thích"
+                : "Lọc chỉ xem mục đã thích"
+            }
           >
             <span className="flex items-center gap-1.5 truncate">
               <Icon
-                name={showOnlyFavorites ? 'favorite' : 'favorite_border'}
-                className={`size-4 shrink-0 ${showOnlyFavorites ? 'text-rose-500' : 'text-[#4B5875]'}`}
+                name={showOnlyFavorites ? "favorite" : "favorite_border"}
+                className={`size-4 shrink-0 ${showOnlyFavorites ? "text-rose-500" : "text-[#4B5875]"}`}
               />
               <span className="truncate">Đã thích</span>
             </span>
@@ -161,14 +178,14 @@ export default function CommunityFilters({
             disabled={isLoadingProvinces || !!provincesError}
             placeholder={
               isLoadingProvinces
-                ? 'Đang tải danh mục tỉnh...'
+                ? "Đang tải danh mục tỉnh..."
                 : allProvinces.length === 0
-                  ? 'Danh mục tỉnh đang trống'
-                  : 'Tất cả tỉnh / thành'
+                  ? "Danh mục tỉnh đang trống"
+                  : "Tất cả tỉnh / thành"
             }
             onChange={(val) => onSelectProvince(val)}
             options={[
-              { value: 'all', label: 'Tất cả tỉnh / thành' },
+              { value: "all", label: "Tất cả tỉnh / thành" },
               ...allProvinces,
             ]}
           />
@@ -197,7 +214,9 @@ export default function CommunityFilters({
           {isBudgetTouched && (
             <button
               type="button"
-              onClick={() => onBudgetChange(BUDGET_MIN_DEFAULT, BUDGET_MAX_DEFAULT)}
+              onClick={() =>
+                onBudgetChange(BUDGET_MIN_DEFAULT, BUDGET_MAX_DEFAULT)
+              }
               className="text-[10px] text-[#205BD6] hover:underline cursor-pointer"
             >
               Mặc định
@@ -208,7 +227,10 @@ export default function CommunityFilters({
         {/* Editable Input Fields Synchronized with Double Slider */}
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <label htmlFor="budget-min-input" className="block text-[10px] font-label-caps uppercase text-[#4B5875] font-semibold">
+            <label
+              htmlFor="budget-min-input"
+              className="block text-[10px] font-label-caps uppercase text-[#4B5875] font-semibold"
+            >
               Tối thiểu (VNĐ)
             </label>
             <input
@@ -221,7 +243,10 @@ export default function CommunityFilters({
               onChange={(e) => {
                 const val = Number(e.target.value);
                 if (!isNaN(val)) {
-                  onBudgetChange(Math.max(BUDGET_MIN_DEFAULT, Math.min(val, budgetMax)), budgetMax);
+                  onBudgetChange(
+                    Math.max(BUDGET_MIN_DEFAULT, Math.min(val, budgetMax)),
+                    budgetMax,
+                  );
                 }
               }}
               className="w-full bg-[#EBF1F0] text-[#0E1D4F] font-semibold text-xs px-2.5 py-1.5 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
@@ -229,7 +254,10 @@ export default function CommunityFilters({
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="budget-max-input" className="block text-[10px] font-label-caps uppercase text-[#4B5875] font-semibold">
+            <label
+              htmlFor="budget-max-input"
+              className="block text-[10px] font-label-caps uppercase text-[#4B5875] font-semibold"
+            >
               Tối đa (VNĐ)
             </label>
             <input
@@ -242,7 +270,10 @@ export default function CommunityFilters({
               onChange={(e) => {
                 const val = Number(e.target.value);
                 if (!isNaN(val)) {
-                  onBudgetChange(budgetMin, Math.min(BUDGET_MAX_DEFAULT, Math.max(val, budgetMin)));
+                  onBudgetChange(
+                    budgetMin,
+                    Math.min(BUDGET_MAX_DEFAULT, Math.max(val, budgetMin)),
+                  );
                 }
               }}
               className="w-full bg-[#EBF1F0] text-[#0E1D4F] font-semibold text-xs px-2.5 py-1.5 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
@@ -302,22 +333,30 @@ export default function CommunityFilters({
             <span>{formatVnd(BUDGET_MIN_DEFAULT)}</span>
             <span>{formatVnd(BUDGET_MAX_DEFAULT)}</span>
           </div>
-          <p className="text-[10px] text-[#4B5875] mt-1">Bước nhảy: {formatVnd(BUDGET_STEP)}</p>
+          <p className="text-[10px] text-[#4B5875] mt-1">
+            Bước nhảy: {formatVnd(BUDGET_STEP)}
+          </p>
         </div>
 
         {budgetValidationWarning && (
-          <p className="text-[11px] text-[#ba1a1a] font-medium">{budgetValidationWarning}</p>
+          <p className="text-[11px] text-[#ba1a1a] font-medium">
+            {budgetValidationWarning}
+          </p>
         )}
         {isBudgetTouched && excludedBudgetMissingCount > 0 && (
           <p className="text-[10px] text-[#4B5875]">
-            Đã loại {excludedBudgetMissingCount} hành trình không có thông tin chi phí.
+            Đã loại {excludedBudgetMissingCount} hành trình không có thông tin
+            chi phí.
           </p>
         )}
       </div>
 
       {/* 6. Duration Filter */}
       <div className="space-y-2">
-        <label htmlFor="comm-duration" className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
+        <label
+          htmlFor="comm-duration"
+          className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]"
+        >
           THỜI LƯỢNG HÀNH TRÌNH
         </label>
         <select
@@ -329,14 +368,14 @@ export default function CommunityFilters({
           <option value="all">Tất cả thời lượng</option>
           {durationOptions.map((duration) => (
             <option key={duration} value={duration}>
-              {duration.endsWith('ngày') ? duration : `${duration} ngày`}
+              {duration.endsWith("ngày") ? duration : `${duration} ngày`}
             </option>
           ))}
         </select>
       </div>
 
       {/* 7. Category / Theme Filter (BE-TAG-01: Pending backend taxonomy catalog) */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label htmlFor="comm-tag" className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
             PHONG CÁCH &amp; CHỦ ĐỀ
@@ -358,7 +397,7 @@ export default function CommunityFilters({
         <p className="text-[10px] text-[#4B5875] leading-relaxed">
           Hệ thống ghi nhận API query hỗ trợ <code>tag</code>, nhưng Backend chưa có endpoint catalog taxonomy độc lập với phân trang.
         </p>
-      </div>
+      </div> */}
     </aside>
   );
 }

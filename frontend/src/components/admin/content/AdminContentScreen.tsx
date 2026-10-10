@@ -746,7 +746,7 @@ function AdminContentPanel() {
                 Kế hoạch Gợi ý Hero Carousel
               </h2>
               <p className="text-xs text-[#4B5875] mt-0.5">
-                Danh sách kế hoạch được quản lý trong CMS. Carousel Landing hiện dùng ảnh local, không lấy ảnh từ danh sách Hero Plans CMS.
+                API hiện trả các kế hoạch đang hoạt động. Carousel Landing hiển thị các mục này theo thứ tự của máy chủ; mục đã tắt không xuất hiện sau khi tải lại.
               </p>
             </div>
             <button

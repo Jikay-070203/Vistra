@@ -13,14 +13,15 @@ function time(value: string, timezone: string) {
   return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: timezone });
 }
 
-export default function ItineraryView({ itinerary, request, selectedDay, onDay, selectedPlace, onPlace, busy = false, onMove }:
+export default function ItineraryView({ itinerary, request, selectedDay, onDay, selectedPlace, onPlace, busy = false, onMove, onRemove }:
   { itinerary: PlanItineraryDto; request: PlanRequestDto; selectedDay: number; onDay: (day: number) => void;
-    selectedPlace: number | null; onPlace: (id: number) => void; busy?: boolean; onMove?: (id: number, target: number) => void }) {
+    selectedPlace: number | null; onPlace: (id: number) => void; busy?: boolean; onMove?: (id: number, target: number) => void;
+    onRemove?: (placeId: number) => void }) {
   const days = Array.from({ length: request.days }, (_, index) => index + 1);
   const activities = itinerary.activities.filter(item => item.day === selectedDay);
   const date = endDateFromDuration(request.start_date, selectedDay);
   return <section className={tripPanelClass} aria-label="Lịch trình">
-    <h2 className="text-lg font-bold mb-4">Lịch trình {onMove ? 'bản nháp' : 'chi tiết'}</h2>
+    <h2 className="text-lg font-bold mb-4">Lịch trình {onMove || onRemove ? 'bản nháp' : 'chi tiết'}</h2>
     <div className="flex flex-wrap gap-2 mb-4 no-print" aria-label="Chọn ngày">
       {days.map(day => <button key={day} type="button" aria-pressed={day === selectedDay} onClick={() => onDay(day)} className={`${tripButtonClass} ${day === selectedDay ? 'bg-[#205BD6] text-white' : ''}`}>Ngày {day}</button>)}
     </div>
@@ -38,10 +39,18 @@ export default function ItineraryView({ itinerary, request, selectedDay, onDay, 
         <p className="text-sm mt-2">{item.estimated_cost ? `${money(item.estimated_cost.min_vnd)} – ${money(item.estimated_cost.max_vnd)}` : 'Chưa có giá tham khảo'}</p>
         {item.reason && <p className="text-sm text-[#4B5875] mt-2">{item.reason}</p>}
         {item.notes.length > 0 && <details className="text-sm mt-2"><summary className="cursor-pointer min-h-11 flex items-center">Lưu ý điểm đến</summary><ul className="list-disc pl-5 space-y-1">{item.notes.map((note, n) => <li key={n}>{note}</li>)}</ul></details>}
-        {onMove && <div className="flex gap-2 mt-2 no-print">
-          <button type="button" disabled={busy || index === 0} onClick={() => onMove(item.place_id, activities[index - 1].place_id)} aria-label={`Đưa ${item.name} lên trước`} className={tripButtonClass}>↑</button>
-          <button type="button" disabled={busy || index === activities.length - 1} onClick={() => onMove(item.place_id, activities[index + 1].place_id)} aria-label={`Đưa ${item.name} xuống sau`} className={tripButtonClass}>↓</button>
+        {(onMove || onRemove) && <div className="flex flex-wrap gap-2 mt-2 no-print">
+          {onMove && <>
+            <button type="button" disabled={busy || index === 0} onClick={() => onMove(item.place_id, activities[index - 1].place_id)} aria-label={`Đưa ${item.name} lên trước`} className={tripButtonClass}>↑</button>
+            <button type="button" disabled={busy || index === activities.length - 1} onClick={() => onMove(item.place_id, activities[index + 1].place_id)} aria-label={`Đưa ${item.name} xuống sau`} className={tripButtonClass}>↓</button>
+          </>}
+          {onRemove && <button type="button"
+            disabled={busy || itinerary.activities.length <= 1}
+            onClick={() => onRemove(item.place_id)}
+            aria-label={`Xóa ${item.name} khỏi lịch trình`}
+            className={`${tripButtonClass} text-rose-700 hover:bg-rose-50`}>Xóa khỏi lịch trình</button>}
         </div>}
+        {onRemove && itinerary.activities.length <= 1 && <p className="mt-2 text-xs text-[#4B5875]">Lịch trình cần giữ ít nhất một điểm dừng.</p>}
       </article>)}
     </div>
     {itinerary.route_legs.filter(leg => leg.day === selectedDay).map((leg, index) => <p key={index} className="text-sm text-[#4B5875] mt-3">
