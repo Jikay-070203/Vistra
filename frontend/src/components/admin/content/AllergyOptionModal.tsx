@@ -382,16 +382,6 @@ function AllergyOptionModalInner({
                 </label>
               </div>
 
-              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-[11px] text-[#205BD6]">
-                <p className="font-semibold flex items-center gap-1">
-                  <Icon name="info" size={14} />
-                  Ghi chú tích hợp Backend
-                </p>
-                <p className="mt-0.5 text-slate-600">
-                  Mục lưu này chỉ áp dụng cho Admin CMS. Đồng bộ sang catalog public chuyến đi
-                  đang chờ backend cung cấp endpoint.
-                </p>
-              </div>
             </form>
           ) : (
             /* BULK MODE */

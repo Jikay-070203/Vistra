@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useProfileController } from './useProfileController';
 import ProfileHeader from './ProfileHeader';
 import ProfileInfoTab from './ProfileInfoTab';
@@ -12,6 +13,7 @@ import ProfileFeedbackTab from './ProfileFeedbackTab';
 export default function ProfileScreen() {
   const {
     isLoggedIn,
+    isLoaded,
     activeTab,
     setActiveTab,
     formData,
@@ -39,6 +41,31 @@ export default function ProfileScreen() {
     activityError,
     retryLoadActivity,
   } = useProfileController();
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && !isLoggedIn) {
+      router.replace('/login?next=/profile');
+    }
+  }, [isLoaded, isLoggedIn, router]);
+
+  if (!isLoaded) {
+    return (
+      <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-16 text-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#205BD6] border-r-transparent align-[-0.125em]" />
+        <p className="mt-4 text-sm text-[#4B5875]">Đang kiểm tra phiên đăng nhập...</p>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-16 text-center">
+        <p className="text-sm text-[#4B5875]">Đang chuyển hướng đến trang đăng nhập...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 sm:py-12">

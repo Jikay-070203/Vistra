@@ -24,32 +24,39 @@ function imageUrl(value: string): string {
 }
 
 export async function getAdminContent(): Promise<ApiRequestResult<AdminContentView>> {
-  const result = await apiRequest(API_ENDPOINTS.CONTENT.ADMIN_LIST, getSessionProxyBaseUrl());
-  return { ...result, data: adminContentSchema.parse(result.data) };
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.CONTENT, getSessionProxyBaseUrl(), {
+    credentials: 'include',
+  });
+  const response = record(result.data, 'admin content response');
+  return { ...result, data: adminContentSchema.parse(response.data) };
+}
+
+function parseContentResponse<T>(value: unknown, parse: (value: unknown) => T): T {
+  return parse(record(record(value, 'admin content response').data, 'admin content response.data'));
 }
 
 export async function createHeroContent(payload: HeroContentPayload): Promise<ApiRequestResult<HeroContentItem>> {
   const body = { ...payload, title: required(payload.title, 'title'),
     destination: required(payload.destination, 'destination'), image: imageUrl(payload.image) };
-  const result = await apiRequest(API_ENDPOINTS.CONTENT.COLLECTION('hero-plans'), getSessionProxyBaseUrl(), {
-    method: 'POST', jsonBody: body,
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.CONTENT_COLLECTION('hero-plans'), getSessionProxyBaseUrl(), {
+    method: 'POST', credentials: 'include', jsonBody: body,
   });
-  return { ...result, data: parseHeroContent(record(result.data, 'content create response').item) };
+  return { ...result, data: parseContentResponse(result.data, parseHeroContent) };
 }
 
 export async function createAllergyContent(payload: AllergyContentPayload): Promise<ApiRequestResult<AllergyContentItem>> {
-  const result = await apiRequest(API_ENDPOINTS.CONTENT.COLLECTION('allergy-options'), getSessionProxyBaseUrl(), {
-    method: 'POST', jsonBody: { label: required(payload.label, 'label') },
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.CONTENT_COLLECTION('allergy-options'), getSessionProxyBaseUrl(), {
+    method: 'POST', credentials: 'include', jsonBody: { label: required(payload.label, 'label') },
   });
-  return { ...result, data: parseAllergyContent(record(result.data, 'content create response').item) };
+  return { ...result, data: parseContentResponse(result.data, parseAllergyContent) };
 }
 
 async function patchContent<T>(collection: ContentCollection, id: string, patch: object,
   parse: (value: unknown) => T): Promise<ApiRequestResult<T>> {
-  const result = await apiRequest(API_ENDPOINTS.CONTENT.ITEM(collection, id), getSessionProxyBaseUrl(), {
-    method: 'PATCH', jsonBody: patch,
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.CONTENT_ITEM(collection, id), getSessionProxyBaseUrl(), {
+    method: 'PATCH', credentials: 'include', jsonBody: patch,
   });
-  return { ...result, data: parse(record(result.data, 'content patch response').item) };
+  return { ...result, data: parseContentResponse(result.data, parse) };
 }
 
 export function updateHeroContent(id: string, patch: Partial<HeroContentPayload> & ContentFlags): Promise<ApiRequestResult<HeroContentItem>> {
@@ -62,10 +69,11 @@ export function updateHeroContent(id: string, patch: Partial<HeroContentPayload>
 }
 
 export function updateIntroContent(id: string, patch: Partial<IntroContentPayload> & ContentFlags): Promise<ApiRequestResult<IntroContentItem>> {
+  const { image, ...fields } = patch;
   return patchContent('intro-destinations', id, {
-    ...patch,
+    ...fields,
     ...(patch.label !== undefined && { label: required(patch.label, 'label') }),
-    ...(patch.image !== undefined && { image: imageUrl(patch.image) }),
+    ...(image !== undefined && { imageUrl: imageUrl(image) }),
   }, parseIntroContent);
 }
 
@@ -77,7 +85,9 @@ export function updateAllergyContent(id: string, patch: Partial<AllergyContentPa
 }
 
 export async function deleteContent(collection: ContentCollection, id: string): Promise<ApiRequestResult<null>> {
-  const result = await apiRequest(API_ENDPOINTS.CONTENT.ITEM(collection, id), getSessionProxyBaseUrl(), { method: 'DELETE' });
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.CONTENT_ITEM(collection, id), getSessionProxyBaseUrl(), {
+    method: 'DELETE', credentials: 'include',
+  });
   if (result.httpStatus !== 204) throw new TypeError('Content delete response must be HTTP 204');
   return { ...result, data: null };
 }

@@ -15,7 +15,7 @@ export interface ApiRequestResult<T = unknown> {
   endpoint: string;
 }
 
-export type ApiRequestTransport = 'internal';
+export type ApiRequestTransport = 'internal' | 'server-backend';
 
 export type ApiRequestOptions = Omit<RequestInit, 'body'> & {
   body?: RequestInit['body'];

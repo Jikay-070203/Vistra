@@ -1,0 +1,196 @@
+{
+  "batch_id": "vistra-photos-20261010T035938Z-line-0",
+  "source_lines": [
+    0,
+    9
+  ],
+  "http_status": 422,
+  "response": {
+    "code": "NO_VALID_PHOTO_ITEMS",
+    "uploads": [
+      {
+        "image_id": "844582aa3e375c678c58272772f51ce74eb0c4381427962921bdbb3ea28ba8b8",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "b6967915505496cb723169502a8cae0904f6db190279f616fa45e138e1563c37",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "18e665db49c4b25a3cc5a63c76398ea16a4129a47cbefecf33eedf3688083a5c",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "a8ce9442212f92a2cb7a6471e36f3f1b41b1adc730474ec6bfc8bcfd4671e274",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "b1bcbf07be2352716b77d2566de800798f371aad0f800a486e8cb5e85c785191",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "daf5b9197e69be9f82a4556395a6cf85cb5702a19b4ffb4e3d185b2e55ef06fe",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "e2e7bc096cd95f98ffeb14dfdc2c9a889aacf7ed10b6a0362e668fa7188e18f6",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "e6bb524a4ea7cbfb4b7b8a69de5e992bca009f72cd094aaa4a6d0f28f979708d",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "881510432e4419a80378470c13d867d0f7a83586a93953985a356e4e50c89b76",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      },
+      {
+        "image_id": "8d2253c75fcc6317024f48882381e35a97ff4d1062d45e5c008413ecb306a4c7",
+        "http_status": 400,
+        "response": {
+          "error": {
+            "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+          }
+        }
+      }
+    ]
+  },
+  "uploads": [
+    {
+      "image_id": "844582aa3e375c678c58272772f51ce74eb0c4381427962921bdbb3ea28ba8b8",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "b6967915505496cb723169502a8cae0904f6db190279f616fa45e138e1563c37",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "18e665db49c4b25a3cc5a63c76398ea16a4129a47cbefecf33eedf3688083a5c",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "a8ce9442212f92a2cb7a6471e36f3f1b41b1adc730474ec6bfc8bcfd4671e274",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "b1bcbf07be2352716b77d2566de800798f371aad0f800a486e8cb5e85c785191",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "daf5b9197e69be9f82a4556395a6cf85cb5702a19b4ffb4e3d185b2e55ef06fe",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "e2e7bc096cd95f98ffeb14dfdc2c9a889aacf7ed10b6a0362e668fa7188e18f6",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "e6bb524a4ea7cbfb4b7b8a69de5e992bca009f72cd094aaa4a6d0f28f979708d",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "881510432e4419a80378470c13d867d0f7a83586a93953985a356e4e50c89b76",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    },
+    {
+      "image_id": "8d2253c75fcc6317024f48882381e35a97ff4d1062d45e5c008413ecb306a4c7",
+      "http_status": 400,
+      "response": {
+        "error": {
+          "message": "Unique filename parameter is not allowed when using unsigned upload. Only upload_preset,callback,public_id,folder,asset_folder,tags,context,metadata,face_coordinates,custom_coordinates,source,filename_override,manifest_transformation,manifest_json,template,template_vars,regions,public_id_prefix,batch_id,ai_generated upload parameters are allowed."
+        }
+      }
+    }
+  ],
+  "qdrant_status": "pending_embedding_worker"
+}

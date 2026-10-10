@@ -12,7 +12,7 @@ export interface TripCardRaw {
   estimatedCostVnd: number | null;
   status: string;
   isPublished: boolean;
-  updatedAt: string;
+  updatedAt: string | null;
   tags: string[];
   likesCount: number;
   likedByMe: boolean;
@@ -32,9 +32,7 @@ export interface TripCardView {
   estimatedCostVnd: number | null;
   status: string;
   isPublished: boolean;
-  /** Backend currently populates its `updatedAt` field from created_at. */
-  createdAt: string;
-  lastUpdatedAt: null;
+  updatedAt: string | null;
   tags: string[];
   likesCount: number;
   likedByMe: boolean;

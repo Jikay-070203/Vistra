@@ -1,234 +1,163 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import Icon from '@/components/ui/Icon';
-import MockBadge from '../demo/MockBadge';
-import JsonImportModal from './JsonImportModal';
-import { DEMO_ENTITY_TABLES } from './demoSchema';
+import AdminDataImporter from './AdminDataImporter';
+import { useUserAuth } from '@/lib/userAuth';
+import { getAdminEntityMetadata, getAdminEntityRecords } from '@/services/adminSystemDataService';
+import type { AdminEntityMetadata, AdminEntityRecords, AdminEntityTableId } from '@/types/adminSystemDataApi';
+
+const PAGE_SIZE = 20;
+
+function displayValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '—';
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+}
 
 export default function SchemaMapViewer() {
-  const [selectedTableId, setSelectedTableId] = useState<string>('provinces');
-  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
-  const [simulatedCounts, setSimulatedCounts] = useState<Record<string, number>>({
-    provinces: 63,
-    pois: 128,
-  });
-  const [lastImportNotice, setLastImportNotice] = useState<string | null>(null);
+  const { user, isLoggedIn } = useUserAuth();
+  const accountId = isLoggedIn && user?.role === 'admin' ? user.id : null;
+  const [metadata, setMetadata] = useState<{ accountId: string; data: AdminEntityMetadata; error: string | null } | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<AdminEntityTableId | ''>('');
+  const [page, setPage] = useState(1);
+  const [queryDraft, setQueryDraft] = useState('');
+  const [query, setQuery] = useState('');
+  const [records, setRecords] = useState<{ key: string; data: AdminEntityRecords | null; error: string | null } | null>(null);
+  const [reload, setReload] = useState(0);
 
-  const activeTable = DEMO_ENTITY_TABLES.find((t) => t.id === selectedTableId) || DEMO_ENTITY_TABLES[0];
+  useEffect(() => {
+    if (!accountId) return;
+    const controller = new AbortController();
+    getAdminEntityMetadata(controller.signal).then(result => {
+      if (controller.signal.aborted) return;
+      setMetadata({ accountId, data: result.data, error: null });
+      setSelectedTableId(current => result.data.tables.some(table => table.tableName === current)
+        ? current
+        : result.data.tables[0]?.tableName ?? '');
+    }).catch((cause: unknown) => {
+      if (!controller.signal.aborted) {
+        setMetadata({ accountId, data: { tables: [] }, error: cause instanceof Error ? cause.message : 'Không thể tải metadata bảng.' });
+      }
+    });
+    return () => controller.abort();
+  }, [accountId, reload]);
 
-  const handleImportSuccess = (count: number, tableId: string) => {
-    setSimulatedCounts((prev) => ({
-      ...prev,
-      [tableId]: (prev[tableId] || 0) + count,
-    }));
-    setLastImportNotice(
-      `Đã mô phỏng nạp thành công ${count} bản ghi vào bảng ${tableId} (Chưa ghi vào database thật).`
-    );
-    setTimeout(() => setLastImportNotice(null), 5000);
-  };
+  const table = metadata?.accountId === accountId
+    ? metadata.data.tables.find(item => item.tableName === selectedTableId)
+    : undefined;
+  const selectedTableName = table?.tableName;
+  const recordsKey = `${accountId ?? ''}:${selectedTableId}:${page}:${query}`;
 
-  return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl sm:text-2xl font-bold text-[#0E1D4F]">
-              Quản trị Dữ liệu Thực thể &amp; Lược đồ Schema
-            </h2>
-            <MockBadge />
-          </div>
-          <p className="text-xs sm:text-sm text-[#4B5875] mt-1 max-w-2xl">
-            Giao diện minh họa cấu trúc dữ liệu thực thể du lịch (Tỉnh thành, Điểm tham quan).
-            Backend chưa cung cấp API duyệt schema và CRUD thực thể; mọi thao tác chỉ mô phỏng trên giao diện.
-          </p>
-        </div>
+  useEffect(() => {
+    if (!accountId || !selectedTableName) return;
+    const controller = new AbortController();
+    getAdminEntityRecords(selectedTableName, { page, pageSize: PAGE_SIZE, q: query }, controller.signal)
+      .then(result => {
+        if (controller.signal.aborted) return;
+        if (result.data.table !== selectedTableName) throw new TypeError('Bảng trong phản hồi không khớp bảng đã chọn.');
+        setRecords({ key: recordsKey, data: result.data, error: null });
+      })
+      .catch((cause: unknown) => {
+        if (!controller.signal.aborted) {
+          setRecords({ key: recordsKey, data: null, error: cause instanceof Error ? cause.message : 'Không thể tải bản ghi.' });
+        }
+      });
+    return () => controller.abort();
+  }, [accountId, selectedTableName, page, query, reload, recordsKey]);
 
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsImportModalOpen(true)}
-            className="px-5 py-2.5 rounded-2xl bg-[#205BD6] text-white text-xs font-bold hover:bg-[#1847a8] transition-colors flex items-center gap-2 shadow-xs"
-          >
-            <Icon name="upload_file" size={16} />
-            <span>Nhập dữ liệu JSON</span>
-          </button>
-        </div>
+  const activeRecords = records?.key === recordsKey ? records.data : null;
+  const recordsError = records?.key === recordsKey ? records.error : null;
+  const totalPages = activeRecords ? Math.ceil(activeRecords.total / activeRecords.pageSize) : 0;
+  const button = 'inline-flex items-center gap-2 rounded-xl border border-[#0E1D4F]/15 px-3.5 py-2 text-xs font-semibold text-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50';
+  const metadataError = metadata?.accountId === accountId ? metadata.error : null;
+  const tables = metadata?.accountId === accountId ? metadata.data.tables : [];
+
+  return <div className="space-y-6">
+    {accountId && <AdminDataImporter key={accountId} onProcessed={() => setReload(value => value + 1)} />}
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm">
+      <div>
+        <h2 className="text-xl font-bold text-[#0E1D4F]">Dữ liệu thực thể</h2>
+        <p className="mt-1 text-sm text-[#4B5875]">Viewer thực thể chỉ hỗ trợ đọc. Nhập địa điểm và ảnh dùng importer chuyên biệt phía trên.</p>
       </div>
+      <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">Viewer chỉ đọc · Chưa có CRUD thực thể tổng quát</span>
+    </div>
 
-      {lastImportNotice && (
-        <div
-          role="status"
-          className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 flex items-center justify-between gap-3 animate-in fade-in"
-        >
-          <div className="flex items-center gap-2">
-            <Icon name="check_circle" size={16} className="text-emerald-600" />
-            <span className="font-semibold">{lastImportNotice}</span>
-          </div>
-          <button
+    {!accountId ? <p className="rounded-2xl border border-[#0E1D4F]/10 bg-white p-5 text-sm text-[#4B5875]">Cần phiên quản trị để xem dữ liệu.</p> : <>
+      {metadataError && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{metadataError}</p>}
+      {!metadata && <p role="status" className="text-sm text-[#4B5875]">Đang tải metadata bảng…</p>}
+      {metadata && !metadataError && tables.length === 0 && <p className="rounded-2xl border border-[#0E1D4F]/10 bg-white p-5 text-sm text-[#4B5875]">Backend chưa trả metadata bảng.</p>}
+      {tables.length > 0 && <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
+        <aside className="space-y-2 rounded-3xl border border-[#0E1D4F]/10 bg-white p-4 shadow-sm">
+          <h3 className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500">Bảng trong backend</h3>
+          {tables.map(item => <button
+            key={item.tableName}
             type="button"
-            onClick={() => setLastImportNotice(null)}
-            className="text-emerald-600 hover:text-emerald-800 p-1"
+            onClick={() => { setSelectedTableId(item.tableName); setPage(1); setQuery(''); setQueryDraft(''); }}
+            className={`flex w-full items-center justify-between gap-2 rounded-2xl p-3 text-left text-xs font-semibold transition-colors ${
+              item.tableName === selectedTableId ? 'bg-[#205BD6] text-white' : 'text-slate-700 hover:bg-slate-100'
+            }`}
           >
-            <Icon name="close" size={14} />
-          </button>
-        </div>
-      )}
+            <span className="min-w-0"><span className="block truncate font-bold">{item.name}</span><span className={`block truncate font-mono text-[11px] ${item.tableName === selectedTableId ? 'text-blue-100' : 'text-slate-400'}`}>{item.tableName}</span></span>
+            <span className="shrink-0 rounded-full bg-black/5 px-2 py-0.5 text-[10px]">{item.recordCount.toLocaleString('vi-VN')}</span>
+          </button>)}
+        </aside>
 
-      {/* Main Content: Table Selector Tabs & Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-        {/* Left Column: Tables List */}
-        <div className="lg:col-span-1 bg-white rounded-3xl border border-[#0E1D4F]/10 p-4 space-y-2 shadow-sm">
-          <h3 className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Bảng thực thể demo
-          </h3>
-          <div className="space-y-1">
-            {DEMO_ENTITY_TABLES.map((t) => {
-              const count = simulatedCounts[t.id] ?? 0;
-              const isSelected = t.id === selectedTableId;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setSelectedTableId(t.id)}
-                  className={`w-full text-left p-3 rounded-2xl text-xs font-semibold transition-all flex items-center justify-between ${
-                    isSelected
-                      ? 'bg-[#205BD6] text-white shadow-xs'
-                      : 'text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <div className="truncate">
-                    <p className="truncate font-bold">{t.name.split(' ')[0]}</p>
-                    <p className={`text-[11px] font-mono truncate ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
-                      {t.id}
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                      isSelected
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    ~{count} bản ghi
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="pt-4 mt-2 border-t border-slate-100 px-3 text-[11px] text-slate-500 space-y-1">
-            <p className="font-semibold text-slate-700">Trạng thái API Backend:</p>
-            <p className="text-amber-700">Chưa có API duyệt bảng &amp; CRUD entity</p>
-          </div>
-        </div>
-
-        {/* Right Column: Schema Fields & Records Preview */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Schema Structure Card */}
-          <div className="bg-white rounded-3xl border border-[#0E1D4F]/10 p-6 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="text-base font-bold text-[#0E1D4F] flex items-center gap-2">
-                  <span>Cấu trúc lược đồ: {activeTable.name}</span>
-                </h3>
-                <p className="text-xs text-[#4B5875] mt-0.5">{activeTable.description}</p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsImportModalOpen(true)}
-                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#0E1D4F] hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-                >
-                  <Icon name="code" size={14} className="text-[#205BD6]" />
-                  <span>Dán JSON vào bảng này</span>
-                </button>
-              </div>
+        {table && <section className="min-w-0 space-y-6 lg:col-span-3">
+          <div className="overflow-hidden rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-base font-bold text-[#0E1D4F]">{table.name}</h3>
+              <p className="mt-1 text-xs text-[#4B5875]">{table.description}</p>
             </div>
-
-            {/* Fields Table */}
-            <div className="rounded-2xl border border-slate-200 overflow-hidden text-xs">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200 uppercase text-[11px]">
-                  <tr>
-                    <th className="py-3 px-4">Tên trường</th>
-                    <th className="py-3 px-4">Kiểu dữ liệu</th>
-                    <th className="py-3 px-4">Bắt buộc</th>
-                    <th className="py-3 px-4">Mô tả</th>
-                    <th className="py-3 px-4">Mẫu dữ liệu</th>
-                  </tr>
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <table className="w-full min-w-[560px] text-left text-xs">
+                <thead className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase text-slate-700">
+                  <tr><th className="px-4 py-3">Tên trường</th><th className="px-4 py-3">Kiểu dữ liệu</th><th className="px-4 py-3">Bắt buộc</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {activeTable.fields.map((field) => (
-                    <tr key={field.name} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-[#0E1D4F]">
-                        {field.name}
-                      </td>
-                      <td className="py-3 px-4 font-mono text-blue-600 font-semibold">
-                        {field.type}
-                      </td>
-                      <td className="py-3 px-4">
-                        {field.required ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                            Bắt buộc
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
-                            Tùy chọn
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-slate-600">{field.description}</td>
-                      <td className="py-3 px-4 font-mono text-slate-500 truncate max-w-xs">
-                        {String(field.example)}
-                      </td>
-                    </tr>
-                  ))}
+                  {table.fields.map(field => <tr key={field.name} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-mono font-semibold text-[#0E1D4F]">{field.name}</td>
+                    <td className="px-4 py-3 font-mono text-blue-700">{field.type}</td>
+                    <td className="px-4 py-3">{field.required ? 'Có' : 'Không'}</td>
+                  </tr>)}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* Sample JSON Data Preview Card */}
-          <div className="bg-white rounded-3xl border border-[#0E1D4F]/10 p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-bold text-[#0E1D4F]">
-                  Mẫu JSON tiêu chuẩn cho bảng {activeTable.id}
-                </h4>
-                <p className="text-xs text-[#4B5875] mt-0.5">
-                  Định dạng mảng các đối tượng (Array of Objects) phục vụ kiểm thử nhập hàng loạt
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard?.writeText(activeTable.sampleJson);
-                }}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
-                title="Sao chép mẫu JSON"
-              >
-                <Icon name="content_copy" size={14} />
-                <span>Sao chép mẫu</span>
-              </button>
+          <div className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div><h3 className="text-base font-bold text-[#0E1D4F]">Bản ghi</h3><p className="mt-1 text-xs text-[#4B5875]">Mỗi trang tối đa {PAGE_SIZE} bản ghi.</p></div>
+              <button type="button" onClick={() => setReload(value => value + 1)} className={button}><Icon name="sync" size={14} />Tải lại</button>
             </div>
-
-            <pre className="p-4 rounded-2xl bg-slate-900 text-emerald-400 font-mono text-xs overflow-x-auto max-h-64 leading-relaxed">
-              {activeTable.sampleJson}
-            </pre>
+            <form onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setPage(1); setQuery(queryDraft.trim()); }} className="flex flex-wrap gap-2">
+              <label className="sr-only" htmlFor="admin-entity-search">Tìm trong bản ghi</label>
+              <input id="admin-entity-search" value={queryDraft} onChange={event => setQueryDraft(event.target.value)} className="min-w-0 flex-1 rounded-xl border border-[#0E1D4F]/20 px-3 py-2.5 text-sm" placeholder="Tìm bản ghi…" />
+              <button type="submit" className={button}><Icon name="search" size={14} />Tìm</button>
+            </form>
+            {recordsError && <p role="alert" className="text-sm text-rose-700">{recordsError}</p>}
+            {!recordsError && !activeRecords && <p role="status" className="text-sm text-[#4B5875]">Đang tải bản ghi…</p>}
+            {activeRecords && (activeRecords.items.length === 0 ? <p className="text-sm text-[#4B5875]">Không có bản ghi phù hợp.</p> : <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <table className="w-full min-w-[700px] text-left text-xs">
+                <thead className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase text-slate-700">
+                  <tr>{table.fields.map(field => <th key={field.name} className="px-4 py-3">{field.name}</th>)}</tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {activeRecords.items.map((row, index) => <tr key={String(row.id ?? index)} className="hover:bg-slate-50">
+                    {table.fields.map(field => <td key={field.name} className="max-w-64 px-4 py-3 text-slate-700" title={displayValue(row[field.name])}><span className="block truncate">{displayValue(row[field.name])}</span></td>)}
+                  </tr>)}
+                </tbody>
+              </table>
+            </div>)}
+            {activeRecords && <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[#4B5875]">
+              <span>{activeRecords.total.toLocaleString('vi-VN')} bản ghi · Trang {activeRecords.page}/{totalPages || 1}</span>
+              <div className="flex gap-2">
+                <button type="button" disabled={activeRecords.page <= 1} onClick={() => setPage(value => value - 1)} className={button}>Trước</button>
+                <button type="button" disabled={activeRecords.page >= totalPages} onClick={() => setPage(value => value + 1)} className={button}>Sau</button>
+              </div>
+            </div>}
           </div>
-        </div>
-      </div>
-
-      {/* JSON Import Modal */}
-      <JsonImportModal
-        isOpen={isImportModalOpen}
-        activeTable={activeTable.id}
-        onClose={() => setIsImportModalOpen(false)}
-        onImportSuccess={handleImportSuccess}
-      />
-    </div>
-  );
+        </section>}
+      </div>}
+    </>}
+  </div>;
 }

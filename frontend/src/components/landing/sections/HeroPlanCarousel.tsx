@@ -1,264 +1,187 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Icon from '@/components/ui/Icon';
-import type { HeroContentItem } from '@/types/contentApi';
+import styles from '../hero/landing-hero.module.css';
 
-export default function HeroPlanCarousel({ plans, loading, error, onRetry }: {
-  plans: HeroContentItem[]; loading: boolean; error: string | null; onRetry: () => void;
-}) {
-  const [isPaused, setIsPaused] = useState(false);
-  const [itemsPerView, setItemsPerView] = useState(3);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false);
+const PLACE_SAMPLE_IMAGES = [
+  {
+    src: '/landing/place_sample/ammie-ngo-vcu-OZBxxRk-unsplash.jpg',
+    alt: 'Rừng thông Đà Lạt ngập trong sương sớm',
+  },
+  {
+    src: '/landing/place_sample/andreea-popa-PknaOrb1lVo-unsplash.jpg',
+    alt: 'Cung đường đèo uốn lượn tại Hà Giang',
+  },
+  {
+    src: '/landing/place_sample/giau-tran-ZMdXvd6jGww-unsplash.jpg',
+    alt: 'Phố cổ Hội An rực rỡ đèn lồng buổi chiều tà',
+  },
+  {
+    src: '/landing/place_sample/juan-bacab-A3PS6Ffu20s-unsplash.jpg',
+    alt: 'Bãi biển xanh mát và rặng dừa tại Phú Quốc',
+  },
+  {
+    src: '/landing/place_sample/pexels-hoang-hi-u-nguy-n-2163979614-39365021.jpg',
+    alt: 'Khung cảnh non nước hữu tình tại Ninh Bình',
+  },
+  {
+    src: '/landing/place_sample/ryan-le-EKFPwbPkDec-unsplash.jpg',
+    alt: 'Đồi chè Mộc Châu xanh mướt trong sương',
+  },
+  {
+    src: '/landing/place_sample/silver-ringvee-niFWqrLdjlE-unsplash.jpg',
+    alt: 'Hoàng hôn buông trên dãy Hoàng Liên Sơn',
+  },
+  {
+    src: '/landing/place_sample/toomas-tartes-27HacQwqvA0-unsplash.jpg',
+    alt: 'Cửa hang động kỳ vĩ giữa rừng nguyên sinh Quảng Bình',
+  },
+];
+
+interface HeroPlanCarouselProps {
+  children: React.ReactNode;
+}
+
+export default function HeroPlanCarousel({ children }: HeroPlanCarouselProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const isPaused = isHovering || isFocused || prefersReducedMotion;
 
-  // Respect prefers-reduced-motion
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener('change', updatePreference);
+    return () => mediaQuery.removeEventListener('change', updatePreference);
   }, []);
 
-  // Responsive itemsPerView
   useEffect(() => {
-    const updateItemsPerView = () => {
-      if (window.innerWidth < 768) {
-        setItemsPerView(1);
-      } else if (window.innerWidth < 1200) {
-        setItemsPerView(2);
-      } else {
-        setItemsPerView(3);
-      }
-    };
-    updateItemsPerView();
-    window.addEventListener('resize', updateItemsPerView);
-    return () => window.removeEventListener('resize', updateItemsPerView);
-  }, []);
-
-  const totalPlans = plans.length;
-  // Initialize virtualIndex at totalPlans so there are buffer cards on left and right
-  const [virtualIndex, setVirtualIndex] = useState(() => plans.length);
-  const [enableTransition, setEnableTransition] = useState(true);
-
-  // LP-02: Circular active index for dots & aria (0..totalPlans - 1)
-  const activeDotIndex = totalPlans > 0 ? ((virtualIndex % totalPlans) + totalPlans) % totalPlans : 0;
-
-  // LPF-01: Autoplay 5-second cycle with pause on hover/focus/reduced-motion
-  useEffect(() => {
-    if (totalPlans <= 1 || isPaused || prefersReducedMotion) return;
-    const timer = setInterval(() => {
-      setEnableTransition(true);
-      setVirtualIndex((prev) => prev + 1);
+    if (isPaused) return;
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % PLACE_SAMPLE_IMAGES.length);
     }, 5000);
-    return () => clearInterval(timer);
-  }, [totalPlans, isPaused, prefersReducedMotion]);
+    return () => window.clearInterval(timer);
+  }, [isPaused]);
 
-  const handlePrev = () => {
-    if (totalPlans <= 1) return;
-    setEnableTransition(true);
-    setVirtualIndex((prev) => prev - 1);
+  const goToPrevious = () => {
+    setActiveIndex((current) => (current + PLACE_SAMPLE_IMAGES.length - 1) % PLACE_SAMPLE_IMAGES.length);
   };
 
-  const handleNext = () => {
-    if (totalPlans <= 1) return;
-    setEnableTransition(true);
-    setVirtualIndex((prev) => prev + 1);
+  const goToNext = () => {
+    setActiveIndex((current) => (current + 1) % PLACE_SAMPLE_IMAGES.length);
   };
 
-  // On transition end, silently snap within [totalPlans, 2 * totalPlans - 1] without animation
-  const handleTransitionEnd = () => {
-    if (totalPlans <= 0) return;
-    if (virtualIndex >= 2 * totalPlans) {
-      setEnableTransition(false);
-      setVirtualIndex(virtualIndex - totalPlans);
-    } else if (virtualIndex < totalPlans) {
-      setEnableTransition(false);
-      setVirtualIndex(virtualIndex + totalPlans);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      goToPrevious();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      goToNext();
     }
   };
 
-  // Re-enable transition after silent snap
-  useEffect(() => {
-    if (!enableTransition) {
-      const frame = requestAnimationFrame(() => {
-        setEnableTransition(true);
-      });
-      return () => cancelAnimationFrame(frame);
-    }
-  }, [enableTransition]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      handlePrev();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      handleNext();
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStart.current) return;
+    const deltaX = event.changedTouches[0].clientX - touchStart.current.x;
+    const deltaY = event.changedTouches[0].clientY - touchStart.current.y;
+    touchStart.current = null;
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < 0) goToNext();
+      else goToPrevious();
     }
   };
-
-  if (plans.length === 0) {
-    return (
-      <div className="w-full py-8 text-center bg-white/40 rounded-2xl border border-[#0E1D4F]/10">
-        <Icon name="travel_explore" className="size-8 text-[#4B5875]/50 mx-auto mb-2" />
-        <p role={error ? 'alert' : 'status'} className="text-sm text-[#4B5875]">{loading ? 'Đang tải hành trình nổi bật…' : error || 'Hiện chưa có hành trình nổi bật nào được kích hoạt.'}</p>
-        {error && <button type="button" onClick={onRetry} className="px-4 py-3 mt-2 text-[#205BD6] font-semibold underline">Thử lại</button>}
-      </div>
-    );
-  }
-
-  const canNavigate = plans.length > 1;
-  // Tripled list for infinite buffer: [0..N-1] [N..2N-1] [2N..3N-1]
-  const extendedPlans = [...plans, ...plans, ...plans];
 
   return (
     <div
-      className="w-full py-2 focus:outline-none"
+      className={styles.carousel}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Hành trình nổi bật khuyên dùng"
+      aria-label="Ảnh cảm hứng du lịch"
       aria-live={isPaused ? 'polite' : 'off'}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      onFocus={() => setIsFocused(true)}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsFocused(false);
       }}
       onTouchStart={(event) => {
         touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
       }}
-      onTouchEnd={(event) => {
-        if (!touchStart.current) return;
-        const dx = event.changedTouches[0].clientX - touchStart.current.x;
-        const dy = event.changedTouches[0].clientY - touchStart.current.y;
-        touchStart.current = null;
-        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) && totalPlans > 1) {
-          if (dx < 0) handleNext(); else handlePrev();
-        }
-      }}
+      onTouchEnd={handleTouchEnd}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <span className="font-label-caps text-xs text-[#205BD6] font-bold uppercase tracking-wider block">
-            HÀNH TRÌNH NỔI BẬT KHUYÊN DÙNG
-          </span>
-          <h3 className="font-headline-sm text-base sm:text-lg font-bold text-[#0E1D4F] whitespace-nowrap overflow-hidden text-ellipsis max-w-full" title="Hành trình được tuyển chọn">
-            Hành trình được tuyển chọn
-          </h3>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={handlePrev}
-            disabled={!canNavigate}
-            className="w-11 h-11 rounded-full bg-white border border-[#0E1D4F]/15 flex items-center justify-center text-[#0E1D4F] hover:bg-[#EBF1F0] disabled:opacity-30 cursor-pointer transition-colors shadow-2xs"
-            aria-label="Hành trình trước"
-          >
-            <Icon name="chevron_left" className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={!canNavigate}
-            className="w-11 h-11 rounded-full bg-white border border-[#0E1D4F]/15 flex items-center justify-center text-[#0E1D4F] hover:bg-[#EBF1F0] disabled:opacity-30 cursor-pointer transition-colors shadow-2xs"
-            aria-label="Hành trình tiếp theo"
-          >
-            <Icon name="chevron_right" className="size-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* True Sliding Carousel Window */}
-      <div className="overflow-hidden relative w-full rounded-2xl py-1">
+      {PLACE_SAMPLE_IMAGES.map((image, index) => (
         <div
-          onTransitionEnd={handleTransitionEnd}
-          className={`flex ${prefersReducedMotion || !enableTransition ? '' : 'transition-transform duration-500 ease-out'}`}
-          style={{
-            transform: `translateX(-${virtualIndex * (100 / itemsPerView)}%)`,
-          }}
+          key={image.src}
+          className={`${styles.slide} ${index === activeIndex ? styles.activeSlide : ''}`}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`Ảnh ${index + 1} trên ${PLACE_SAMPLE_IMAGES.length}`}
+          aria-hidden={index !== activeIndex}
         >
-          {extendedPlans.map((plan, idx) => (
-            <div
-              key={`${plan.id}-slot-${idx}`}
-              className="shrink-0 px-2"
-              style={{ width: `${100 / itemsPerView}%` }}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`Hành trình ${(idx % totalPlans) + 1}: ${plan.title}`}
-            >
-              <article className="h-full bg-white/95 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
-                <div className="relative h-44 w-full overflow-hidden bg-[#EBF1F0]">
-                  {plan.image && <Image
-                    src={plan.image}
-                    alt={plan.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />}
-                  <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded bg-black/60 backdrop-blur-xs text-white text-[10px] font-semibold">
-                    {plan.duration}
-                  </div>
-                  <div className="absolute bottom-2 left-2.5 right-2.5 text-white bg-black/50 backdrop-blur-xs p-1.5 rounded-lg text-xs font-semibold truncate">
-                    {plan.destination}
-                  </div>
-                </div>
-
-                <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                  <div>
-                    <h4 className="font-headline-sm text-sm font-bold text-[#0E1D4F] group-hover:text-[#205BD6] transition-colors whitespace-nowrap overflow-hidden text-ellipsis block max-w-full" title={plan.title}>
-                      {plan.title}
-                    </h4>
-                    <p className="text-xs text-[#4B5875] mt-1 line-clamp-2 leading-relaxed">
-                      {plan.summary}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#0E1D4F]/10 flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#205BD6]">
-                      {plan.budget}
-                    </span>
-
-                    <Link
-                      href={plan.destination ? `/community?province=${encodeURIComponent(plan.destination.split(',').at(-1)?.trim() ?? plan.destination)}` : '/community'}
-                      className="px-3 py-1 rounded-lg bg-[#205BD6]/10 hover:bg-[#205BD6] hover:text-white text-[#205BD6] text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      Xem cùng vùng
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            </div>
-          ))}
+          {(index === activeIndex || index === (activeIndex + 1) % PLACE_SAMPLE_IMAGES.length) && (
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              sizes="100vw"
+              priority={index === 0}
+              className={styles.slideImage}
+            />
+          )}
         </div>
+      ))}
+
+      <div className={styles.imageOverlay} aria-hidden="true" />
+
+      <div className={styles.heroContentLayer}>
+        {children}
       </div>
 
-      {/* Pagination Indicator Dots */}
-      {totalPlans > 1 && (
-        <div className="flex items-center justify-center gap-1.5 mt-3">
-          {Array.from({ length: totalPlans }).map((_, dotIdx) => (
+      <div className={styles.carouselControls} role="group" aria-label="Điều khiển ảnh">
+        <button
+          type="button"
+          onClick={goToPrevious}
+          className={styles.controlButton}
+          aria-label="Ảnh trước"
+        >
+          <Icon name="chevron_left" className="size-5" />
+        </button>
+
+        <div className={styles.carouselDots} role="group" aria-label="Chọn ảnh">
+          {PLACE_SAMPLE_IMAGES.map((image, index) => (
             <button
-              key={dotIdx}
+              key={image.src}
               type="button"
-              onClick={() => {
-                setEnableTransition(true);
-                setVirtualIndex(totalPlans + dotIdx);
-              }}
-              className="min-w-6 min-h-6 flex items-center justify-center cursor-pointer"
-              aria-label={`Chuyển đến trang ${dotIdx + 1}`}
-              aria-current={activeDotIndex === dotIdx ? 'true' : undefined}
+              onClick={() => setActiveIndex(index)}
+              className={styles.dotButton}
+              aria-label={`Chuyển đến ảnh ${index + 1}`}
+              aria-current={activeIndex === index ? 'true' : undefined}
             >
-              <span className={`h-1.5 rounded-full transition-all ${activeDotIndex === dotIdx ? 'w-6 bg-[#205BD6]' : 'w-1.5 bg-[#0E1D4F]/20'}`} />
+              <span className={`${styles.dot} ${activeIndex === index ? styles.activeDot : ''}`} />
             </button>
           ))}
         </div>
-      )}
+
+        <span className={styles.carouselCounter} aria-hidden="true">
+          {String(activeIndex + 1).padStart(2, '0')} / {String(PLACE_SAMPLE_IMAGES.length).padStart(2, '0')}
+        </span>
+        <button
+          type="button"
+          onClick={goToNext}
+          className={styles.controlButton}
+          aria-label="Ảnh tiếp theo"
+        >
+          <Icon name="chevron_right" className="size-5" />
+        </button>
+      </div>
     </div>
   );
 }

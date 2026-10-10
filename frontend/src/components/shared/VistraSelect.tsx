@@ -6,6 +6,7 @@ import Icon from '@/components/ui/Icon';
 export interface VistraSelectOption<T extends string | number = string> {
   value: T;
   label: string;
+  description?: string;
   disabled?: boolean;
 }
 
@@ -216,7 +217,12 @@ export default function VistraSelect<T extends string | number = string>({
                       : 'text-[#0E1D4F] hover:bg-[#EBF1F0] cursor-pointer'
                   }`}
                 >
-                  <span className="truncate flex-1">{option.label}</span>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="truncate">{option.label}</span>
+                    {option.description && (
+                      <span className="text-[10px] text-[#4B5875] font-normal leading-tight mt-0.5">{option.description}</span>
+                    )}
+                  </div>
                   {isSelected && (
                     <Icon name="check" className="size-4 text-[#205BD6] shrink-0" />
                   )}

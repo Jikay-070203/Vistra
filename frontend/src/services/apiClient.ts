@@ -1,4 +1,5 @@
-import { TEMPORARY_SESSION_PROXY_BASE_URL } from '@/config/apiConfig';
+import { BACKEND_PROXY_BASE_URL } from '@/config/apiConfig';
+import { API_ENDPOINTS } from '@/constants/endpoints';
 import type { ApiClientErrorType, ApiFieldErrors, ApiRequestOptions, ApiRequestResult } from '@/types/api';
 
 export class ApiClientError extends Error {
@@ -32,10 +33,86 @@ export class ApiClientError extends Error {
 }
 
 /** Shared fetch transport. Domain services validate the returned JSON schema. */
-export async function apiRequest(
+let sessionRefreshInFlight: Promise<void> | null = null;
+
+const SESSION_REFRESH_EXCLUDED_ENDPOINTS: readonly string[] = [
+  API_ENDPOINTS.AUTH.LOGIN,
+  API_ENDPOINTS.AUTH.REGISTER,
+  API_ENDPOINTS.AUTH.LOGOUT,
+  API_ENDPOINTS.AUTH.REFRESH,
+  API_ENDPOINTS.SYSTEM.HEALTH,
+  API_ENDPOINTS.CATALOG.ALLERGIES,
+  API_ENDPOINTS.CATALOG.PROVINCES,
+  API_ENDPOINTS.CONTENT.PUBLIC_LANDING,
+  API_ENDPOINTS.RECOMMENDATIONS.LIST,
+  API_ENDPOINTS.DESTINATIONS.LIST,
+  API_ENDPOINTS.TRIPS.LIST,
+  API_ENDPOINTS.PLACES.LIST,
+];
+
+function isPublicBackendEndpoint(endpoint: string): boolean {
+  const path = endpoint.split('?')[0];
+  return SESSION_REFRESH_EXCLUDED_ENDPOINTS.includes(path) ||
+    /^\/api\/v1\/destinations\/[A-Za-z0-9_-]+$/.test(path) ||
+    /^\/destinations\/[A-Za-z0-9_-]+\/seasonality$/.test(path) ||
+    /^\/places\/[0-9]+$/.test(path);
+}
+
+function shouldRefreshSession(endpoint: string, baseUrl: string | undefined, options: ApiRequestOptions): boolean {
+  return typeof window !== 'undefined' &&
+    options.transport !== 'internal' && options.transport !== 'server-backend' &&
+    baseUrl?.trim().replace(/\/+$/, '') === BACKEND_PROXY_BASE_URL &&
+    !isPublicBackendEndpoint(endpoint);
+}
+
+function refreshSession(): Promise<void> {
+  if (!sessionRefreshInFlight) {
+    sessionRefreshInFlight = requestApi(
+      API_ENDPOINTS.AUTH.REFRESH,
+      BACKEND_PROXY_BASE_URL,
+      { method: 'POST', credentials: 'include' },
+      false,
+    ).then(() => undefined).finally(() => {
+      sessionRefreshInFlight = null;
+    });
+  }
+  return sessionRefreshInFlight;
+}
+
+export function apiRequest(
   endpoint: string,
   baseUrl: string | undefined,
   options: ApiRequestOptions = {},
+): Promise<ApiRequestResult> {
+  return requestApi(endpoint, baseUrl, options, true);
+}
+
+/** Server-only backend lookup used inside Next.js proxy handlers for authorization checks. */
+export function apiRequestToBackend(
+  endpoint: string,
+  backendOrigin: URL,
+  options: Omit<ApiRequestOptions, 'transport'> = {},
+): Promise<ApiRequestResult> {
+  if (typeof window !== 'undefined') {
+    throw new ApiClientError('Yêu cầu gọi thẳng backend chỉ được dùng phía server.', {
+      endpoint,
+      errorType: 'network_error',
+    });
+  }
+  if (!['http:', 'https:'].includes(backendOrigin.protocol) || backendOrigin.username || backendOrigin.password) {
+    throw new ApiClientError('Backend origin không hợp lệ.', {
+      endpoint,
+      errorType: 'missing_base_url',
+    });
+  }
+  return requestApi(endpoint, backendOrigin.origin, { ...options, transport: 'server-backend' }, true);
+}
+
+async function requestApi(
+  endpoint: string,
+  baseUrl: string | undefined,
+  options: ApiRequestOptions,
+  allowSessionRefresh: boolean,
 ): Promise<ApiRequestResult> {
   let requestUrl: string;
 
@@ -63,45 +140,25 @@ export async function apiRequest(
       });
     }
     requestUrl = endpoint;
+  } else if (options.transport === 'server-backend') {
+    if (typeof window !== 'undefined' || !baseUrl) {
+      throw new ApiClientError('Yêu cầu gọi thẳng backend chỉ được dùng phía server.', {
+        endpoint,
+        errorType: 'network_error',
+      });
+    }
+    requestUrl = `${baseUrl.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
   } else {
-    if (!baseUrl || !baseUrl.trim()) {
+    const normalizedBase = baseUrl?.trim().replace(/\/+$/, '');
+    if (normalizedBase !== BACKEND_PROXY_BASE_URL) {
       throw new ApiClientError(
-        'Chưa cấu hình biến môi trường NEXT_PUBLIC_API_URL. Vui lòng thiết lập base URL của backend trong file môi trường.',
-        { endpoint: '(Chưa cấu hình)', errorType: 'missing_base_url' },
+        `API VISTRA từ trình duyệt phải đi qua Next.js proxy ${BACKEND_PROXY_BASE_URL}.`,
+        { endpoint: normalizedBase || '(Chưa cấu hình proxy)', errorType: 'missing_base_url' },
       );
     }
 
-    const trimmedBase = baseUrl.trim();
-    const isExplicitSessionProxy = trimmedBase === TEMPORARY_SESSION_PROXY_BASE_URL;
-
-    let isValidAbsolute = false;
-    if (!trimmedBase.startsWith('/') && !trimmedBase.startsWith('//')) {
-      try {
-        const parsed = new URL(trimmedBase);
-        if (
-          (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
-          !parsed.username &&
-          !parsed.password &&
-          !parsed.search &&
-          !parsed.hash
-        ) {
-          isValidAbsolute = true;
-        }
-      } catch {
-        isValidAbsolute = false;
-      }
-    }
-
-    if (!isExplicitSessionProxy && !isValidAbsolute) {
-      throw new ApiClientError(
-        'Chưa cấu hình biến môi trường NEXT_PUBLIC_API_URL. Vui lòng thiết lập base URL của backend trong file môi trường.',
-        { endpoint: '(Chưa cấu hình)', errorType: 'missing_base_url' },
-      );
-    }
-
-    const normalizedBaseUrl = trimmedBase.replace(/\/+$/, '');
     const normalizedPath = '/' + endpoint.replace(/^\/+/, '');
-    requestUrl = `${normalizedBaseUrl}${normalizedPath}`;
+    requestUrl = `${normalizedBase}${normalizedPath}`;
   }
 
   const { jsonBody, transport: _transport, ...requestOptions } = options;
@@ -133,6 +190,17 @@ export async function apiRequest(
       `Không thể kết nối tới backend (${detail}). Vui lòng kiểm tra backend và cấu hình CORS.`,
       { endpoint: requestUrl, errorType: 'network_error' },
     );
+  }
+
+  if (response.status === 401 && allowSessionRefresh && shouldRefreshSession(endpoint, baseUrl, options)) {
+    let refreshed = false;
+    try {
+      await refreshSession();
+      refreshed = true;
+    } catch {
+      // Preserve the original request's 401 details when refresh fails.
+    }
+    if (refreshed) return requestApi(endpoint, baseUrl, options, false);
   }
 
   if (!response.ok) {

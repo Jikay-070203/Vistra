@@ -21,6 +21,14 @@ import AllergyOptionModal from './AllergyOptionModal';
 
 type ContentTab = 'intro' | 'hero' | 'allergies';
 
+export function isCmsManagedContentId(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+}
+
+export function isHidingActiveCmsRecord(currentActive: boolean, nextActive: boolean): boolean {
+  return currentActive && !nextActive;
+}
+
 export interface AdminIntroItem {
   id: string;
   label: string;
@@ -51,6 +59,12 @@ function AdminContentPanel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [contentError, setContentError] = useState<string | null>(null);
   const [contentReload, setContentReload] = useState(0);
+
+  const reloadContent = () => {
+    setContentError(null);
+    setIsLoading(true);
+    setContentReload((value) => value + 1);
+  };
 
   // Modal / Form state for Intro Destinations
   const [editingIntro, setEditingIntro] = useState<AdminIntroItem | null>(null);
@@ -129,6 +143,7 @@ function AdminContentPanel() {
   }, [contentReload]);
 
   const activeIntroCount = introList.filter((d) => d.active).length;
+  const hasFallbackAllergies = allergyList.some((item) => !isCmsManagedContentId(item.id));
   const currentItems = activeTab === 'intro' ? introList : activeTab === 'hero' ? heroList : allergyList;
   const totalPages = Math.max(1, Math.ceil(currentItems.length / pageSize));
   const page = Math.min(currentPage, totalPages);
@@ -139,6 +154,15 @@ function AdminContentPanel() {
   const handleSaveIntro = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingIntro || isSubmitting) return;
+    if (!isCmsManagedContentId(editingIntro.id)) {
+      setIntroFormError('Mục fallback chỉ xem được; API CMS hiện không thể cập nhật mục này.');
+      return;
+    }
+    const currentIntro = introList.find((item) => item.id === editingIntro.id);
+    if (currentIntro && isHidingActiveCmsRecord(currentIntro.active, editingIntro.active)) {
+      setIntroFormError('Không thể ẩn mục đang bật: API chỉ trả mục hoạt động nên mục này sẽ không xuất hiện để bật lại trong CMS.');
+      return;
+    }
 
     const label = editingIntro.label.trim();
     const image = editingIntro.image.trim();
@@ -188,6 +212,7 @@ function AdminContentPanel() {
             : d
         )
       );
+      reloadContent();
 
       setEditingIntro(null);
       setSaveStatus('Đã cập nhật điểm đến trong Admin CMS.');
@@ -201,12 +226,21 @@ function AdminContentPanel() {
 
   const handleToggleIntroActive = async (dest: AdminIntroItem) => {
     if (isSubmitting) return;
+    if (!isCmsManagedContentId(dest.id)) {
+      setSaveStatus('Mục fallback chỉ xem được; API CMS hiện không thể cập nhật mục này.');
+      return;
+    }
+    if (isHidingActiveCmsRecord(dest.active, !dest.active)) {
+      setSaveStatus('Không thể ẩn mục đang bật: API chỉ trả mục hoạt động nên mục này sẽ không thể bật lại trong CMS.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       const res = await updateIntroContent(dest.id, { active: !dest.active });
       setIntroList((prev) =>
         prev.map((d) => (d.id === dest.id ? { ...d, active: res.data.active } : d))
       );
+      reloadContent();
       setSaveStatus(`Đã ${res.data.active ? 'kích hoạt' : 'bỏ chọn'} điểm đến ${dest.label}.`);
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err: unknown) {
@@ -233,11 +267,17 @@ function AdminContentPanel() {
       return;
     }
 
+    const existingHero = heroList.find((plan) => plan.id === editingHero.id);
+    if (existingHero && isHidingActiveCmsRecord(existingHero.active, editingHero.active)) {
+      setHeroFormError('Không thể ẩn mục đang bật: API chỉ trả mục hoạt động nên mục này sẽ không xuất hiện để bật lại trong CMS.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setHeroFormError(null);
 
-      const isExisting = heroList.some((h) => h.id === editingHero.id);
+      const isExisting = Boolean(existingHero);
       if (isExisting) {
         const res = await updateHeroContent(editingHero.id, {
           title: editingHero.title.trim(),
@@ -305,6 +345,7 @@ function AdminContentPanel() {
         setSaveStatus('Đã tạo kế hoạch mới trong Admin CMS.');
       }
 
+      reloadContent();
       setEditingHero(null);
       setTimeout(() => setSaveStatus(null), 4000);
     } catch (err: unknown) {
@@ -316,12 +357,17 @@ function AdminContentPanel() {
 
   const handleToggleHeroActive = async (plan: HeroCarouselPlan) => {
     if (isSubmitting) return;
+    if (isHidingActiveCmsRecord(plan.active, !plan.active)) {
+      setSaveStatus('Không thể ẩn mục Hero đang bật: API chỉ trả mục hoạt động nên mục này sẽ không xuất hiện để bật lại trong CMS.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       const res = await updateHeroContent(plan.id, { active: !plan.active });
       setHeroList((prev) =>
         prev.map((p) => (p.id === plan.id ? { ...p, active: res.data.active } : p))
       );
+      reloadContent();
       setSaveStatus(`Đã ${res.data.active ? 'bật' : 'tắt'} hiển thị kế hoạch.`);
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err: unknown) {
@@ -337,6 +383,7 @@ function AdminContentPanel() {
       setIsSubmitting(true);
       await deleteContent('hero-plans', id);
       setHeroList((prev) => prev.filter((p) => p.id !== id));
+      reloadContent();
       setSaveStatus('Đã xóa kế hoạch khỏi Admin CMS.');
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err: unknown) {
@@ -347,7 +394,19 @@ function AdminContentPanel() {
   };
 
   const handleSaveSingleAllergy = async (allergy: { id?: string; label: string; active?: boolean }) => {
-    const isExisting = allergyList.some((a) => a.id === allergy.id);
+    const existingAllergy = allergyList.find((item) => item.id === allergy.id);
+    const isExisting = Boolean(existingAllergy);
+    if (isExisting && !isCmsManagedContentId(allergy.id ?? '')) {
+      setSaveStatus('Mục fallback chỉ xem được; API CMS hiện không thể cập nhật mục này.');
+      return;
+    }
+    if (existingAllergy && isHidingActiveCmsRecord(existingAllergy.active, allergy.active ?? existingAllergy.active)) {
+      throw new Error('Không thể ẩn mục đang bật: API chỉ trả mục hoạt động nên mục này sẽ không xuất hiện để bật lại trong CMS.');
+    }
+    if (!isExisting && hasFallbackAllergies) {
+      setSaveStatus('Chưa thể thêm dị ứng khi danh sách fallback đang hiển thị; thao tác này sẽ thay thế catalog public.');
+      return;
+    }
     if (isExisting && allergy.id) {
       const res = await updateAllergyContent(allergy.id, {
         label: allergy.label.trim(),
@@ -375,11 +434,17 @@ function AdminContentPanel() {
       ]);
       setSaveStatus('Đã thêm mục dị ứng mới vào danh mục.');
     }
+    reloadContent();
     setEditingAllergy(null);
     setTimeout(() => setSaveStatus(null), 4000);
   };
 
   const handleSaveBulkAllergies = async (items: string[]) => {
+    if (hasFallbackAllergies) {
+      const error = 'Chưa thể thêm dị ứng khi danh sách fallback đang hiển thị; thao tác này sẽ thay thế catalog public.';
+      return { succeeded: [], failed: items.map((label) => ({ label, error })) };
+    }
+
     const succeeded: string[] = [];
     const failed: { label: string; error: string }[] = [];
 
@@ -403,6 +468,8 @@ function AdminContentPanel() {
       }
     }
 
+    if (succeeded.length > 0) reloadContent();
+
     if (succeeded.length > 0 && failed.length === 0) {
       setSaveStatus(`Đã thêm thành công ${succeeded.length} mục dị ứng vào Admin CMS.`);
       setTimeout(() => setSaveStatus(null), 4000);
@@ -415,12 +482,21 @@ function AdminContentPanel() {
 
   const handleToggleAllergyActive = async (item: AllergyOption) => {
     if (isSubmitting) return;
+    if (!isCmsManagedContentId(item.id)) {
+      setSaveStatus('Mục fallback chỉ xem được; API CMS hiện không thể cập nhật mục này.');
+      return;
+    }
+    if (isHidingActiveCmsRecord(item.active, !item.active)) {
+      setSaveStatus('Không thể ẩn mục đang bật: API chỉ trả mục hoạt động nên mục này sẽ không thể bật lại trong CMS.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       const res = await updateAllergyContent(item.id, { active: !item.active });
       setAllergyList((prev) =>
         prev.map((a) => (a.id === item.id ? { ...a, active: res.data.active } : a))
       );
+      reloadContent();
       setSaveStatus(`Đã ${res.data.active ? 'kích hoạt' : 'ẩn'} mục dị ứng ${item.label}.`);
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err: unknown) {
@@ -432,10 +508,15 @@ function AdminContentPanel() {
 
   const handleDeleteAllergy = async (id: string) => {
     if (isSubmitting) return;
+    if (!isCmsManagedContentId(id)) {
+      setSaveStatus('Mục fallback chỉ xem được; API CMS hiện không thể xóa mục này.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       await deleteContent('allergy-options', id);
       setAllergyList((prev) => prev.filter((a) => a.id !== id));
+      reloadContent();
       setSaveStatus('Đã xóa mục dị ứng khỏi danh mục.');
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err: unknown) {
@@ -470,7 +551,7 @@ function AdminContentPanel() {
       </div>
 
       <p role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        Thay đổi được lưu vào Admin CMS. Đồng bộ với Hero, điểm đến Landing và danh mục dị ứng public đang chờ backend hỗ trợ.
+        Intro và dị ứng có thể quản lý qua CMS API khi là bản ghi CMS; dòng fallback chỉ xem. Hero Landing hiện dùng ảnh local, không lấy ảnh từ Hero Plans CMS.
       </p>
 
       {/* Global Notice Toast */}
@@ -544,7 +625,7 @@ function AdminContentPanel() {
                 Điểm đến Khởi nguồn Trang chủ
               </h2>
               <p className="text-xs text-[#4B5875] mt-0.5">
-                Danh sách được lưu trong Admin CMS; nguồn điểm đến Landing hiện đọc catalog riêng.
+                Nội dung này được API Landing công khai sử dụng; nếu CMS chưa có mục intro, backend trả catalog điểm đến.
               </p>
             </div>
             <div className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
@@ -553,6 +634,12 @@ function AdminContentPanel() {
           </div>
 
           {introList.length === 0 && <p className="rounded-2xl bg-white p-6 text-sm text-[#4B5875]">Máy chủ chưa có điểm đến intro.</p>}
+          {(introList.some((dest) => !isCmsManagedContentId(dest.id)) || introList.some((dest) => dest.active && isCmsManagedContentId(dest.id))) && (
+            <p role="note" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              {introList.some((dest) => !isCmsManagedContentId(dest.id)) && 'ID không phải UUID được xem là dữ liệu fallback (suy luận vì API chưa trả nguồn dữ liệu); các mục này chỉ xem được. '}
+              {introList.some((dest) => dest.active && isCmsManagedContentId(dest.id)) && 'Không thể ẩn mục CMS đang bật vì API chỉ trả mục hoạt động, nên mục đã ẩn sẽ không xuất hiện để bật lại.'}
+            </p>
+          )}
           {/* Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {visibleIntro.map((dest) => {
@@ -583,6 +670,11 @@ function AdminContentPanel() {
                         </div>
                       )}
                       <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        {!isCmsManagedContentId(dest.id) && (
+                          <span title="Nguồn fallback được suy luận từ ID; API chưa trả source discriminator" className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                            Fallback · chỉ xem
+                          </span>
+                        )}
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             dest.active
@@ -614,9 +706,10 @@ function AdminContentPanel() {
                 <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
                   <button
                     type="button"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isCmsManagedContentId(dest.id) || dest.active}
+                    title={!isCmsManagedContentId(dest.id) ? 'Mục fallback chỉ xem được.' : dest.active ? 'Không thể ẩn vì API không trả lại mục đã ẩn để bật lại.' : undefined}
                     onClick={() => handleToggleIntroActive(dest)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold border disabled:cursor-not-allowed disabled:opacity-50 ${
                       dest.active
                         ? 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
                         : 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100'
@@ -628,8 +721,10 @@ function AdminContentPanel() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      disabled={!isCmsManagedContentId(dest.id)}
+                      title={!isCmsManagedContentId(dest.id) ? 'Mục fallback chỉ xem được.' : undefined}
                       onClick={() => setEditingIntro(dest)}
-                      className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#205BD6] text-white hover:bg-[#1847a8]"
+                      className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#205BD6] text-white hover:bg-[#1847a8] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Chỉnh sửa
                     </button>
@@ -651,7 +746,7 @@ function AdminContentPanel() {
                 Kế hoạch Gợi ý Hero Carousel
               </h2>
               <p className="text-xs text-[#4B5875] mt-0.5">
-                Hiển thị toàn bộ kế hoạch đang có, không áp đặt giới hạn số lượng và không dùng placeholder giả.
+                Danh sách kế hoạch được quản lý trong CMS. Carousel Landing hiện dùng ảnh local, không lấy ảnh từ danh sách Hero Plans CMS.
               </p>
             </div>
             <button
@@ -683,7 +778,7 @@ function AdminContentPanel() {
               <Icon name="view_carousel" size={40} className="mx-auto text-slate-400 mb-3" />
               <h3 className="text-base font-bold text-[#0E1D4F]">Chưa có kế hoạch nào trong Carousel</h3>
               <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                Bấm &quot;Thêm Kế hoạch Mới&quot; để tạo một kế hoạch gợi ý hiển thị trên trang chủ.
+              Bấm &quot;Thêm Kế hoạch Mới&quot; để lưu bản ghi trong CMS. Carousel Landing hiện dùng ảnh local và chưa lấy dữ liệu từ đây.
               </p>
             </div>
           ) : (
@@ -745,9 +840,10 @@ function AdminContentPanel() {
                   <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                     <button
                       type="button"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || plan.active}
+                      title={plan.active ? 'Không thể ẩn vì API không trả lại mục đã ẩn để bật lại.' : undefined}
                       onClick={() => handleToggleHeroActive(plan)}
-                      className={`text-xs font-semibold px-3 py-1 rounded-lg border ${
+                      className={`text-xs font-semibold px-3 py-1 rounded-lg border disabled:cursor-not-allowed disabled:opacity-50 ${
                         plan.active
                           ? 'bg-white text-slate-600 border-slate-300'
                           : 'bg-emerald-50 text-emerald-700 border-emerald-300'
@@ -791,11 +887,13 @@ function AdminContentPanel() {
                 Danh mục Dị ứng &amp; Chế độ Ăn kiêng
               </h2>
               <p className="text-xs text-[#4B5875] mt-0.5">
-                Danh mục trong Admin CMS; chưa đồng bộ với catalog public hoặc request tạo chuyến đi.
+                Các mục đang hoạt động được backend dùng làm catalog công khai cho Landing và tạo chuyến đi.
               </p>
             </div>
             <button
               type="button"
+              disabled={hasFallbackAllergies}
+              title={hasFallbackAllergies ? 'Thêm bị khóa khi danh sách fallback đang hiển thị.' : undefined}
               onClick={() => {
                 setEditingAllergy({
                   id: `allergy-${Date.now()}`,
@@ -803,12 +901,20 @@ function AdminContentPanel() {
                   active: true,
                 });
               }}
-              className="px-4 py-2 rounded-xl bg-[#205BD6] text-white text-xs font-bold hover:bg-[#1847a8] flex items-center gap-1.5 shadow-xs"
+              className="px-4 py-2 rounded-xl bg-[#205BD6] text-white text-xs font-bold hover:bg-[#1847a8] flex items-center gap-1.5 shadow-xs disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Icon name="add" size={16} />
               <span>Thêm Mục Dị ứng</span>
             </button>
           </div>
+
+          {(hasFallbackAllergies || allergyList.some((item) => item.active && isCmsManagedContentId(item.id))) && (
+            <p role="note" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              {hasFallbackAllergies
+                ? 'ID không phải UUID được xem là dữ liệu fallback (suy luận vì API chưa trả nguồn dữ liệu); chỉ xem và không thể thêm dị ứng để tránh thay thế catalog public.'
+                : 'Không thể ẩn mục CMS đang bật: API chỉ trả mục hoạt động nên mục đã ẩn sẽ không xuất hiện để bật lại.'}
+            </p>
+          )}
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs">
@@ -825,30 +931,35 @@ function AdminContentPanel() {
                   <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-[#0E1D4F]">
                       {item.label}
+                      {!isCmsManagedContentId(item.id) && <span title="Nguồn fallback được suy luận từ ID; API chưa trả source discriminator" className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">Fallback · chỉ xem</span>}
                     </td>
                     <td className="py-3.5 px-4 text-slate-500">{item.active ? 'Đang dùng' : 'Đã ẩn'}</td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          disabled={isSubmitting}
+                          disabled={isSubmitting || !isCmsManagedContentId(item.id) || item.active}
+                          title={!isCmsManagedContentId(item.id) ? 'Mục fallback chỉ xem được.' : item.active ? 'Không thể ẩn vì API không trả lại mục đã ẩn để bật lại.' : undefined}
                           onClick={() => handleToggleAllergyActive(item)}
-                          className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 font-semibold text-[#0E1D4F] disabled:opacity-50"
+                          className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 font-semibold text-[#0E1D4F] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {item.active ? 'Ẩn' : 'Kích hoạt'}
                         </button>
                         <button
                           type="button"
+                          disabled={!isCmsManagedContentId(item.id)}
+                          title={!isCmsManagedContentId(item.id) ? 'Mục fallback chỉ xem được.' : undefined}
                           onClick={() => setEditingAllergy(item)}
-                          className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 font-semibold text-[#0E1D4F]"
+                          className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 font-semibold text-[#0E1D4F] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Sửa
                         </button>
                         <button
                           type="button"
-                          disabled={isSubmitting}
+                          disabled={isSubmitting || !isCmsManagedContentId(item.id)}
+                          title={!isCmsManagedContentId(item.id) ? 'Mục fallback chỉ xem được.' : undefined}
                           onClick={() => handleDeleteAllergy(item.id)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded disabled:opacity-50"
+                          className="p-1 text-red-500 hover:bg-red-50 rounded disabled:cursor-not-allowed disabled:opacity-50"
                           aria-label="Xóa dị ứng"
                         >
                           <Icon name="delete" size={16} />
@@ -929,7 +1040,8 @@ function AdminContentPanel() {
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Mã tỉnh đã lưu</label>
                   <input readOnly disabled value={editingIntro.rawProvinceCode == null ? '' : String(editingIntro.rawProvinceCode)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800 bg-slate-100" />
-                  <p className="mt-1 text-xs text-slate-600">Backend chưa cung cấp danh mục mã tỉnh hành chính; chỉnh sửa mã tỉnh chưa khả dụng.</p>                </div>
+                  <p className="mt-1 text-xs text-slate-600">Backend trả mã tỉnh dưới dạng số hoặc slug; trường này hiện chỉ đọc.</p>
+                </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Thứ tự hiển thị (#)</label>
                   <input

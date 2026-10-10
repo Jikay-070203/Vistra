@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import { useLoginController } from './useLoginController';
+import ComingSoonModal from './ComingSoonModal';
 
 export default function LoginScreen() {
   const {
@@ -19,6 +20,20 @@ export default function LoginScreen() {
     feedbackMessage,
     handleLoginSubmit,
   } = useLoginController();
+  const [comingSoonOpen, setComingSoonOpen] = React.useState(false);
+  const [comingSoonTitle, setComingSoonTitle] = React.useState('Tính năng đang phát triển');
+  const actionTriggerRef = React.useRef<HTMLButtonElement | null>(null);
+
+  React.useEffect(() => {
+    if (!comingSoonOpen) actionTriggerRef.current?.focus();
+  }, [comingSoonOpen]);
+
+  const handleUnavailableAction = (title: string, trigger: HTMLButtonElement) => {
+    actionTriggerRef.current = trigger;
+    setComingSoonTitle(title);
+    setComingSoonOpen(true);
+  };
+  const closeComingSoon = React.useCallback(() => setComingSoonOpen(false), []);
 
   return (
     <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-10 sm:py-16 flex items-center justify-center min-h-[calc(100vh-76px-300px)]">
@@ -31,17 +46,6 @@ export default function LoginScreen() {
           <h1 className="font-headline-sm text-2xl font-bold text-[#0E1D4F]">
             Đăng nhập tài khoản
           </h1>
-          <p className="text-xs sm:text-sm text-[#4B5875]">
-            Cổng xác thực hợp nhất dành cho Du khách và Quản trị viên VISTRA
-          </p>
-        </div>
-
-        {/* Unified Notice Banner */}
-        <div className="p-3 bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 flex items-start gap-2.5 text-xs text-[#4B5875]">
-          <Icon name="info" className="size-4 text-[#205BD6] shrink-0 mt-0.5" />
-          <span>
-            Hệ thống tự động điều hướng theo quyền hạn tài khoản tương ứng sau khi xác thực hợp lệ.
-          </span>
         </div>
 
         {/* Feedback alert */}
@@ -72,9 +76,8 @@ export default function LoginScreen() {
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 placeholder="traveler@vistra.vn"
-                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${
-                  errors.email ? 'border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
-                } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${errors.email ? 'border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
+                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'login-email-error' : undefined}
               />
@@ -98,9 +101,8 @@ export default function LoginScreen() {
               </label>
               <button
                 type="button"
-                disabled
-                title="Backend chưa hỗ trợ khôi phục mật khẩu"
-                className="text-[11px] text-[#205BD6] hover:underline cursor-pointer"
+                onClick={(event) => handleUnavailableAction('Khôi phục mật khẩu', event.currentTarget)}
+                className="text-[11px] text-[#205BD6] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
               >
                 Quên mật khẩu?
               </button>
@@ -115,9 +117,8 @@ export default function LoginScreen() {
                   if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 placeholder="Nhập mật khẩu của bạn"
-                className={`w-full pl-3.5 pr-10 py-2.5 text-sm rounded-xl bg-white border ${
-                  errors.password ? 'border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
-                } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                className={`w-full pl-3.5 pr-10 py-2.5 text-sm rounded-xl bg-white border ${errors.password ? 'border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
+                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? 'login-password-error' : undefined}
               />
@@ -160,25 +161,21 @@ export default function LoginScreen() {
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            disabled
-            title="Backend chưa cấu hình Google OAuth"
-            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all cursor-pointer"
+            onClick={(event) => handleUnavailableAction('Google', event.currentTarget)}
+            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
           >
             <span className="font-bold text-[#205BD6]">G</span>
             <span>Google</span>
           </button>
           <button
             type="button"
-            disabled
-            title="Backend chưa cấu hình Facebook OAuth"
-            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all cursor-pointer"
+            onClick={(event) => handleUnavailableAction('Facebook', event.currentTarget)}
+            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
           >
             <span className="font-bold text-[#205BD6]">f</span>
             <span>Facebook</span>
           </button>
         </div>
-
-        <p className="text-xs text-[#4B5875]">Đăng nhập Google/Facebook và khôi phục mật khẩu chưa khả dụng từ backend.</p>
 
         {/* Footer Nav Link */}
         <div className="text-center pt-2 text-xs text-[#4B5875]">
@@ -188,6 +185,11 @@ export default function LoginScreen() {
           </Link>
         </div>
       </div>
+      <ComingSoonModal
+        isOpen={comingSoonOpen}
+        onClose={closeComingSoon}
+        title={comingSoonTitle}
+      />
     </div>
   );
 }

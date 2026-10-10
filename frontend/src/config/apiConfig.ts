@@ -1,19 +1,17 @@
 export const API_BASE_URLS = {
   PROVINCES: 'https://provinces.open-api.vn/api',
-  TEMPORARY_SESSION_PROXY: '/api/backend',
+  BACKEND_PROXY: '/api/backend',
 } as const;
 
-/**
- * Temporary session proxy path for session-dependent services.
- *
- * BLOCKED EXCEPTION:
- * Retained pending resolution of the backend host-only SameSite=Lax session cookie
- * blocker (cannot be read by Next SSR guard on frontend host after direct backend login).
- */
-export const TEMPORARY_SESSION_PROXY_BASE_URL = API_BASE_URLS.TEMPORARY_SESSION_PROXY;
+/** Same-origin Next.js route that forwards allowlisted VISTRA Backend requests. */
+export const BACKEND_PROXY_BASE_URL = API_BASE_URLS.BACKEND_PROXY;
 
+/** @deprecated Use BACKEND_PROXY_BASE_URL; retained for existing imports. */
+export const TEMPORARY_SESSION_PROXY_BASE_URL = BACKEND_PROXY_BASE_URL;
+
+/** Kept as the existing service-facing name for compatibility. */
 export function getSessionProxyBaseUrl(): string {
-  return TEMPORARY_SESSION_PROXY_BASE_URL;
+  return BACKEND_PROXY_BASE_URL;
 }
 
 /**
@@ -48,9 +46,8 @@ export function normalizeHttpOrigin(raw?: string): string | undefined {
 }
 
 /**
- * Default VISTRA backend base URL from process.env.NEXT_PUBLIC_API_URL.
- * Normalized HTTP(S) origin; no automatic '/api/backend', window origin,
- * or hardcoded Vercel domain fallback.
+ * Configured VISTRA backend origin used by server-side proxy forwarding.
+ * Browser services should use getSessionProxyBaseUrl() instead.
  */
 export function getApiBaseUrl(): string | undefined {
   return normalizeHttpOrigin(process.env.NEXT_PUBLIC_API_URL);

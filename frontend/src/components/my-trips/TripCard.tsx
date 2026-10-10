@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
+import { useProvinceName } from '@/components/planner/PlannerHeader';
 
 export interface UnifiedTripCard {
   id: string;
@@ -18,6 +19,7 @@ export interface UnifiedTripCard {
 
 export default function TripCard({ plan }: { plan: UnifiedTripCard }) {
   const status = plan.status === 'draft' ? 'BẢN NHÁP' : plan.status === 'confirmed' ? 'ĐÃ XÁC NHẬN' : plan.status;
+  const destinationName = useProvinceName(plan.destination);
   return (
     <article className="bg-white/85 rounded-2xl border border-[#0E1D4F]/10 overflow-hidden shadow-xs flex flex-col min-h-[350px] h-full w-full">
       <div className="relative h-44 bg-[#EBF1F0]">
@@ -27,7 +29,7 @@ export default function TripCard({ plan }: { plan: UnifiedTripCard }) {
         {plan.duration && <span className="absolute bottom-3 right-3 rounded-lg bg-white px-2 py-1 text-xs text-[#0E1D4F]">{plan.duration}</span>}
       </div>
       <div className="p-4 flex-1 space-y-3">
-        <p className="text-xs font-semibold text-[#205BD6]">{plan.destination}</p>
+        <p className="text-xs font-semibold text-[#205BD6]">{destinationName || plan.destination}</p>
         <h3 className="font-bold text-[#0E1D4F]">{plan.title}</h3>
         <p className="text-xs text-[#4B5875]">{plan.dates}</p>
         <p className="text-xs text-[#4B5875]">Ngân sách: <strong>{plan.budget}</strong></p>

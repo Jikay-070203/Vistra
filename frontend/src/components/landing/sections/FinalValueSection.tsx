@@ -297,8 +297,8 @@ export default function FinalValueSection({
 
           {/* Right Column: Value Summary (5 cols) */}
           <div className={`col-span-12 lg:col-span-5 ${styles.finalCopyCol}`}>
-            <h2 className={styles.h2} title="Mọi mảnh ghép đang sẵn sàng.">
-              Mọi mảnh ghép đang sẵn sàng.
+            <h2 className="text-xl sm:text-2xl lg:text-[28px] font-bold text-[#0E1D4F] leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full" title="Sẵn sàng khởi hành.">
+              Sẵn sàng khởi hành.
             </h2>
             <p className={styles.body}>
               Lộ trình liền mạch, nhịp độ cân bằng và bạn luôn làm chủ chuyến đi.

@@ -35,7 +35,7 @@ const EMPTY_FORM_DATA: ProfileFormData = {
 
 export function useProfileController() {
   const searchParams = useSearchParams();
-  const { user } = useUserAuth();
+  const { user, isLoaded } = useUserAuth();
 
   const tabParam = searchParams.get('tab');
   const validUrlTab = (tabParam === 'feedback' || tabParam === 'dna' || tabParam === 'subscription' || tabParam === 'activity' || tabParam === 'info')
@@ -323,6 +323,7 @@ export function useProfileController() {
 
   return {
     isLoggedIn,
+    isLoaded,
     activeTab,
     setActiveTab,
     formData,

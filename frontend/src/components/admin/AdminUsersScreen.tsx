@@ -1,231 +1,195 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import Icon from '@/components/ui/Icon';
-import MockBadge from './demo/MockBadge';
-import { ADMIN_MOCK_USERS } from './demo/adminDemoData';
+import ConfirmModal from './ConfirmModal';
+import { getAdminUsers, updateAdminUserStatus } from '@/services/adminOperationsService';
+import type { AdminUserView, AdminUsersPageView } from '@/types/adminOperationsApi';
+
+function formatDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('vi-VN').format(date);
+}
+
+function roleLabel(role: AdminUserView['role']): string {
+  return role === 'admin' ? 'Quản trị viên' : role === 'staff' ? 'Nhân viên' : 'Du khách';
+}
+
+function statusLabel(status: AdminUserView['status']): string {
+  return status === 'active' ? 'Hoạt động' : status === 'suspended' ? 'Tạm khóa' : 'Vô hiệu hóa';
+}
 
 export default function AdminUsersScreen() {
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'traveler' | 'staff' | 'admin'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
-  const [sortField, setSortField] = useState<'fullName' | 'tripsCount' | 'joinedAt'>('joinedAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [pageSize, setPageSize] = useState<number>(5);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [pageSize, setPageSize] = useState<number>(20);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [snapshot, setSnapshot] = useState<{ key: string; page: AdminUsersPageView | null; error: string | null } | null>(null);
+  const [reload, setReload] = useState(0);
+  const [selectedUser, setSelectedUser] = useState<AdminUserView | null>(null);
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
+  const [sort, setSort] = useState<{ field: 'full_name' | 'created_at'; direction: 'asc' | 'desc' } | null>(null);
 
-  const filteredUsers = useMemo(() => {
-    return ADMIN_MOCK_USERS.filter((user) => {
-      const matchSearch =
-        user.fullName.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase());
-      const matchRole = roleFilter === 'all' || user.role === roleFilter;
-      const matchStatus = statusFilter === 'all' || user.status === statusFilter;
-      return matchSearch && matchRole && matchStatus;
-    }).sort((a, b) => {
-      let comp = 0;
-      if (sortField === 'fullName') comp = a.fullName.localeCompare(b.fullName, 'vi');
-      else if (sortField === 'tripsCount') comp = a.tripsCount - b.tripsCount;
-      else if (sortField === 'joinedAt') comp = a.joinedAt.localeCompare(b.joinedAt);
-      return sortOrder === 'asc' ? comp : -comp;
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setCurrentPage(1);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const requestKey = [currentPage, pageSize, debouncedSearch, reload].join(':');
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getAdminUsers({ page: currentPage, pageSize, q: debouncedSearch }, controller.signal).then(result => {
+      if (!controller.signal.aborted) setSnapshot({ key: requestKey, page: result.data, error: null });
+    }).catch((cause: unknown) => {
+      if (!controller.signal.aborted) setSnapshot({ key: requestKey, page: null, error: cause instanceof Error ? cause.message : 'Không thể tải danh sách người dùng.' });
     });
-  }, [search, roleFilter, statusFilter, sortField, sortOrder]);
+    return () => controller.abort();
+  }, [currentPage, pageSize, debouncedSearch, reload, requestKey]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
-  const paginatedUsers = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredUsers.slice(start, start + pageSize);
-  }, [filteredUsers, currentPage, pageSize]);
+  const current = snapshot?.key === requestKey && search.trim() === debouncedSearch ? snapshot : null;
+  const page = current?.page ?? null;
+  const loading = current === null;
+  const loadError = current?.error ?? null;
+  const totalPages = Math.max(1, Math.ceil((page?.total ?? 0) / pageSize));
+  const displayedCount = page?.items.length ?? 0;
+  const totalLabel = loading ? '…' : page ? page.total.toLocaleString('vi-VN') : '—';
+  const sortedUsers = !page?.items || !sort ? page?.items ?? [] : [...page.items].sort((left, right) => {
+      const comparison = sort.field === 'full_name'
+        ? left.full_name.localeCompare(right.full_name, 'vi')
+        : left.created_at.localeCompare(right.created_at);
+      return sort.direction === 'asc' ? comparison : -comparison;
+    });
 
-  const toggleSort = (field: typeof sortField) => {
-    if (sortField === field) {
-      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
+  const cycleSort = (field: 'full_name' | 'created_at') => {
+    setSort(current => current?.field !== field
+      ? { field, direction: 'asc' }
+      : current.direction === 'asc'
+        ? { field, direction: 'desc' }
+        : null);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!selectedUser || pendingUserId) return;
+    const user = selectedUser;
+    const status: AdminUserView['status'] = user.status === 'active' ? 'suspended' : 'active';
+    setPendingUserId(user.id);
+    setMutationError(null);
+    try {
+      await updateAdminUserStatus(user.id, status);
+      setSelectedUser(null);
+      setReload(value => value + 1);
+    } catch (cause: unknown) {
+      setMutationError(cause instanceof Error ? cause.message : 'Không thể cập nhật trạng thái tài khoản.');
+    } finally {
+      setPendingUserId(null);
     }
   };
 
-  const roleCounts = useMemo(() => {
-    const total = ADMIN_MOCK_USERS.length;
-    const travelers = ADMIN_MOCK_USERS.filter((u) => u.role === 'traveler').length;
-    const staff = ADMIN_MOCK_USERS.filter((u) => u.role === 'staff').length;
-    const admin = ADMIN_MOCK_USERS.filter((u) => u.role === 'admin').length;
-    return { total, travelers, staff, admin };
-  }, []);
-
   return (
     <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 space-y-8">
-      {/* Header */}
       <header className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
-            Quản lý Người dùng &amp; Phân quyền
-          </h1>
-          <p className="text-sm text-[#4B5875] mt-1">
-            Danh sách tài khoản thành viên, nhân viên điều phối và quản trị viên hệ thống VISTRA.
-          </p>
+          <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">Quản lý Người dùng &amp; Phân quyền</h1>
+          <p className="text-sm text-[#4B5875] mt-1">Danh sách tài khoản do máy chủ trả về, sắp xếp theo ngày tạo mới nhất.</p>
         </div>
-        <MockBadge />
+        <button type="button" disabled={loading} onClick={() => setReload(value => value + 1)} className="rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm text-[#205BD6] font-semibold disabled:opacity-50">
+          Tải lại
+        </button>
       </header>
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-[#0E1D4F]/10 shadow-xs">
-          <span className="text-xs text-[#4B5875] font-semibold">Tổng tài khoản</span>
-          <p className="text-2xl font-bold text-[#0E1D4F] mt-1">{roleCounts.total}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-[#0E1D4F]/10 shadow-xs">
-          <span className="text-xs text-[#4B5875] font-semibold">Du khách (Travelers)</span>
-          <p className="text-2xl font-bold text-[#205BD6] mt-1">{roleCounts.travelers}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-[#0E1D4F]/10 shadow-xs">
-          <span className="text-xs text-[#4B5875] font-semibold">Nhân viên điều phối</span>
-          <p className="text-2xl font-bold text-[#08B3C6] mt-1">{roleCounts.staff}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-[#0E1D4F]/10 shadow-xs">
-          <span className="text-xs text-[#4B5875] font-semibold">Quản trị viên</span>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">{roleCounts.admin}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="sm:col-span-1 bg-white rounded-2xl p-5 border border-[#0E1D4F]/10 shadow-xs">
+          <span className="text-xs text-[#4B5875] font-semibold">Kết quả phù hợp</span>
+          <p className="text-2xl font-bold text-[#0E1D4F] mt-1">{totalLabel}</p>
+          <span className="text-[10px] text-[#4B5875]">{debouncedSearch ? 'Theo tên hoặc email' : 'Tổng tài khoản'}</span>
         </div>
       </div>
 
-      {/* Main Table Section */}
       <section className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-6">
-        {/* Filter Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3 flex-1">
-            <div className="relative min-w-[240px] flex-1 sm:flex-initial">
-              <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#4B5875]" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Tìm tên hoặc email..."
-                className="w-full pl-9 pr-3 py-2 text-xs bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
-              />
-            </div>
-
-            <select
-              value={roleFilter}
-              onChange={(e) => {
-                setRoleFilter(e.target.value as typeof roleFilter);
-                setCurrentPage(1);
-              }}
-              className="text-xs px-3 py-2 bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] cursor-pointer"
-            >
-              <option value="all">Tất cả vai trò</option>
-              <option value="traveler">Du khách (Traveler)</option>
-              <option value="staff">Nhân viên (Staff)</option>
-              <option value="admin">Quản trị viên (Admin)</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as typeof statusFilter);
-                setCurrentPage(1);
-              }}
-              className="text-xs px-3 py-2 bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] cursor-pointer"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="active">Đang hoạt động</option>
-              <option value="suspended">Tạm khóa</option>
-            </select>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="relative min-w-[240px] flex-1 sm:flex-initial">
+            <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#4B5875]" />
+            <input
+              type="search"
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+              placeholder="Tìm tên hoặc email..."
+              aria-label="Tìm người dùng theo tên hoặc email"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
+            />
           </div>
-
           <div className="flex items-center gap-2 text-xs text-[#4B5875]">
-            <span>Hiển thị mỗi trang:</span>
-            {[5, 10, 20].map((sz) => (
-              <button
-                key={sz}
-                type="button"
-                onClick={() => {
-                  setPageSize(sz);
-                  setCurrentPage(1);
-                }}
-                className={`px-2.5 py-1 rounded-lg border font-semibold cursor-pointer ${
-                  pageSize === sz
-                    ? 'bg-[#205BD6] text-white border-[#205BD6]'
-                    : 'bg-white text-[#4B5875] border-[#0E1D4F]/10 hover:bg-[#EBF1F0]'
-                }`}
-              >
-                {sz}
-              </button>
-            ))}
+            <label htmlFor="admin-user-page-size">Hiển thị mỗi trang:</label>
+            <select
+              id="admin-user-page-size"
+              value={pageSize}
+              onChange={event => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}
+              className="text-xs px-3 py-2 bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] cursor-pointer"
+            >
+              {[5, 10, 20, 50].map(size => <option key={size} value={size}>{size}</option>)}
+            </select>
           </div>
         </div>
 
-        {/* User Table */}
+        <p className="text-xs text-[#4B5875]">Sắp xếp chỉ áp dụng cho trang dữ liệu đang tải; mặc định theo thứ tự máy chủ.</p>
+
+        {mutationError && <p role="alert" className="text-sm text-rose-700">{mutationError}</p>}
+        {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-rose-50 p-4 text-sm text-rose-800"><span>{loadError}</span><button type="button" onClick={() => setReload(value => value + 1)} className="font-semibold underline">Thử lại</button></div>}
+
         <div className="overflow-x-auto rounded-2xl border border-[#0E1D4F]/10">
           <table className="w-full text-xs text-left text-[#4B5875]">
             <thead className="bg-[#EBF1F0]/70 text-[#0E1D4F] font-bold uppercase tracking-wider text-[11px] border-b border-[#0E1D4F]/10">
               <tr>
-                <th className="p-3.5">Mã ID</th>
-                <th className="p-3.5 cursor-pointer select-none" onClick={() => toggleSort('fullName')}>
-                  <div className="flex items-center gap-1.5">
-                    <span>Họ &amp; Tên</span>
-                    <Icon name="swap_vert" className="size-3.5 text-[#205BD6]" />
-                  </div>
+                <th scope="col" className="p-3.5">Mã ID</th>
+                <th scope="col" aria-sort={sort?.field === 'full_name' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="p-3.5">
+                  <button type="button" onClick={() => cycleSort('full_name')} className="inline-flex items-center gap-1.5 font-bold">
+                    Họ &amp; Tên <Icon name="swap_vert" className="size-3.5 text-[#205BD6]" />
+                  </button>
                 </th>
-                <th className="p-3.5">Email</th>
-                <th className="p-3.5">Vai trò</th>
-                <th className="p-3.5">Trạng thái</th>
-                <th className="p-3.5 text-center cursor-pointer select-none" onClick={() => toggleSort('tripsCount')}>
-                  <div className="flex items-center justify-center gap-1.5">
-                    <span>Số chuyến</span>
-                    <Icon name="swap_vert" className="size-3.5 text-[#205BD6]" />
-                  </div>
+                <th scope="col" className="p-3.5">Email</th>
+                <th scope="col" className="p-3.5">Vai trò</th>
+                <th scope="col" className="p-3.5">Trạng thái</th>
+                <th scope="col" aria-sort={sort?.field === 'created_at' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : sort === null ? 'descending' : 'none'} className="p-3.5">
+                  <button type="button" onClick={() => cycleSort('created_at')} className="inline-flex items-center gap-1.5 font-bold">
+                    Ngày tham gia <Icon name="swap_vert" className="size-3.5 text-[#205BD6]" />
+                  </button>
                 </th>
-                <th className="p-3.5 cursor-pointer select-none" onClick={() => toggleSort('joinedAt')}>
-                  <div className="flex items-center gap-1.5">
-                    <span>Ngày tham gia</span>
-                    <Icon name="swap_vert" className="size-3.5 text-[#205BD6]" />
-                  </div>
-                </th>
-                <th className="p-3.5">Hoạt động gần nhất</th>
+                <th scope="col" className="p-3.5">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#0E1D4F]/5">
-              {paginatedUsers.length === 0 ? (
+              {loading ? (
+                <tr><td colSpan={7} className="p-12 text-center text-[#4B5875]">Đang tải danh sách người dùng…</td></tr>
+              ) : loadError ? (
+                <tr><td colSpan={7} className="p-12 text-center text-[#4B5875]">Không thể hiển thị dữ liệu.</td></tr>
+              ) : !page?.items.length ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#4B5875]">
-                    Không tìm thấy người dùng phù hợp với bộ lọc tìm kiếm.
+                  <td colSpan={7} className="p-12 text-center text-[#4B5875]">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <Icon name="person_off" className="size-8 text-[#4B5875]" />
+                      <p className="text-sm font-semibold text-[#0E1D4F]">{debouncedSearch ? 'Không tìm thấy tài khoản phù hợp' : 'Chưa có tài khoản người dùng'}</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
-                paginatedUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-[#EBF1F0]/40 transition-colors">
-                    <td className="p-3.5 font-mono text-[10px] text-[#4B5875]">{u.id}</td>
-                    <td className="p-3.5 font-bold text-[#0E1D4F]">{u.fullName}</td>
-                    <td className="p-3.5 text-[#4B5875]">{u.email}</td>
+                sortedUsers.map(user => (
+                  <tr key={user.id} className="hover:bg-[#EBF1F0]/40 transition-colors">
+                    <td className="p-3.5 font-mono text-[10px] text-[#4B5875]">{user.id}</td>
+                    <td className="p-3.5 font-bold text-[#0E1D4F]">{user.full_name}</td>
+                    <td className="p-3.5 text-[#4B5875]">{user.email}</td>
+                    <td className="p-3.5"><span className={'inline-block px-2 py-0.5 rounded-md font-semibold text-[10px] ' + (user.role === 'admin' ? 'bg-purple-100 text-purple-800' : user.role === 'staff' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800')}>{roleLabel(user.role)}</span></td>
+                    <td className="p-3.5"><span className={'inline-block px-2 py-0.5 rounded-md font-medium text-[10px] ' + (user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800')}>{statusLabel(user.status)}</span></td>
+                    <td className="p-3.5">{formatDate(user.created_at)}</td>
                     <td className="p-3.5">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-md font-semibold text-[10px] ${
-                          u.role === 'admin'
-                            ? 'bg-purple-100 text-purple-800'
-                            : u.role === 'staff'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-800'
-                        }`}
-                      >
-                        {u.role === 'admin' ? 'Quản trị viên' : u.role === 'staff' ? 'Nhân viên' : 'Du khách'}
-                      </span>
+                      <button type="button" disabled={pendingUserId === user.id} onClick={() => { setMutationError(null); setSelectedUser(user); }} className="rounded-lg border border-[#0E1D4F]/15 px-2.5 py-1.5 font-semibold text-[#205BD6] disabled:opacity-50">
+                        {user.status === 'active' ? 'Tạm khóa' : 'Kích hoạt'}
+                      </button>
                     </td>
-                    <td className="p-3.5">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-md font-medium text-[10px] ${
-                          u.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                        }`}
-                      >
-                        {u.status === 'active' ? 'Hoạt động' : 'Tạm khóa'}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-center font-bold text-[#0E1D4F]">{u.tripsCount}</td>
-                    <td className="p-3.5">{u.joinedAt}</td>
-                    <td className="p-3.5">{u.lastActive}</td>
                   </tr>
                 ))
               )}
@@ -233,36 +197,28 @@ export default function AdminUsersScreen() {
           </table>
         </div>
 
-        {/* Pagination Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
           <span className="text-xs text-[#4B5875]">
-            Đang hiển thị <strong>{paginatedUsers.length}</strong> / {filteredUsers.length} người dùng (Trang{' '}
-            {currentPage}/{totalPages})
+            Đang hiển thị <strong>{displayedCount}</strong> / {page?.total ?? '—'} người dùng (Trang {page?.page ?? currentPage}/{totalPages})
           </span>
-
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-white text-xs font-semibold text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] cursor-pointer"
-            >
-              Trước
-            </button>
-            <span className="text-xs font-semibold px-2">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-white text-xs font-semibold text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] cursor-pointer"
-            >
-              Tiếp
-            </button>
+            <button type="button" disabled={loading || currentPage <= 1} onClick={() => setCurrentPage(value => Math.max(1, value - 1))} className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-white text-xs font-semibold text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0]">Trước</button>
+            <span className="text-xs font-semibold px-2">{page?.page ?? currentPage} / {totalPages}</span>
+            <button type="button" disabled={loading || currentPage >= totalPages} onClick={() => setCurrentPage(value => Math.min(totalPages, value + 1))} className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-white text-xs font-semibold text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0]">Tiếp</button>
           </div>
         </div>
       </section>
+
+      <ConfirmModal
+        isOpen={Boolean(selectedUser)}
+        title={selectedUser?.status === 'active' ? 'Tạm khóa tài khoản?' : 'Kích hoạt tài khoản?'}
+        message={selectedUser?.status === 'active' ? 'Tài khoản sẽ không thể đăng nhập cho đến khi được kích hoạt lại.' : 'Tài khoản sẽ được phép đăng nhập trở lại.'}
+        targetName={selectedUser?.full_name}
+        confirmText={selectedUser?.status === 'active' ? 'Tạm khóa' : 'Kích hoạt'}
+        confirmVariant={selectedUser?.status === 'active' ? 'danger' : 'primary'}
+        onConfirm={() => { void confirmStatusChange(); }}
+        onCancel={() => { if (!pendingUserId) setSelectedUser(null); }}
+      />
     </div>
   );
 }

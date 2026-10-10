@@ -21,7 +21,9 @@ export async function getAdminFeedback(query: AdminFeedbackQuery): Promise<ApiRe
   const params = pageQuery(query);
   if (query.q) params.set('q', query.q);
   if (query.status) params.set('status', query.status);
-  const result = await apiRequest(API_ENDPOINTS.FEEDBACK.ADMIN_LIST + '?' + params, getSessionProxyBaseUrl());
+  const result = await apiRequest(API_ENDPOINTS.FEEDBACK.ADMIN_LIST + '?' + params, getSessionProxyBaseUrl(), {
+    credentials: 'include',
+  });
   return { ...result, data: adminFeedbackPageSchema.parse(result.data) };
 }
 
@@ -57,7 +59,7 @@ export async function classifyFeedback(id: string, patch: AdminFeedbackPatchDto)
   }
   if (!Object.keys(patch).length) throw new TypeError('Feedback patch must contain a change');
   const result = await apiRequest(API_ENDPOINTS.FEEDBACK.ADMIN_ITEM(id), getSessionProxyBaseUrl(), {
-    method: 'PATCH', jsonBody: patch,
+    method: 'PATCH', credentials: 'include', jsonBody: patch,
   });
   return { ...result, data: feedbackMutationSchema.parse(result.data) };
 }
@@ -65,7 +67,7 @@ export async function classifyFeedback(id: string, patch: AdminFeedbackPatchDto)
 export async function replyFeedback(id: string, request: { message: string }): Promise<ApiRequestResult<FeedbackTicketView>> {
   if (!request.message.trim()) throw new TypeError('Reply message is required');
   const result = await apiRequest(API_ENDPOINTS.FEEDBACK.ADMIN_REPLY(id), getSessionProxyBaseUrl(), {
-    method: 'POST', jsonBody: { message: request.message },
+    method: 'POST', credentials: 'include', jsonBody: { message: request.message },
   });
   return { ...result, data: feedbackMutationSchema.parse(result.data) };
 }

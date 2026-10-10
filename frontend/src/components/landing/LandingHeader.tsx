@@ -148,7 +148,7 @@ export default function LandingHeader() {
           </div>
           <div className="flex flex-col">
             <span className={styles.logoText}>VISTRA</span>
-            <span className={styles.logoSub}>Travel Intelligence</span>
+            <span className={styles.logoSub}>Du lịch là tận hưởng</span>
           </div>
         </Link>
 
@@ -283,11 +283,10 @@ export default function LandingHeader() {
                       setMobileMenuOpen(false);
                       handleNavClick(e, item.id);
                     }}
-                    className={`min-h-[44px] flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      isActive
-                        ? 'text-[#205BD6] bg-[#205BD6]/10 font-bold'
-                        : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/60'
-                    }`}
+                    className={`min-h-[44px] flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive
+                      ? 'text-[#205BD6] bg-[#205BD6]/10 font-bold'
+                      : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/60'
+                      }`}
                     aria-current={isActive ? 'location' : undefined}
                   >
                     {item.label}

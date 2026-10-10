@@ -28,7 +28,7 @@ export const appConfig = {
   },
   confirm: {
     // 5 seconds per specification requirement (LPUI-09)
-    optionCycleMs: 5000,
+    optionCycleMs: 10000,
   },
   auth: {
     // Default allowed email suffix for registration (REG-01)

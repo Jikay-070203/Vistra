@@ -27,7 +27,7 @@ interface PlanOption {
 const PLAN_OPTIONS: Record<'A' | 'B', PlanOption> = {
   A: {
     id: 'A',
-    name: 'Phương án A: Trải rộng đồi xa & hoàng hôn',
+    name: 'Phương án A: Đồi xa & hoàng hôn',
     badge: 'Trải rộng · Đèo dốc',
     vibe: 'Đón chiều tà rực rỡ từ đỉnh đồi ngoại ô, nhịp độ năng động',
     schedule: [
@@ -65,7 +65,7 @@ const PLAN_OPTIONS: Record<'A' | 'B', PlanOption> = {
   },
   B: {
     id: 'B',
-    name: 'Phương án B: Thư thả ven hồ & rừng thông',
+    name: 'Phương án B: Thư thả ven hồ',
     badge: 'Khuyên dùng · Êm ả',
     vibe: 'Gom gọn nội vùng quanh hồ, nhịp độ thong thả và ấm cúng',
     schedule: [
@@ -104,7 +104,7 @@ const PLAN_OPTIONS: Record<'A' | 'B', PlanOption> = {
 
 export default function ConfirmSection(props: ConfirmSectionProps) {
   void props;
-  const optionCycleMs = appConfig.confirm?.optionCycleMs || 7500;
+  const optionCycleMs = appConfig.confirm?.optionCycleMs || 10000;
   const [selectedOptionId, setSelectedOptionId] = useState<'A' | 'B'>('B');
 
   // Auto-loop: alternates between Option B and Option A
@@ -126,9 +126,9 @@ export default function ConfirmSection(props: ConfirmSectionProps) {
     >
       <div className={styles.container}>
         {/* Section Header */}
-        <div className="mb-5 text-center max-w-2xl mx-auto">
-          <h2 className="font-headline-lg text-lg sm:text-2xl md:text-3xl lg:text-4xl text-[#0E1D4F] font-bold leading-normal tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full" title="Cân nhắc đánh đổi, chốt chuyến đi của riêng bạn.">
-            Cân nhắc đánh đổi, chốt chuyến đi của riêng bạn.
+        <div className="mb-5 text-center max-w-4xl mx-auto">
+          <h2 className="font-headline-lg text-lg sm:text-2xl md:text-3xl text-[#0E1D4F] font-bold leading-normal tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full" title="Cân nhắc đánh đổi, chốt chuyến đi.">
+            Cân nhắc đánh đổi, chốt chuyến đi.
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-[#4B5875]">
             Mỗi phương án mang một nhịp điệu riêng. Đối chiếu lợi thế và đánh đổi để quyết định phương án phù hợp.

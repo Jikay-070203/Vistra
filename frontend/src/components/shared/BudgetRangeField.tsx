@@ -98,9 +98,8 @@ export default function BudgetRangeField({
   };
 
   const hasTravelerCount = typeof travelerCount === 'number' && travelerCount > 0;
-  const midpoint = Math.round((currentMin + currentMax) / 2);
   const perPersonEstimate = hasTravelerCount
-    ? Math.round(midpoint / Math.max(1, travelerCount))
+    ? Math.round(currentMax / Math.max(1, travelerCount))
     : 0;
 
   return (
@@ -229,7 +228,7 @@ export default function BudgetRangeField({
                 aria-label="Ngân sách ước tính mỗi người"
                 value={`~${perPersonEstimate.toLocaleString('vi-VN')} đ/người`}
                 className="w-full px-3 py-1.5 bg-[#EBF1F0] rounded-lg border border-[#0E1D4F]/10 text-xs font-semibold text-[#205BD6] select-all cursor-default"
-                title="Công thức: Điểm giữa ngân sách (Min + Max) / 2 chia cho số thành viên"
+                title="Công thức: Ngân sách tối đa chia cho số người tham gia (Max / số người)"
               />
             </div>
           )}

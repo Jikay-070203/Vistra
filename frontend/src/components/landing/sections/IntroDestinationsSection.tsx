@@ -72,9 +72,7 @@ export default function IntroDestinationsSection({ data, loading, error, retry }
 
                   {/* Destination Card Content */}
                   <div className="relative z-10 text-white space-y-1.5">
-                    <span className="text-[10px] font-mono text-[#08B3C6] font-semibold block uppercase tracking-wider">
-                      Mã vùng {dest.provinceCode}
-                    </span>
+                    
 
                     <h3 className="font-headline-sm text-xl font-bold leading-tight drop-shadow-xs group-hover:text-[#08B3C6] transition-colors whitespace-nowrap overflow-hidden text-ellipsis max-w-full" title={dest.label}>
                       {dest.label}
@@ -115,9 +113,7 @@ export default function IntroDestinationsSection({ data, loading, error, retry }
 
 
               <div className="relative z-10 text-white space-y-1">
-                <span className="text-[10px] font-mono text-[#08B3C6] font-semibold block uppercase">
-                  Mã vùng {dest.provinceCode}
-                </span>
+                
 
                 <h3 className="font-headline-sm text-base font-bold leading-tight group-hover:text-[#08B3C6] transition-colors whitespace-nowrap overflow-hidden text-ellipsis max-w-full" title={dest.label}>
                   {dest.label}

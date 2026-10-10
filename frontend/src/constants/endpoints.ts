@@ -4,13 +4,18 @@ export const API_ENDPOINTS = {
     LOGIN: '/api/v1/auth/login',
     ME: '/api/v1/auth/me',
     LOGOUT: '/api/v1/auth/logout',
+    REFRESH: '/api/v1/auth/refresh',
   },
   PROFILE: {
     ME: '/api/v1/users/me',
     DNA: '/api/v1/users/me/dna',
   },
+  DNA: {
+    ANALYZE: '/api/v1/dna/analyze',
+  },
   CATALOG: {
     ALLERGIES: '/api/v1/catalog/allergies',
+    PROVINCES: '/api/v1/catalog/provinces',
   },
   CONTENT: {
     PUBLIC_LANDING: '/api/v1/public/landing',
@@ -40,6 +45,33 @@ export const API_ENDPOINTS = {
     TRACES: '/api/v1/admin/traces',
     TRACE: (id: string) => '/api/v1/admin/traces/' + encodeURIComponent(id),
     DATASETS: '/admin/evaluation/datasets',
+  },
+  ADMIN_V1: {
+    OVERVIEW: '/api/v1/admin/overview',
+    REVENUE: '/api/v1/admin/revenue',
+    USERS: '/api/v1/admin/users',
+    USER_STATUS: (id: string) => '/api/v1/admin/users/' + encodeURIComponent(id) + '/status',
+    FEEDBACK: '/api/v1/admin/feedback',
+    FEEDBACK_ITEM: (id: string) => '/api/v1/admin/feedback/' + encodeURIComponent(id),
+    FEEDBACK_REPLIES: (id: string) => '/api/v1/admin/feedback/' + encodeURIComponent(id) + '/replies',
+    CONTENT: '/api/v1/admin/content',
+    CONTENT_COLLECTION: (collection: AdminContentCollection) =>
+      '/api/v1/admin/content/' + encodeURIComponent(collection),
+    CONTENT_ITEM: (collection: AdminContentCollection, id: string) =>
+      '/api/v1/admin/content/' + encodeURIComponent(collection) + '/' + encodeURIComponent(id),
+    ENTITY_METADATA: '/api/v1/admin/entities/metadata',
+    IMPORT_PLACES: '/api/v1/admin/import/places',
+    IMPORT_PLACE_IMAGES: '/api/v1/admin/import/place-images',
+    ENTITY_RECORDS: (table: AdminEntityTable) =>
+      '/api/v1/admin/entities/' + encodeURIComponent(table) + '/records',
+    GOLDEN_DATASETS: '/api/v1/admin/golden-datasets',
+    GOLDEN_DATASET_RUNS: (id: string) => '/api/v1/admin/golden-datasets/' + encodeURIComponent(id) + '/runs',
+    SAFETY_PRESETS: '/api/v1/admin/safety-presets',
+    SAFETY_EVALUATIONS: '/api/v1/admin/safety-evaluations',
+    AI_PROVIDER: '/api/v1/admin/ai/provider',
+    TRACES: '/api/v1/admin/traces',
+    TRACE: (id: string) => '/api/v1/admin/traces/' + encodeURIComponent(id),
+    METRICS: '/api/v1/admin/system/metrics',
   },
   SYSTEM: {
     HEALTH: '/health',
@@ -72,3 +104,6 @@ export const API_ENDPOINTS = {
     PUBLICATION: (id: string) => '/trips/' + encodeURIComponent(id) + '/publication',
   },
 } as const;
+
+export type AdminContentCollection = 'hero-plans' | 'intro-destinations' | 'allergy-options';
+export type AdminEntityTable = 'destinations' | 'plans' | 'itinerary_days' | 'activities' | 'feedback_tickets';

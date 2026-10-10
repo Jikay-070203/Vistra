@@ -1,21 +1,71 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import ItineraryView, { money, tripButtonClass, tripPanelClass } from '@/components/trip-plan/ItineraryView';
 import TripMap from '@/components/trip-plan/TripMap';
 import PlaceSources from './PlaceSources';
 import TripPageState from './TripPageState';
+import PlannerHeader, { useProvinceName } from './PlannerHeader';
 import { useTripWorkspace } from './useTripWorkspace';
 
 export default function PlannerScreen() {
   const workspace = useTripWorkspace();
-  if (!workspace.trip || workspace.loading || !workspace.isLoggedIn) {
-    return <TripPageState workspace={workspace} title="Bàn làm việc hành trình" />;
-  }
-  return <PlannerWorkspace key={`${workspace.trip.owner_user_id}:${workspace.trip.id}`} workspace={workspace} />;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#EBF1F0] text-[#0E1D4F]">
+      <PlannerHeader
+        trip={workspace.trip}
+        hasItinerary={Boolean(workspace.itinerary)}
+        hasPreview={Boolean(workspace.preview)}
+        busy={workspace.busy}
+        onConfirm={() => setConfirmOpen(true)}
+        onPublish={() => setPublishOpen(true)}
+      />
+
+      <main className="flex-1 w-full flex flex-col">
+        {!workspace.trip || workspace.loading || !workspace.isLoggedIn ? (
+          <TripPageState workspace={workspace} title="Bàn làm việc hành trình" />
+        ) : (
+          <PlannerWorkspace key={`${workspace.trip.owner_user_id}:${workspace.trip.id}`} workspace={workspace} />
+        )}
+      </main>
+
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title="Chốt lịch trình này?"
+        message="Xác nhận phương án đã lưu trên hệ thống. Sau khi chốt, bạn có thể chia sẻ lên cộng đồng."
+        confirmVariant="primary"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void workspace.confirm();
+        }}
+      />
+
+      {workspace.trip && (
+        <ConfirmModal
+          isOpen={publishOpen}
+          title={workspace.trip.is_published ? 'Hủy chia sẻ hành trình?' : 'Chia sẻ lên cộng đồng?'}
+          message={
+            workspace.trip.is_published
+              ? 'Hành trình này sẽ được rút khỏi danh sách khám phá chung của cộng đồng VISTRA.'
+              : 'Hành trình đã chốt của bạn sẽ được hiển thị trên trang Cộng đồng để các du khách khác tham khảo.'
+          }
+          confirmLabel={workspace.trip.is_published ? 'Xác nhận hủy chia sẻ' : 'Xác nhận chia sẻ'}
+          confirmVariant={workspace.trip.is_published ? 'danger' : 'primary'}
+          onCancel={() => setPublishOpen(false)}
+          onConfirm={() => {
+            setPublishOpen(false);
+            void workspace.togglePublication();
+          }}
+        />
+      )}
+    </div>
+  );
 }
 
 function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripWorkspace> }) {
@@ -23,8 +73,7 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
   const [day, setDay] = useState(1);
   const [place, setPlace] = useState<number | null>(null);
   const [text, setText] = useState('');
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [publishOpen, setPublishOpen] = useState(false);
+  const destinationName = useProvinceName(trip?.destination_id, trip?.request.destination);
 
   if (!trip) return null;
   const selectedDay = day <= trip.request.days ? day : 1;
@@ -32,47 +81,27 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
   const editable = trip.status === 'draft';
 
   return (
-    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 py-5 text-[#0E1D4F]">
-      <header className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div>
-          <Link className="text-sm text-[#205BD6] underline min-h-11 inline-flex items-center" href="/my-trips">
-            ← Chuyến đi của tôi
-          </Link>
-          <h1 className="text-2xl font-bold">{trip.request.destination}</h1>
-          <p className="text-sm text-[#4B5875]">
+    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 flex flex-col">
+      {/* Mobile Context Strip (< 1024px) */}
+      <div className="lg:hidden flex items-center justify-between gap-3 p-3.5 mb-4 bg-white/80 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 shadow-2xs">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="text-base font-bold text-[#0E1D4F] truncate">{destinationName || trip.request.destination}</h1>
+            <span
+              className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                trip.status === 'draft'
+                  ? 'bg-[#205BD6]/10 text-[#205BD6] border border-[#205BD6]/20'
+                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              }`}
+            >
+              {trip.status === 'draft' ? 'Bản nháp' : 'Đã chốt'}
+            </span>
+          </div>
+          <p className="text-xs text-[#4B5875]">
             {trip.request.start_date} · {trip.request.days} ngày · {trip.request.people} người
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link className={tripButtonClass} href={`/trip-plan?id=${encodeURIComponent(trip.id)}`}>
-            Xem tài liệu hành trình
-          </Link>
-          {editable && (
-            <button
-              type="button"
-              disabled={busy || !itinerary || !!preview}
-              className={`${tripButtonClass} bg-[#205BD6] text-white`}
-              onClick={() => setConfirmOpen(true)}
-            >
-              Chốt lịch trình
-            </button>
-          )}
-          {trip.status === 'confirmed' && (
-            <button
-              type="button"
-              disabled={busy}
-              className={`${tripButtonClass} ${
-                trip.is_published
-                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-              }`}
-              onClick={() => setPublishOpen(true)}
-            >
-              {trip.is_published ? 'Hủy chia sẻ cộng đồng' : 'Chia sẻ lên cộng đồng'}
-            </button>
-          )}
-        </div>
-      </header>
+      </div>
 
       {error && (
         <div role="alert" className="p-4 mb-4 rounded-xl border border-rose-200 bg-rose-50 text-rose-800">
@@ -198,35 +227,6 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
           </section>
         )}
       </div>
-
-      <ConfirmModal
-        isOpen={confirmOpen}
-        title="Chốt lịch trình này?"
-        message="Xác nhận phương án đã lưu trên hệ thống. Sau khi chốt, bạn có thể chia sẻ lên cộng đồng."
-        confirmVariant="primary"
-        onCancel={() => setConfirmOpen(false)}
-        onConfirm={() => {
-          setConfirmOpen(false);
-          void workspace.confirm();
-        }}
-      />
-
-      <ConfirmModal
-        isOpen={publishOpen}
-        title={trip.is_published ? 'Hủy chia sẻ hành trình?' : 'Chia sẻ lên cộng đồng?'}
-        message={
-          trip.is_published
-            ? 'Hành trình này sẽ được rút khỏi danh sách khám phá chung của cộng đồng VISTRA.'
-            : 'Hành trình đã chốt của bạn sẽ được hiển thị trên trang Cộng đồng để các du khách khác tham khảo.'
-        }
-        confirmLabel={trip.is_published ? 'Xác nhận hủy chia sẻ' : 'Xác nhận chia sẻ'}
-        confirmVariant={trip.is_published ? 'danger' : 'primary'}
-        onCancel={() => setPublishOpen(false)}
-        onConfirm={() => {
-          setPublishOpen(false);
-          void workspace.togglePublication();
-        }}
-      />
     </div>
   );
 }

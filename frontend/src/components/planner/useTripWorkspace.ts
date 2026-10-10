@@ -10,7 +10,8 @@ import type { RevisionPreviewDto } from '@/types/planApi';
 import type { TripBudgetResponse, TripDetailDto } from '@/types/tripApi';
 
 export function useTripWorkspace(loadBudget = false) {
-  const id = useSearchParams().get('id') ?? '';
+  const searchParams = useSearchParams();
+  const id = searchParams.get('trip_id') ?? searchParams.get('id') ?? '';
   const { user, isLoggedIn, isLoaded } = useUserAuth();
   const key = isLoggedIn && user ? `${user.id}:${id}` : '';
   const currentKey = useRef(key);

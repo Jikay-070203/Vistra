@@ -2,7 +2,7 @@ import { getBackendServerUrl, resolveBackendPath } from '@/config/backendConfig'
 import { API_ENDPOINTS } from '@/constants/endpoints';
 import { authResponseSchema } from '@/schemas/authSchema';
 import { tripDetailResponseSchema } from '@/schemas/tripApiSchema';
-import { apiRequest, ApiClientError } from '@/services/apiClient';
+import { apiRequestToBackend, ApiClientError } from '@/services/apiClient';
 
 type ProxyContext = { params: Promise<{ path: string[] }> };
 
@@ -41,9 +41,9 @@ async function forward(request: Request, context: ProxyContext): Promise<Respons
     if (tripId) {
       // Backend detail/chat currently lack owner enforcement. Never expose another user's trip.
       const options = { headers, cache: 'no-store' as const, redirect: 'manual' as const, signal: request.signal };
-      const session = authResponseSchema.parse((await apiRequest(API_ENDPOINTS.AUTH.ME, backendUrl.origin, options)).data);
-      const detail = tripDetailResponseSchema.parse((await apiRequest(
-        API_ENDPOINTS.TRIPS.DETAIL(tripId[1] ?? tripId[2]), backendUrl.origin, options,
+      const session = authResponseSchema.parse((await apiRequestToBackend(API_ENDPOINTS.AUTH.ME, backendUrl, options)).data);
+      const detail = tripDetailResponseSchema.parse((await apiRequestToBackend(
+        API_ENDPOINTS.TRIPS.DETAIL(tripId[1] ?? tripId[2]), backendUrl, options,
       )).data);
       if (detail.id !== (tripId[1] ?? tripId[2]) || detail.owner_user_id !== session.user.id) {
         return Response.json({ detail: 'Only the owner can access this trip' }, { status: 403, headers: noStore });

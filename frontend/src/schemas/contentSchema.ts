@@ -37,7 +37,7 @@ export function parseIntroContent(value: unknown): IntroContentItem {
   }
   return { id: item.id, active: item.active, order: item.order,
     label: textOrNull(item.raw.label, 'intro content.label'),
-    image: textOrNull(item.raw.image, 'intro content.image'),
+    image: textOrNull(item.raw.image ?? item.raw.imageUrl, 'intro content.image'),
     provinceCode: code === undefined ? null : code,
     tagline: textOrNull(item.raw.tagline, 'intro content.tagline') };
 }

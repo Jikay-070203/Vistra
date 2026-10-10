@@ -35,7 +35,7 @@ export default function LandingPage() {
 
       {/* SECTION 2: KHÁM PHÁ & BẢN NHÁP (#kham-pha) (V4-004A, V4-005A, V4-005B) */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 text-center text-sm text-[#4B5875]">
-        Các hình minh họa dưới đây mô tả cách lên kế hoạch. Bắt đầu chuyến đi để sử dụng dữ liệu thực tế.
+        Khám phá cách VISTRA đồng hành cùng bạn hiện thực hóa từng ý tưởng chuyến đi.
       </div>
       <ExploreSection />
 
@@ -61,10 +61,10 @@ export default function LandingPage() {
           </div>
 
           <h2
-            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#0E1D4F] tracking-tight leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
-            title="Sẵn sàng biến ý tưởng thành hành trình thực tế?"
+            className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#0E1D4F] tracking-tight leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full"
+            title="Sẵn sàng cho chuyến đi của bạn?"
           >
-            Sẵn sàng biến ý tưởng thành hành trình thực tế?
+            Sẵn sàng cho chuyến đi của bạn?
           </h2>
 
           <p className="text-base text-[#4B5875] max-w-2xl leading-relaxed">

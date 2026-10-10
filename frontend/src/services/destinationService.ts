@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from '@/config/apiConfig';
+import { getSessionProxyBaseUrl } from '@/config/apiConfig';
 import { API_ENDPOINTS } from '@/constants/endpoints';
 import {
   destinationListResponseSchema,
@@ -20,7 +20,7 @@ import type { DestinationDetailsView, DestinationRecommendationsView } from '@/t
 
 /** V1 ignores UI filters; do not pass them or label the result as personalized. */
 export async function getRecommendations(): Promise<ApiRequestResult<DestinationRecommendationsView>> {
-  const result = await apiRequest(API_ENDPOINTS.RECOMMENDATIONS.LIST, getApiBaseUrl());
+  const result = await apiRequest(API_ENDPOINTS.RECOMMENDATIONS.LIST, getSessionProxyBaseUrl());
   return { ...result, data: recommendationSchema.parse(result.data) };
 }
 
@@ -28,12 +28,12 @@ export async function getDestinationDetails(ids: readonly string[]): Promise<Api
   if (ids.length < 1 || ids.length > 3) throw new RangeError('Select one to three destination IDs');
   const path = API_ENDPOINTS.RECOMMENDATIONS.DETAILS(ids[0]);
   const query = new URLSearchParams({ ids: ids.join(',') });
-  const result = await apiRequest(path + '?' + query, getApiBaseUrl());
+  const result = await apiRequest(path + '?' + query, getSessionProxyBaseUrl());
   return { ...result, data: destinationDetailsSchema.parse(result.data) };
 }
 
 export async function getDestinations(): Promise<ApiRequestResult<DestinationListResponse>> {
-  const result = await apiRequest(API_ENDPOINTS.DESTINATIONS.LIST, getApiBaseUrl());
+  const result = await apiRequest(API_ENDPOINTS.DESTINATIONS.LIST, getSessionProxyBaseUrl());
   return { ...result, data: destinationListResponseSchema.parse(result.data) };
 }
 
@@ -45,7 +45,7 @@ export async function getDestinationSeasonality(
   if (years.startYear !== undefined) query.set('start_year', String(years.startYear));
   if (years.endYear !== undefined) query.set('end_year', String(years.endYear));
   const path = API_ENDPOINTS.DESTINATIONS.SEASONALITY(slug);
-  const result = await apiRequest(path + (query.size ? '?' + query : ''), getApiBaseUrl());
+  const result = await apiRequest(path + (query.size ? '?' + query : ''), getSessionProxyBaseUrl());
   return { ...result, data: seasonalityResponseSchema.parse(result.data) };
 }
 
@@ -56,12 +56,12 @@ export async function getPlaces(params: PlaceListParams = {}): Promise<ApiReques
   }
   const result = await apiRequest(
     API_ENDPOINTS.PLACES.LIST + (query.size ? '?' + query : ''),
-    getApiBaseUrl(),
+    getSessionProxyBaseUrl(),
   );
   return { ...result, data: placeListResponseSchema.parse(result.data) };
 }
 
 export async function getPlace(id: number): Promise<ApiRequestResult<PlaceDto>> {
-  const result = await apiRequest(API_ENDPOINTS.PLACES.DETAIL(id), getApiBaseUrl());
+  const result = await apiRequest(API_ENDPOINTS.PLACES.DETAIL(id), getSessionProxyBaseUrl());
   return { ...result, data: placeDetailResponseSchema.parse(result.data) };
 }

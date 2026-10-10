@@ -1,0 +1,5 @@
+# Optional photo-vector worker dependencies.
+# Kept separate from the API runtime so Railway backend memory/build size stays small.
+torch>=2.4,<3
+transformers>=4.45,<5
+pillow>=10,<12

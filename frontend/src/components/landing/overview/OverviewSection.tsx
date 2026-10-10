@@ -100,8 +100,8 @@ export default function OverviewSection() {
       <div className={styles.container}>
         {/* Section Header */}
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle} title="Khi mong muốn gặp gỡ cung đường.">
-            Khi mong muốn gặp gỡ cung đường.
+          <h2 className={styles.sectionTitle} title="Mong muốn gặp gỡ cung đường.">
+            Mong muốn gặp gỡ cung đường.
           </h2>
           <p className={styles.sectionSubtitle}>
             Ba bước giúp ý tưởng du lịch của bạn rõ nét, vào nếp và sẵn sàng khởi hành.

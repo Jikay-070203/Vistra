@@ -12,7 +12,6 @@ export default function GoldenDatasetPanel() {
 }
 
 function DatasetPanel() {
-  const [page, setPage] = useState(1);
   const [data, setData] = useState<AdminPageView<GoldenDatasetMetadataView> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
@@ -34,7 +33,7 @@ function DatasetPanel() {
   useEffect(() => () => mutation.current?.abort(), []);
   useEffect(() => {
     const controller = new AbortController();
-    getDatasets({ page, pageSize: 5 }, controller.signal).then(result => {
+    getDatasets(controller.signal).then(result => {
       if (controller.signal.aborted) return;
       setData(result.data);
       setError(null);
@@ -45,7 +44,7 @@ function DatasetPanel() {
       setError(cause instanceof Error ? cause.message : 'Không thể tải bộ dữ liệu.');
     });
     return () => controller.abort();
-  }, [page, reload]);
+  }, [reload]);
 
   const runId = run?.runId;
   useEffect(() => {
@@ -68,7 +67,6 @@ function DatasetPanel() {
   }, [runId, pending, pollRevision]);
 
   const refresh = () => { setData(null); setError(null); setReload(value => value + 1); };
-  const changePage = (next: number) => { setData(null); setError(null); setPage(next); };
   const submitImport = async (event: React.FormEvent) => {
     event.preventDefault();
     if (saving) return;
@@ -81,7 +79,7 @@ function DatasetPanel() {
       if (controller.signal.aborted) return;
       setNotice(`Máy chủ đã lưu bộ dữ liệu ${result.data.name} (${result.data.testCasesCount} case).`);
       setShowImport(false); setName(''); setDescription(''); setJson('');
-      setSelectedId(result.data.id); setPage(1); refresh();
+      setSelectedId(result.data.id); refresh();
     } catch (cause: unknown) {
       if (!controller.signal.aborted) setActionError(cause instanceof Error ? cause.message : 'Không thể nhập bộ dữ liệu.');
     } finally { if (!controller.signal.aborted) setSaving(false); }
@@ -123,7 +121,7 @@ function DatasetPanel() {
       <button type="button" onClick={refresh} disabled={saving} className={button + ' text-[#205BD6]'}>Tải lại danh sách</button>
       <button type="button" onClick={startRun} disabled={!selected || saving || pending} className={button + ' bg-[#205BD6] text-white'}>{saving ? 'Đang gửi…' : 'Gửi lượt đánh giá'}</button>
     </div>
-    {data && <div className="flex flex-wrap justify-between gap-3 items-center text-sm text-[#4B5875]"><span>{data.total} bộ dữ liệu · Trang {data.page}/{data.totalPages || 0}</span><div className="flex gap-2"><button type="button" disabled={data.page <= 1} onClick={() => changePage(data.page - 1)} className={button}>Trước</button><button type="button" disabled={data.page >= data.totalPages} onClick={() => changePage(data.page + 1)} className={button}>Sau</button></div></div>}
+    {data && <p className="text-sm text-[#4B5875]">{data.total} bộ dữ liệu · API hiện cung cấp tối đa 20 bộ đầu tiên.</p>}
     {run && <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-2">
       <p className="break-all">Lượt đánh giá: {run.runId} · Trạng thái máy chủ: <strong>{run.status}</strong></p>
       {pending && <p>Đang chờ máy chủ xử lý. Chưa có điểm hoặc kết quả pass/fail. Kiểm tra trạng thái mỗi 5 giây khi màn hình này mở.</p>}

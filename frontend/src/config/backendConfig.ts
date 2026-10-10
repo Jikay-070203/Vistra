@@ -1,13 +1,18 @@
 const B1_ROUTES: Readonly<Record<string, readonly string[]>> = {
   GET: ['/health', '/api/v1/auth/me', '/api/v1/users/me', '/api/v1/users/me/dna',
-    '/api/v1/catalog/allergies', '/admin/content', '/api/v1/feedback/me', '/admin/feedback/tickets',
+    '/api/v1/catalog/allergies', '/api/v1/catalog/provinces', '/api/v1/public/landing',
+    '/api/v1/admin/ai/provider', '/admin/content', '/api/v1/feedback/me', '/admin/feedback/tickets',
     '/api/v1/trips/me', '/community/plans', '/api/v1/destinations/recommendations',
     '/api/v1/admin/traces', '/admin/evaluation/datasets',
-    '/destinations', '/places', '/admin/system/summary', '/api/v1/admin/system/metrics'],
-  POST: ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/logout', '/api/v1/feedback',
-    '/api/v1/trips', '/admin/evaluation/datasets', '/admin/evaluation/runs'],
+    '/destinations', '/trips', '/places', '/admin/system/summary', '/api/v1/admin/system/metrics',
+    '/api/v1/admin/overview', '/api/v1/admin/revenue', '/api/v1/admin/users',
+    '/api/v1/admin/feedback', '/api/v1/admin/content', '/api/v1/admin/entities/metadata',
+    '/api/v1/admin/golden-datasets', '/api/v1/admin/safety-presets'],
+  POST: ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/logout', '/api/v1/auth/refresh', '/api/v1/feedback', '/api/v1/dna/analyze',
+    '/api/v1/trips', '/admin/evaluation/datasets', '/admin/evaluation/runs',
+    '/api/v1/admin/import/places', '/api/v1/admin/import/place-images'],
   PATCH: ['/api/v1/users/me'],
-  PUT: ['/api/v1/users/me/dna'],
+  PUT: ['/api/v1/users/me/dna', '/api/v1/admin/ai/provider'],
 };
 
 /** Backend origin is fixed by server configuration, never by browser input. */
@@ -41,6 +46,17 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'POST' && /^\/trips\/[A-Za-z0-9_-]+\/(generate|confirm|revisions\/(preview|commit))$/.test(path)) return path;
   if (method === 'PATCH' && /^\/trips\/[A-Za-z0-9_-]+\/publication$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/traces\/[A-Za-z0-9_-]+$/.test(path)) return path;
+  if (method === 'PATCH' && /^\/api\/v1\/admin\/users\/[A-Za-z0-9_-]+\/status$/.test(path)) return path;
+  if (method === 'GET' && /^\/api\/v1\/admin\/entities\/(destinations|plans|itinerary_days|activities|feedback_tickets)\/records$/.test(path)) return path;
+  if (method === 'POST' && /^\/api\/v1\/admin\/content\/(hero-plans|intro-destinations|allergy-options)$/.test(path)) return path;
+  if ((method === 'PATCH' || method === 'DELETE') &&
+    /^\/api\/v1\/admin\/content\/(hero-plans|intro-destinations|allergy-options)\/[A-Za-z0-9_-]+$/.test(path)) return path;
+  if (method === 'PATCH' && /^\/api\/v1\/admin\/feedback\/[A-Za-z0-9_-]+$/.test(path)) return path;
+  if (method === 'POST' && /^\/api\/v1\/admin\/feedback\/[A-Za-z0-9_-]+\/replies$/.test(path)) return path;
+  if (method === 'POST' && path === '/api/v1/admin/golden-datasets') return path;
+  if (method === 'POST' && /^\/api\/v1\/admin\/golden-datasets\/[A-Za-z0-9_-]+\/runs$/.test(path)) return path;
+  if (method === 'POST' && path === '/api/v1/admin/safety-evaluations') return path;
+  if (method === 'GET' && /^\/admin\/feedback\/tickets\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'POST' && /^\/admin\/feedback\/tickets\/[A-Za-z0-9_-]+\/replies$/.test(path)) return path;
   if (method === 'PATCH' && /^\/admin\/feedback\/tickets\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'POST' && /^\/admin\/content\/(hero-plans|allergy-options)$/.test(path)) return path;

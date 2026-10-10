@@ -9,12 +9,12 @@ import type { AdminPageQuery, AdminPageView, TraceDetailView, TraceListItemView 
 
 export async function getTraces(query: AdminPageQuery): Promise<ApiRequestResult<AdminPageView<TraceListItemView>>> {
   const params = new URLSearchParams({ page: String(query.page), page_size: String(query.pageSize) });
-  const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACES + '?' + params, getSessionProxyBaseUrl());
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACES + '?' + params, getSessionProxyBaseUrl(), { credentials: 'include' });
   return { ...result, data: traceListSchema.parse(result.data) };
 }
 
 export async function getTrace(id: string): Promise<ApiRequestResult<TraceDetailView>> {
-  const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACE(id), getSessionProxyBaseUrl());
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACE(id), getSessionProxyBaseUrl(), { credentials: 'include' });
   return { ...result, data: traceDetailSchema.parse(result.data) };
 }
 
@@ -53,7 +53,7 @@ const healthErrorTypes: Record<ApiClientError['errorType'], HealthErrorType> = {
   invalid_json: 'invalid_response',
 };
 
-/** Calls GET /health using backend env origin and validates JSON against backend contract. */
+/** Calls GET /health through the same-origin proxy and validates the backend contract. */
 export async function getSystemHealth(customBaseUrl?: string): Promise<{
   data: HealthResponse;
   httpStatus: number;
@@ -64,7 +64,7 @@ export async function getSystemHealth(customBaseUrl?: string): Promise<{
   try {
     result = await apiRequest(
       API_ENDPOINTS.SYSTEM.HEALTH,
-      getApiBaseUrl(),
+      getSessionProxyBaseUrl(),
       { method: 'GET' },
     );
   } catch (error: unknown) {

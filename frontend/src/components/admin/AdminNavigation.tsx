@@ -65,15 +65,21 @@ export default function AdminNavigation() {
     },
     {
       id: 'system',
-      label: 'Hạ tầng & Dữ liệu',
+      label: 'Hạ tầng hệ thống',
       href: '/admin/system',
       icon: 'dns',
+    },
+    {
+      id: 'system-data',
+      label: 'Quản trị dữ liệu',
+      href: '/admin/system/data',
+      icon: 'storage',
     },
   ];
 
   const isActive = (itemHref: string) => {
-    if (itemHref === '/admin') {
-      return pathname === '/admin';
+    if (itemHref === '/admin' || itemHref === '/admin/system') {
+      return pathname === itemHref;
     }
     return pathname.startsWith(itemHref);
   };

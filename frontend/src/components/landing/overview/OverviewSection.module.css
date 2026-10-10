@@ -35,7 +35,7 @@
 
 .sectionHeader {
   text-align: center;
-  max-width: 720px;
+  max-width: 840px;
   margin: 0 auto 36px auto;
   display: flex;
   flex-direction: column;
@@ -59,7 +59,7 @@
 }
 
 .sectionTitle {
-  font-size: clamp(18px, 2.8vw, 44px);
+  font-size: clamp(18px, 2.3vw, 36px);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;

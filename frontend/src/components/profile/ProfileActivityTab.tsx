@@ -121,9 +121,9 @@ export default function ProfileActivityTab({
                           >
                             {isConfirmed ? '✓ Đã chốt chính thức' : '✎ Bản nháp chưa chốt'}
                           </span>
-                          {trip.createdAt && (
+                          {trip.updatedAt && (
                             <span className="text-xs text-[#4B5875]">
-                              • Tạo: {new Date(trip.createdAt).toLocaleDateString('vi-VN')}
+                              • Cập nhật: {new Date(trip.updatedAt).toLocaleDateString('vi-VN')}
                             </span>
                           )}
                         </div>

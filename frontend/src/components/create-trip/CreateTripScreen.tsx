@@ -1,55 +1,219 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Icon from '@/components/ui/Icon';
 import { useCreateTripController } from './useCreateTripController';
 import BudgetRangeField from '@/components/shared/BudgetRangeField';
 import VistraSelect from '@/components/shared/VistraSelect';
-import type { FitnessLevelOption, MoodPhoto } from './types';
+import CreateTripComposer from './CreateTripComposer';
+import TravelDnaPanel from './TravelDnaPanel';
+import Toast from '@/components/shared/Toast';
+import type { LocalImageAttachment } from './types';
 
-const FITNESS_OPTIONS: FitnessLevelOption[] = [
-  { level: 1, label: 'Rất nhẹ nhàng', distance: '< 3 km/ngày', desc: 'Nghỉ dưỡng thư thái, ngắm cảnh yên tĩnh' },
-  { level: 2, label: 'Nhẹ nhàng', distance: '3 - 6 km/ngày', desc: 'Dạo phố, tham quan các điểm du lịch tiêu chuẩn' },
-  { level: 3, label: 'Vừa phải', distance: '6 - 10 km/ngày', desc: 'Đi bộ linh hoạt, khám phá đa dạng cảnh quan' },
-  { level: 4, label: 'Năng động', distance: '10 - 15 km/ngày', desc: 'Leo dốc nhẹ, nhiều hoạt động ngoài trời' },
-  { level: 5, label: 'Thử thách', distance: '> 15 km/ngày', desc: 'Trekking địa hình đồi dốc, vận động cường độ cao' },
-];
+interface AllergySelectProps {
+  selected: string[];
+  options: string[];
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+  onToggle: (value: string) => void;
+  disabled?: boolean;
+}
 
-const COMMON_ALLERGIES = [
-  'Hải sản',
-  'Đậu phộng / Lạc',
-  'Sữa & Chế phẩm',
-  'Trứng',
-  'Gluten / Lúa mì',
-  'Đậu nành',
-  'Ăn chay (Vegetarian)',
-  'Kiêng cay',
-];
+function AllergySelect({ selected, options, loading = false, error = null, onRetry, onToggle, disabled = false }: AllergySelectProps) {
+  const id = useId();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const [customOptions, setCustomOptions] = useState<string[]>([]);
+  const [customValue, setCustomValue] = useState('');
+  const allOptions = [...options, ...customOptions];
+  const listId = `${id}-list`;
+
+  useEffect(() => {
+    if (disabled || !open) return;
+    const closeOutside = (event: MouseEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', closeOutside);
+    listRef.current?.focus();
+    return () => document.removeEventListener('mousedown', closeOutside);
+  }, [disabled, open]);
+
+  const addCustomValue = () => {
+    const value = customValue.trim();
+    if (!value || disabled) return;
+    const existing = allOptions.find((option) => option.toLocaleLowerCase() === value.toLocaleLowerCase());
+    const selectedValue = existing ?? value;
+    if (!existing) setCustomOptions((current) => [...current, value]);
+    if (!selected.some((item) => item.toLocaleLowerCase() === selectedValue.toLocaleLowerCase())) {
+      onToggle(selectedValue);
+    }
+    setCustomValue('');
+  };
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="relative flex flex-col gap-1.5"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
+      onKeyDownCapture={(event) => {
+        if (event.key === 'Escape' && open) {
+          event.preventDefault();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+    >
+      <label htmlFor={`${id}-trigger`} className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F] tracking-wide">
+        DỊ ỨNG &amp; YÊU CẦU ẨM THỰC
+      </label>
+      <button
+        ref={triggerRef}
+        id={`${id}-trigger`}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open && !disabled}
+        aria-controls={listId}
+        disabled={disabled || loading}
+        onClick={() => setOpen((value) => !value)}
+        className={`w-full h-11 min-h-11 flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-medium text-left transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : open ? 'bg-[#EBF1F0] border-[#205BD6] ring-1 ring-[#205BD6]/20' : 'bg-[#EBF1F0] hover:bg-[#E4ECEB] border-[#0E1D4F]/10'} text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-[#205BD6]`}
+      >
+        <span className={`min-w-0 truncate ${selected.length ? 'font-semibold text-[#0E1D4F]' : 'text-[#4B5875]/70'}`}>
+          {loading ? 'Đang tải danh mục dị ứng…' : selected.length ? `${selected.length} lựa chọn đã chọn` : 'Chọn dị ứng hoặc yêu cầu ẩm thực'}
+        </span>
+        <Icon name="expand_more" className={`size-4 text-[#4B5875] shrink-0 transition-transform ${open ? 'rotate-180 text-[#205BD6]' : ''}`} />
+      </button>
+
+      {error && (
+        <div className="absolute left-0 top-full z-40 mt-1 flex w-max max-w-[min(90vw,24rem)] items-start gap-2 rounded-lg border border-rose-200 bg-white p-3 text-xs text-rose-700 shadow-lg" role="alert">
+          <span className="min-w-0 flex-1">{error}</span>
+          {onRetry && (
+            <button type="button" onClick={onRetry} className="shrink-0 underline font-semibold cursor-pointer focus-visible:outline-2 focus-visible:outline-[#205BD6]">
+              Thử lại
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* CT-08: Selected summary chip strip is hidden in closed state; selection is reflected inside open dropdown list */}
+
+      {open && (
+        <div
+          ref={listRef}
+          id={listId}
+          role="listbox"
+          tabIndex={-1}
+          aria-multiselectable="true"
+          className="absolute left-0 top-full z-50 mt-1 w-full max-h-60 overflow-y-auto rounded-xl border border-[#0E1D4F]/15 bg-white p-2 shadow-lg space-y-1 animate-in fade-in duration-150"
+        >
+          {loading && (
+            <div className="p-3 text-center text-xs text-[#4B5875]">Đang tải lựa chọn dị ứng…</div>
+          )}
+          {!loading && allOptions.length === 0 && !error && (
+            <div className="p-3 text-center text-xs text-[#4B5875]">Chưa có danh mục dị ứng từ máy chủ.</div>
+          )}
+          {allOptions.map((item) => {
+            const isSelected = selected.includes(item);
+            return (
+              <button
+                key={item}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => onToggle(item)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-left transition-colors cursor-pointer ${isSelected ? 'bg-[#205BD6]/10 text-[#205BD6] font-semibold' : 'hover:bg-[#EBF1F0] text-[#0E1D4F]'}`}
+              >
+                <span>{item}</span>
+                {isSelected && <Icon name="check" className="size-4 text-[#205BD6]" />}
+              </button>
+            );
+          })}
+          <div className="pt-2 border-t border-[#0E1D4F]/10 flex gap-2">
+            <input
+              type="text"
+              value={customValue}
+              onChange={(e) => setCustomValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addCustomValue();
+                }
+              }}
+              placeholder="Thêm yêu cầu khác..."
+              className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-[#0E1D4F]/15 bg-white focus:outline-none focus:border-[#205BD6]"
+            />
+            <button
+              type="button"
+              onClick={addCustomValue}
+              className="px-3 py-1.5 text-xs bg-[#205BD6] text-white rounded-lg font-medium hover:bg-[#0739A8] cursor-pointer"
+            >
+              Thêm
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CreateTripScreen() {
+  const router = useRouter();
   const form = useCreateTripController();
-  const [newPhotoUrl, setNewPhotoUrl] = useState('');
-  const [newPhotoCaption, setNewPhotoCaption] = useState('');
-  const [showAddPhoto, setShowAddPhoto] = useState(false);
-
+  const setPreviewAttachment = form.setPreviewAttachment;
+  const lastTriggerRef = useRef<HTMLElement | null>(null);
+  const modalCloseBtnRef = useRef<HTMLButtonElement>(null);
   const fieldClass = 'w-full rounded-xl border border-[#0E1D4F]/15 bg-white p-3 text-sm focus:outline-none focus:border-[#205BD6]';
 
-  const handleAddCustomPhoto = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPhotoUrl.trim()) return;
-    const newPhoto: MoodPhoto = {
-      id: `photo-${Date.now()}`,
-      url: newPhotoUrl.trim(),
-      caption: newPhotoCaption.trim() || 'Ảnh cảm hứng du khách',
-      tags: ['Tự chọn'],
-    };
-    form.addCustomPhoto(newPhoto);
-    setNewPhotoUrl('');
-    setNewPhotoCaption('');
-    setShowAddPhoto(false);
+  // Auto-redirect to planner when trip is created successfully
+  useEffect(() => {
+    const createdTripId = form.created?.id;
+    if (!createdTripId) return;
+    const timer = setTimeout(() => {
+      router.push(`/planner?trip_id=${encodeURIComponent(createdTripId)}`);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [form.created, router]);
+
+  const handleOpenPreview = (att: LocalImageAttachment, triggerElement?: HTMLElement) => {
+    if (triggerElement) {
+      lastTriggerRef.current = triggerElement;
+    }
+    form.setPreviewAttachment(att);
   };
+
+  const handleClosePreview = useCallback(() => {
+    setPreviewAttachment(null);
+    // Return keyboard focus to the trigger element that opened the preview
+    setTimeout(() => {
+      lastTriggerRef.current?.focus();
+    }, 0);
+  }, [setPreviewAttachment]);
+
+  // Focus the close button when preview modal opens
+  useEffect(() => {
+    if (form.previewAttachment) {
+      modalCloseBtnRef.current?.focus();
+    }
+  }, [form.previewAttachment]);
+
+  // Handle global Escape key for modal
+  useEffect(() => {
+    if (!form.previewAttachment) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClosePreview();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [form.previewAttachment, handleClosePreview]);
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-12">
@@ -89,10 +253,7 @@ export default function CreateTripScreen() {
         <div className="grid gap-8 lg:grid-cols-12 items-start">
           {/* Main Form Left Column (7 cols) */}
           <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void form.submit();
-            }}
+            onSubmit={(event) => event.preventDefault()}
             className="lg:col-span-7 space-y-7 rounded-2xl border border-[#0E1D4F]/10 bg-white/85 backdrop-blur-md p-5 sm:p-8 shadow-xs"
           >
             <fieldset disabled={form.isSubmitting || Boolean(form.created)} className="space-y-6">
@@ -150,15 +311,15 @@ export default function CreateTripScreen() {
                 </div>
               </div>
 
-              {/* 3. Group Size & Pace (CREATE-02: Travelers input before budget) */}
-              <div className="grid gap-4 sm:grid-cols-2 items-end">
+              {/* 3. Group Size, Pace & Allergy Preferences */}
+              <div className="grid items-end gap-4 md:grid-cols-3">
                 <div className="space-y-1.5">
                   <label htmlFor="create-people" className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
                     SỐ NGƯỜI THAM GIA
                   </label>
                   <input
                     id="create-people"
-                    className={fieldClass}
+                    className={`${fieldClass} h-11 py-2.5`}
                     type="number"
                     required
                     min={1}
@@ -173,14 +334,27 @@ export default function CreateTripScreen() {
                     label="NHỊP ĐỘ CHUYẾN ĐI"
                     value={form.pace}
                     onChange={(val) => form.setPace(val as typeof form.pace)}
+                    triggerClassName="h-11"
                     options={[
-                      { value: 'relaxed', label: 'Thư thái (ít di chuyển, nghỉ ngơi)' },
-                      { value: 'normal', label: 'Cân bằng (tiêu chuẩn VISTRA)' },
-                      { value: 'busy', label: 'Năng động (nhiều điểm đến)' },
+                      { value: 'relaxed', label: 'Thư thái', description: 'Mức vận động nhẹ, di chuyển ngắn và có nhiều thời gian nghỉ.' },
+                      { value: 'normal', label: 'Cân bằng', description: 'Mức vận động vừa phải, xen kẽ tham quan và nghỉ ngơi.' },
+                      { value: 'busy', label: 'Năng động', description: 'Mức vận động cao, nhiều điểm và hoạt động; cần sức bền tốt.' },
                     ]}
                   />
                 </div>
+                <AllergySelect
+                  selected={form.selectedAllergies}
+                  options={form.allergyOptions}
+                  loading={form.allergyLoading}
+                  error={form.allergyError}
+                  onRetry={form.retryAllergies}
+                  onToggle={form.toggleAllergy}
+                  disabled={form.isSubmitting || Boolean(form.created)}
+                />
               </div>
+              {form.selectedAllergies.length > 0 && (
+                <p className="text-xs text-amber-700">Chưa hỗ trợ lưu dị ứng cho chuyến đi. Bỏ chọn để tiếp tục.</p>
+              )}
 
               {/* 4. Budget Range */}
               <div className="space-y-1.5 pt-1">
@@ -191,103 +365,35 @@ export default function CreateTripScreen() {
                   travelerCount={form.people}
                 />
                 <p className="text-[11px] text-[#4B5875] mt-1">
-                  API hiện nhận mức ngân sách tối đa làm giới hạn tổng chi phí cho toàn đoàn. Tuyến đường hỗ trợ di chuyển bằng ô tô.
+                  Mức tối đa là ngân sách dự kiến cho cả nhóm. Lịch trình hiện dự kiến di chuyển bằng ô tô.
                 </p>
+                {form.budget.min !== form.budget.max && (
+                  <p className="text-xs text-amber-700">Hiện chỉ lưu được một mức ngân sách tổng. Đặt tối thiểu bằng tối đa để tiếp tục.</p>
+                )}
               </div>
 
-              {/* 5. Prompt Notes (Unsent to BE / Local Context) */}
-              <div className="space-y-1.5 pt-2 border-t border-[#0E1D4F]/10">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="create-notes" className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
-                    GHI CHÚ Ý TƯỞNG &amp; MONG MUỐN RIÊNG
-                  </label>
-                  <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                    Chưa gửi API
-                  </span>
-                </div>
-                <textarea
-                  id="create-notes"
-                  rows={3}
-                  value={form.notes}
-                  onChange={(e) => form.setNotes(e.target.value)}
-                  placeholder="Ví dụ: Thích quán cà phê view đồi, muốn ăn thử bánh ướt lòng gà, ưu tiên chụp ảnh lúc hoàng hôn..."
-                  className="w-full rounded-xl border border-[#0E1D4F]/15 bg-white p-3 text-sm focus:outline-none focus:border-[#205BD6]"
-                />
-              </div>
-
-              {/* 6. Fitness Level (5 levels - CREATE-04) */}
-              <div className="space-y-2.5 pt-2 border-t border-[#0E1D4F]/10">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
-                    MỨC ĐỘ THỂ LỰC PHÙ HỢP
-                  </label>
-                  <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                    Chưa gửi API
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-                  {FITNESS_OPTIONS.map((item) => (
-                    <button
-                      key={item.level}
-                      type="button"
-                      onClick={() => form.setFitnessLevel(item.level)}
-                      className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                        form.fitnessLevel === item.level
-                          ? 'border-[#205BD6] bg-[#205BD6]/10 ring-1 ring-[#205BD6]'
-                          : 'border-[#0E1D4F]/10 bg-white hover:bg-[#EBF1F0]'
-                      }`}
-                    >
-                      <div>
-                        <span className="block text-xs font-bold text-[#0E1D4F]">{item.label}</span>
-                        <span className="block text-[10px] text-[#205BD6] font-medium mt-0.5">{item.distance}</span>
-                      </div>
-                      <span className="block text-[10px] text-[#4B5875] mt-1.5 line-clamp-2">{item.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 7. Dietary & Allergies (Multi-select - CREATE-03) */}
-              <div className="space-y-2.5 pt-2 border-t border-[#0E1D4F]/10">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]">
-                    DỊ ỨNG &amp; YÊU CẦU ẨM THỰC
-                  </label>
-                  <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                    Chưa gửi API
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {COMMON_ALLERGIES.map((item) => {
-                    const isSelected = form.selectedAllergies.includes(item);
-                    return (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => form.toggleAllergy(item)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1.5 ${
-                          isSelected
-                            ? 'bg-[#205BD6] text-white border-[#205BD6]'
-                            : 'bg-white text-[#4B5875] border-[#0E1D4F]/15 hover:border-[#0E1D4F]/30'
-                        }`}
-                      >
-                        {isSelected && <Icon name="check" className="size-3.5" />}
-                        <span>{item}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* 5. Integrated Prompt & Image Composer (CTUI-01) */}
+              <CreateTripComposer
+                notes={form.notes}
+                onNotesChange={form.setNotes}
+                attachments={form.attachments}
+                onAddFiles={form.addImageFiles}
+                onRemoveImage={form.removeImage}
+                onRetryImage={form.retryImageUpload}
+                onPreviewImage={handleOpenPreview}
+                disabled={form.isSubmitting || Boolean(form.created)}
+              />
 
               {/* Submit Button */}
               <div className="pt-4 border-t border-[#0E1D4F]/10 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-xs text-[#4B5875]">
-                  Chỉ gọi gửi thông tin khi bạn nhấn xác nhận nút dưới đây.
+                  Chỉ gọi gửi thông tin khi bạn nhấn xác nhận nút bên dưới.
                 </p>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => void form.submit()}
                   disabled={form.catalogLoading || Boolean(form.catalogError) || !form.destination || form.isSubmitting}
-                  className="w-full sm:w-auto min-h-12 rounded-xl bg-[#205BD6] hover:bg-[#0739A8] px-8 py-3.5 font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto min-h-12 rounded-xl bg-[#205BD6] hover:bg-[#0739A8] px-8 py-3.5 font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                 >
                   {form.isSubmitting ? (
                     <>
@@ -303,7 +409,6 @@ export default function CreateTripScreen() {
                 </button>
               </div>
             </fieldset>
-
             {form.error && (
               <div role="alert" className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
                 <Icon name="error" className="size-4 text-rose-600 shrink-0" />
@@ -317,259 +422,72 @@ export default function CreateTripScreen() {
                   <Icon name="check_circle" className="size-5 text-emerald-600 shrink-0" />
                   <strong className="text-sm">Hành trình đã được khởi tạo thành công!</strong>
                 </div>
+                <p className="text-emerald-800 flex items-center gap-2">
+                  <span className="size-3.5 border-2 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin" />
+                  <span>Đang tự động chuyển hướng tới bàn làm việc lịch trình…</span>
+                </p>
                 {form.created.generationError && (
                   <p className="text-amber-800">
                     Chưa sinh được chi tiết chặng: {typeof form.created.generationError === 'string' ? form.created.generationError : JSON.stringify(form.created.generationError)}
                   </p>
                 )}
-                <div>
-                  <Link
-                    className="inline-flex items-center gap-2 min-h-11 rounded-xl bg-[#205BD6] hover:bg-[#0739A8] px-6 py-2.5 text-white font-semibold shadow-xs"
-                    href={`/planner?id=${encodeURIComponent(form.created.id)}`}
-                  >
-                    <span>Mở bàn làm việc lịch trình</span>
-                    <Icon name="arrow_forward" className="size-4" />
-                  </Link>
-                </div>
               </div>
             )}
           </form>
 
-          {/* Right Column Aside: Moodboard & DNA (5 cols) */}
           <aside className="lg:col-span-5 space-y-6">
-            {/* Moodboard Photo Composer (CREATE-01) */}
-            <div className="rounded-2xl border border-[#0E1D4F]/10 bg-white/85 backdrop-blur-md p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#0E1D4F]/10">
-                <div className="flex items-center gap-2">
-                  <Icon name="photo_camera" className="size-4 text-[#205BD6]" />
-                  <h2 className="text-base font-bold text-[#0E1D4F]">Bảng ảnh cảm hứng (Moodboard)</h2>
-                </div>
-                <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  Chưa gửi API
-                </span>
-              </div>
-
-              <p className="text-xs text-[#4B5875] leading-relaxed">
-                Đính kèm các bức ảnh thể hiện phong cách chuyến đi bạn mong đợi. Nhấp ảnh để xem chi tiết hoặc xóa nhanh.
-              </p>
-
-              {/* Photo Horizontal Scroll / Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                {form.photos.map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="group relative rounded-xl border border-[#0E1D4F]/15 overflow-hidden bg-slate-100 aspect-4/3 flex flex-col justify-end"
-                  >
-                    <Image
-                      src={photo.url}
-                      alt={photo.caption}
-                      fill
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                      className="object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-                    
-                    {/* Delete Button (min 44px touch area) */}
-                    <button
-                      type="button"
-                      onClick={() => form.removePhoto(photo.id)}
-                      className="absolute top-1 right-1 size-9 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center transition-colors cursor-pointer z-10"
-                      aria-label={`Xóa ảnh ${photo.caption}`}
-                      title="Xóa ảnh khỏi moodboard"
-                    >
-                      <Icon name="close" className="size-4" />
-                    </button>
-
-                    {/* View Preview Button */}
-                    <button
-                      type="button"
-                      onClick={() => form.setSelectedPhotoForModal(photo)}
-                      className="absolute inset-0 w-full h-full cursor-pointer z-0"
-                      aria-label={`Xem ảnh lớn ${photo.caption}`}
-                    />
-
-                    {/* Caption Overlay */}
-                    <div className="relative p-2 text-white z-10 pointer-events-none">
-                      <p className="text-[11px] font-semibold truncate drop-shadow-sm">{photo.caption}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Add Custom Photo Controls */}
-              {showAddPhoto ? (
-                <div className="p-3 bg-[#EBF1F0] rounded-xl space-y-2.5">
-                  <input
-                    type="url"
-                    placeholder="Nhập liên kết ảnh (https://...)"
-                    value={newPhotoUrl}
-                    onChange={(e) => setNewPhotoUrl(e.target.value)}
-                    className="w-full text-xs p-2.5 bg-white rounded-lg border border-[#0E1D4F]/10"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Ghi chú ảnh (tuỳ chọn)"
-                    value={newPhotoCaption}
-                    onChange={(e) => setNewPhotoCaption(e.target.value)}
-                    className="w-full text-xs p-2.5 bg-white rounded-lg border border-[#0E1D4F]/10"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleAddCustomPhoto}
-                      className="px-3 py-1.5 bg-[#205BD6] text-white text-xs font-semibold rounded-lg cursor-pointer"
-                    >
-                      Thêm ảnh
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddPhoto(false)}
-                      className="px-3 py-1.5 text-xs text-[#4B5875] hover:underline cursor-pointer"
-                    >
-                      Hủy
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowAddPhoto(true)}
-                  className="w-full py-2.5 border border-dashed border-[#0E1D4F]/25 hover:border-[#205BD6] hover:bg-[#205BD6]/5 rounded-xl text-xs font-semibold text-[#205BD6] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Icon name="add_photo_alternate" className="size-4" />
-                  <span>Thêm ảnh cảm hứng</span>
-                </button>
-              )}
-            </div>
-
-            {/* Travel DNA Preview (CREATE-05) */}
-            <div className="rounded-2xl border border-[#0E1D4F]/10 bg-white/85 backdrop-blur-md p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#0E1D4F]/10">
-                <div className="flex items-center gap-2">
-                  <Icon name="fingerprint" className="size-4 text-[#205BD6]" />
-                  <h2 className="text-base font-bold text-[#0E1D4F]">Định hình Travel DNA</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={form.resetTravelDna}
-                  className="text-[11px] text-[#205BD6] hover:underline cursor-pointer"
-                >
-                  Đặt lại mặc định
-                </button>
-              </div>
-
-              <p className="text-xs text-[#4B5875]">
-                Tinh chỉnh xu hướng du lịch để VISTRA tối ưu hóa lịch trình phù hợp cá tính của bạn.
-              </p>
-
-              <div className="space-y-4">
-                {/* 1. Exploration */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] font-semibold text-[#0E1D4F]">
-                    <span>Khám phá mạo hiểm</span>
-                    <span>Nghỉ ngơi thư thái</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={form.travelDna.exploration}
-                    onChange={(e) => form.setTravelDna({ ...form.travelDna, exploration: Number(e.target.value) })}
-                    className="w-full accent-[#205BD6] cursor-pointer"
-                  />
-                </div>
-
-                {/* 2. Nature vs Culture */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] font-semibold text-[#0E1D4F]">
-                    <span>Thiên nhiên cảnh quan</span>
-                    <span>Văn hóa &amp; Lịch sử</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={form.travelDna.natureCulture}
-                    onChange={(e) => form.setTravelDna({ ...form.travelDna, natureCulture: Number(e.target.value) })}
-                    className="w-full accent-[#205BD6] cursor-pointer"
-                  />
-                </div>
-
-                {/* 3. Pace */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] font-semibold text-[#0E1D4F]">
-                    <span>Thư thả chậm rãi</span>
-                    <span>Năng động dày đặc</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={form.travelDna.pace}
-                    onChange={(e) => form.setTravelDna({ ...form.travelDna, pace: Number(e.target.value) })}
-                    className="w-full accent-[#205BD6] cursor-pointer"
-                  />
-                </div>
-
-                {/* 4. Cuisine */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] font-semibold text-[#0E1D4F]">
-                    <span>Ẩm thực truyền thống</span>
-                    <span>Trải nghiệm mới lạ</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={form.travelDna.cuisine}
-                    onChange={(e) => form.setTravelDna({ ...form.travelDna, cuisine: Number(e.target.value) })}
-                    className="w-full accent-[#205BD6] cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3 bg-[#EBF1F0]/70 rounded-xl text-[11px] text-[#4B5875] flex items-center gap-1.5 border border-[#0E1D4F]/5">
-                <Icon name="info" className="size-3.5 text-[#205BD6] shrink-0" />
-                <span>Travel DNA hiện được lưu trữ tại phiên làm việc máy khách, sẽ tự động đồng bộ khi API mở rộng.</span>
-              </div>
-            </div>
+            <TravelDnaPanel
+              metrics={form.travelDna}
+              status={form.dnaStatus}
+              error={form.dnaError}
+              onChange={form.changeTravelDnaMetric}
+              onReset={form.resetTravelDna}
+            />
           </aside>
         </div>
       )}
 
-      {/* Full Photo Preview Modal */}
-      {form.selectedPhotoForModal && (
+      {/* Full Photo Preview Modal with object-contain (CTUI-01 / CTUI-03) */}
+      {form.previewAttachment && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modal-photo-caption"
+          aria-labelledby="modal-preview-title"
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-xs"
+          onClick={handleClosePreview}
         >
-          <div className="relative max-w-2xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-[#0E1D4F]/10">
-              <h3 id="modal-photo-caption" className="font-bold text-sm text-[#0E1D4F]">
-                {form.selectedPhotoForModal.caption}
+          <div
+            className="relative max-w-4xl w-full max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-[#0E1D4F]/10 shrink-0">
+              <h3 id="modal-preview-title" className="font-bold text-sm text-[#0E1D4F] truncate pr-4">
+                {form.previewAttachment.name}
               </h3>
               <button
+                ref={modalCloseBtnRef}
                 type="button"
-                onClick={() => form.setSelectedPhotoForModal(null)}
-                className="size-9 rounded-xl hover:bg-slate-100 flex items-center justify-center text-[#4B5875] cursor-pointer"
+                onClick={handleClosePreview}
+                className="min-w-[44px] min-h-[44px] rounded-xl hover:bg-slate-100 flex items-center justify-center text-[#4B5875] hover:text-[#0E1D4F] cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                 aria-label="Đóng xem ảnh"
+                title="Đóng xem ảnh (Esc)"
               >
                 <Icon name="close" className="size-5" />
               </button>
             </div>
-            <div className="relative aspect-16/10 w-full bg-slate-900">
+            <div className="relative w-full h-[60vh] max-h-[700px] bg-slate-950 flex items-center justify-center p-2">
               <Image
-                src={form.selectedPhotoForModal.url}
-                alt={form.selectedPhotoForModal.caption}
+                src={form.previewAttachment.previewUrl}
+                alt={form.previewAttachment.name}
                 fill
                 className="object-contain"
+                unoptimized
               />
             </div>
           </div>
         </div>
       )}
+      <Toast message={form.toastMessage} onClose={form.clearToast} variant="error" />
     </div>
   );
 }

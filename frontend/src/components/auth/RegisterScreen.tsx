@@ -1,9 +1,15 @@
 'use client';
 
-import React from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import { useRegisterController } from './useRegisterController';
+
+function AccessibleFieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+
+  return <span id={id} className="sr-only">{message}</span>;
+}
 
 export default function RegisterScreen() {
   const {
@@ -29,12 +35,21 @@ export default function RegisterScreen() {
     handleRegisterSubmit,
     isLoading,
     allowedSuffix,
-    passwordCriteria,
     isPasswordValid,
     emailFeedback,
   } = useRegisterController();
+  const [errorPopupDismissed, setErrorPopupDismissed] = useState(false);
+  const validationErrors = [
+    { id: 'reg-fullname', label: 'Họ và tên', message: errors.fullName },
+    { id: 'reg-dob', label: 'Ngày sinh', message: errors.dateOfBirth },
+    { id: 'reg-email', label: 'Email', message: errors.email },
+    { id: 'reg-password', label: 'Mật khẩu', message: errors.password },
+    { id: 'reg-confirm-password', label: 'Xác nhận lại mật khẩu', message: errors.confirmPassword },
+    { id: 'reg-terms', label: 'Điều khoản', message: errors.agreeTerms },
+  ].filter((error): error is { id: string; label: string; message: string } => Boolean(error.message));
 
   return (
+    <>
     <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-10 sm:py-16 flex items-center justify-center min-h-[calc(100vh-76px-300px)]">
       <div className="w-full max-w-lg bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-6 sm:p-8 shadow-[0_8px_30px_rgba(14,29,79,0.06)] space-y-6">
         {/* Header */}
@@ -67,7 +82,14 @@ export default function RegisterScreen() {
         )}
 
         {/* Registration Form */}
-        <form onSubmit={handleRegisterSubmit} className="space-y-4" noValidate>
+        <form
+          onSubmit={(event) => {
+            setErrorPopupDismissed(false);
+            void handleRegisterSubmit(event);
+          }}
+          className="space-y-4"
+          noValidate
+        >
           {/* Full Name */}
           <div className="space-y-1.5">
             <label
@@ -86,17 +108,12 @@ export default function RegisterScreen() {
               }}
               placeholder="Nguyễn Văn An"
               className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${
-                errors.fullName ? 'border-[#ba1a1a]' : 'border-[#0E1D4F]/15'
-              } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                errors.fullName ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
+              } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none ${errors.fullName ? '' : 'focus:border-[#205BD6]'} transition-all`}
               aria-invalid={!!errors.fullName}
               aria-describedby={errors.fullName ? 'reg-fullname-error' : undefined}
             />
-            {errors.fullName && (
-              <p id="reg-fullname-error" className="text-xs text-[#ba1a1a] flex items-center gap-1 mt-1">
-                <Icon name="error" className="size-3.5" />
-                <span>{errors.fullName}</span>
-              </p>
-            )}
+            <AccessibleFieldError id="reg-fullname-error" message={errors.fullName} />
           </div>
 
           {/* Date of Birth & Email Grid */}
@@ -117,17 +134,12 @@ export default function RegisterScreen() {
                   if (errors.dateOfBirth) setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
                 }}
                 className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${
-                  errors.dateOfBirth ? 'border-[#ba1a1a]' : 'border-[#0E1D4F]/15'
-                } text-[#0E1D4F] focus:outline-none focus:border-[#205BD6] transition-all`}
+                  errors.dateOfBirth ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
+                } text-[#0E1D4F] focus:outline-none ${errors.dateOfBirth ? '' : 'focus:border-[#205BD6]'} transition-all`}
                 aria-invalid={!!errors.dateOfBirth}
                 aria-describedby={errors.dateOfBirth ? 'reg-dob-error' : undefined}
               />
-              {errors.dateOfBirth && (
-                <p id="reg-dob-error" className="text-xs text-[#ba1a1a] flex items-center gap-1 mt-1">
-                  <Icon name="error" className="size-3.5" />
-                  <span>{errors.dateOfBirth}</span>
-                </p>
-              )}
+              <AccessibleFieldError id="reg-dob-error" message={errors.dateOfBirth} />
             </div>
 
             <div className="space-y-1.5">
@@ -148,21 +160,18 @@ export default function RegisterScreen() {
                 placeholder={`traveler${allowedSuffix}`}
                 className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${
                   errors.email
-                    ? 'border-[#ba1a1a]'
+                    ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]'
                     : emailFeedback && !emailFeedback.isValid
                     ? 'border-amber-400'
                     : emailFeedback && emailFeedback.isValid
                     ? 'border-emerald-500'
                     : 'border-[#0E1D4F]/15'
-                } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none ${errors.email ? '' : 'focus:border-[#205BD6]'} transition-all`}
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'reg-email-error' : emailFeedback ? 'reg-email-hint' : undefined}
               />
               {errors.email ? (
-                <p id="reg-email-error" className="text-xs text-[#ba1a1a] flex items-center gap-1 mt-1">
-                  <Icon name="error" className="size-3.5" />
-                  <span>{errors.email}</span>
-                </p>
+                <AccessibleFieldError id="reg-email-error" message={errors.email} />
               ) : emailFeedback ? (
                 <p
                   id="reg-email-hint"
@@ -202,11 +211,11 @@ export default function RegisterScreen() {
                   placeholder="Tối thiểu 8 ký tự"
                   className={`w-full pl-3.5 pr-9 py-2.5 text-sm rounded-xl bg-white border ${
                     errors.password
-                      ? 'border-[#ba1a1a]'
+                      ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]'
                       : password && isPasswordValid
                       ? 'border-emerald-500'
                       : 'border-[#0E1D4F]/15'
-                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none ${errors.password ? '' : 'focus:border-[#205BD6]'} transition-all`}
                   aria-invalid={!!errors.password}
                   aria-describedby={errors.password ? 'reg-password-error' : undefined}
                 />
@@ -219,42 +228,7 @@ export default function RegisterScreen() {
                   <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="size-4" />
                 </button>
               </div>
-              {errors.password && (
-                <p id="reg-password-error" className="text-xs text-[#ba1a1a] flex items-center gap-1 mt-1">
-                  <Icon name="error" className="size-3.5" />
-                  <span>{errors.password}</span>
-                </p>
-              )}
-              {/* Real-time Password Requirements Checklist */}
-              {password.length > 0 && (
-                <div className="p-2.5 bg-[#0E1D4F]/[0.03] rounded-lg border border-[#0E1D4F]/10 space-y-1 mt-1.5 text-[11px]">
-                  <p className="font-semibold text-[#0E1D4F] text-[10px] uppercase tracking-wider mb-1">
-                    Tiêu chí bảo mật:
-                  </p>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                    <span className={`flex items-center gap-1 ${passwordCriteria.hasMinLength ? 'text-emerald-600 font-medium' : 'text-[#4B5875]'}`}>
-                      <Icon name={passwordCriteria.hasMinLength ? 'check' : 'radio_button_unchecked'} className="size-3" />
-                      Tối thiểu 8 ký tự
-                    </span>
-                    <span className={`flex items-center gap-1 ${passwordCriteria.hasUppercase ? 'text-emerald-600 font-medium' : 'text-[#4B5875]'}`}>
-                      <Icon name={passwordCriteria.hasUppercase ? 'check' : 'radio_button_unchecked'} className="size-3" />
-                      1 chữ cái viết hoa
-                    </span>
-                    <span className={`flex items-center gap-1 ${passwordCriteria.hasLowercase ? 'text-emerald-600 font-medium' : 'text-[#4B5875]'}`}>
-                      <Icon name={passwordCriteria.hasLowercase ? 'check' : 'radio_button_unchecked'} className="size-3" />
-                      1 chữ cái thường
-                    </span>
-                    <span className={`flex items-center gap-1 ${passwordCriteria.hasNumber ? 'text-emerald-600 font-medium' : 'text-[#4B5875]'}`}>
-                      <Icon name={passwordCriteria.hasNumber ? 'check' : 'radio_button_unchecked'} className="size-3" />
-                      1 chữ số (0-9)
-                    </span>
-                    <span className={`col-span-2 flex items-center gap-1 ${passwordCriteria.hasSpecial ? 'text-emerald-600 font-medium' : 'text-[#4B5875]'}`}>
-                      <Icon name={passwordCriteria.hasSpecial ? 'check' : 'radio_button_unchecked'} className="size-3" />
-                      1 ký tự đặc biệt (!@#$%...)
-                    </span>
-                  </div>
-                </div>
-              )}
+              <AccessibleFieldError id="reg-password-error" message={errors.password} />
             </div>
 
             <div className="space-y-1.5">
@@ -275,8 +249,8 @@ export default function RegisterScreen() {
                   }}
                   placeholder="Nhập lại mật khẩu"
                   className={`w-full pl-3.5 pr-9 py-2.5 text-sm rounded-xl bg-white border ${
-                    errors.confirmPassword ? 'border-[#ba1a1a]' : 'border-[#0E1D4F]/15'
-                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                    errors.confirmPassword ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
+                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none ${errors.confirmPassword ? '' : 'focus:border-[#205BD6]'} transition-all`}
                   aria-invalid={!!errors.confirmPassword}
                   aria-describedby={errors.confirmPassword ? 'reg-confirm-error' : undefined}
                 />
@@ -289,12 +263,7 @@ export default function RegisterScreen() {
                   <Icon name={showConfirmPassword ? 'visibility_off' : 'visibility'} className="size-4" />
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p id="reg-confirm-error" className="text-xs text-[#ba1a1a] flex items-center gap-1 mt-1">
-                  <Icon name="error" className="size-3.5" />
-                  <span>{errors.confirmPassword}</span>
-                </p>
-              )}
+              <AccessibleFieldError id="reg-confirm-error" message={errors.confirmPassword} />
             </div>
           </div>
 
@@ -302,24 +271,24 @@ export default function RegisterScreen() {
           <div className="space-y-1 pt-1">
             <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-[#4B5875]">
               <input
+                id="reg-terms"
                 type="checkbox"
                 checked={agreeTerms}
+                aria-invalid={!!errors.agreeTerms}
+                aria-describedby={errors.agreeTerms ? 'reg-terms-error' : undefined}
                 onChange={(e) => {
                   setAgreeTerms(e.target.checked);
                   if (errors.agreeTerms) setErrors((prev) => ({ ...prev, agreeTerms: undefined }));
                 }}
-                className="mt-0.5 w-4 h-4 rounded text-[#205BD6] accent-[#205BD6] cursor-pointer"
+                className={`mt-0.5 w-4 h-4 rounded text-[#205BD6] accent-[#205BD6] cursor-pointer ${errors.agreeTerms ? 'border-[#ba1a1a] ring-1 ring-[#ba1a1a]' : ''}`}
               />
               <span>
                 Tôi đồng ý với các <span className="text-[#205BD6] underline">Điều khoản dịch vụ</span> và <span className="text-[#205BD6] underline">Chính sách bảo mật</span> của Vistra.
               </span>
             </label>
-            {errors.agreeTerms && (
-              <p className="text-xs text-[#ba1a1a] flex items-center gap-1 pl-6">
-                <Icon name="error" className="size-3.5" />
-                <span>{errors.agreeTerms}</span>
-              </p>
-            )}
+            <div className="pl-6">
+              <AccessibleFieldError id="reg-terms-error" message={errors.agreeTerms} />
+            </div>
           </div>
 
           {/* Submit CTA */}
@@ -362,7 +331,7 @@ export default function RegisterScreen() {
           </button>
         </div>
 
-        <p className="text-xs text-[#4B5875]">Đăng ký Google/Facebook chưa khả dụng từ backend.</p>
+        
 
         {/* Navigation link to login */}
         <div className="text-center pt-2 text-xs text-[#4B5875]">
@@ -373,5 +342,47 @@ export default function RegisterScreen() {
         </div>
       </div>
     </div>
+    {validationErrors.length > 0 && !errorPopupDismissed && (
+      <div className="fixed inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-[100] mx-auto w-auto max-w-lg sm:inset-x-auto sm:left-auto sm:right-4 sm:mx-0 sm:w-[min(28rem,calc(100vw-2rem))]">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="max-h-[min(36svh,18rem)] overflow-y-auto rounded-xl border border-rose-200 bg-white/95 p-4 text-[#0E1D4F] shadow-xl backdrop-blur-md"
+        >
+          <div className="flex items-start gap-3">
+            <Icon name="error" className="mt-0.5 size-5 shrink-0 text-[#ba1a1a]" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[#ba1a1a]">Vui lòng kiểm tra các mục sau</p>
+              <ul className="mt-2 space-y-1.5">
+                {validationErrors.map((error) => (
+                  <li key={error.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const field = document.getElementById(error.id);
+                        field?.focus();
+                        field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }}
+                      className="min-h-11 w-full rounded-md text-left text-xs leading-relaxed text-[#4B5875] underline decoration-rose-300 underline-offset-2 hover:text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
+                    >
+                      <span className="font-semibold">{error.label}:</span> {error.message}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorPopupDismissed(true)}
+              aria-label="Đóng thông báo lỗi"
+              className="flex size-11 shrink-0 items-center justify-center rounded-lg text-[#4B5875] hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
+            >
+              <Icon name="close" className="size-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

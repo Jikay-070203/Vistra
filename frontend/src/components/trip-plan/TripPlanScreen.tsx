@@ -4,6 +4,7 @@ import Link from 'next/link';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import { useTripWorkspace } from '@/components/planner/useTripWorkspace';
 import TripPageState from '@/components/planner/TripPageState';
+import { useProvinceName } from '@/components/planner/PlannerHeader';
 import ItineraryView, { money, tripButtonClass, tripPanelClass } from './ItineraryView';
 import TripMap from './TripMap';
 import BudgetSummary from './BudgetSummary';
@@ -16,6 +17,7 @@ export default function TripPlanScreen() {
 
 function TripPlanDocument({ workspace }: { workspace: ReturnType<typeof useTripWorkspace> }) {
   const { trip, itinerary, busy, error, budget, budgetError } = workspace;
+  const destinationName = useProvinceName(trip?.destination_id, trip?.request.destination);
   const [day, setDay] = useState(1);
   const [place, setPlace] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -35,7 +37,7 @@ function TripPlanDocument({ workspace }: { workspace: ReturnType<typeof useTripW
     {error && <div role="alert" className="no-print p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800">{error}<button type="button" disabled={busy} onClick={workspace.retry} className={`${tripButtonClass} ml-2`}>Tải lại hành trình</button></div>}
     <section className={tripPanelClass}>
       <p className="text-sm font-semibold text-[#205BD6] mb-2">{trip.status === 'confirmed' ? 'Đã xác nhận' : 'Bản nháp'}{trip.is_published ? ' · Đã xuất bản' : ''}</p>
-      <h1 className="text-3xl font-bold mb-4">{trip.request.destination}</h1>
+      <h1 className="text-3xl font-bold mb-4">{destinationName || trip.request.destination}</h1>
       <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
         <div><dt className="text-[#4B5875]">Ngày bắt đầu</dt><dd>{trip.request.start_date}</dd></div>
         <div><dt className="text-[#4B5875]">Thời lượng</dt><dd>{trip.request.days} ngày</dd></div>

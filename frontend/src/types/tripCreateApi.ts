@@ -9,6 +9,9 @@ export interface TripCreateRequest {
   budget_scope: 'total';
   transport: 'car';
   pace: PlanPace;
+  notes?: string;
+  dna_analysis_id?: string;
+  travel_dna_override?: { metrics: Array<{ key: string; score: number }> };
 }
 
 export interface CreatedTripView {

@@ -22,7 +22,7 @@ function rawCard(value: unknown): TripCardRaw {
     estimatedCostVnd: nullable(raw.estimatedCostVnd, number, 'trip card.estimatedCostVnd'),
     status: string(raw.status, 'trip card.status'),
     isPublished: boolean(raw.isPublished, 'trip card.isPublished'),
-    updatedAt: string(raw.updatedAt, 'trip card.updatedAt'),
+    updatedAt: nullable(raw.updatedAt, string, 'trip card.updatedAt'),
     tags: list(raw.tags, 'trip card.tags').map(value => string(value, 'trip card.tag')),
     likesCount: number(raw.likesCount, 'trip card.likesCount'),
     likedByMe: boolean(raw.likedByMe, 'trip card.likedByMe'),
@@ -37,8 +37,8 @@ function card(value: unknown): TripCardView {
     endDate: endDateFromDuration(raw.startDate, raw.durationDays),
     durationDays: raw.durationDays, budgetMinVnd: raw.budgetMinVnd,
     budgetMaxVnd: raw.budgetMaxVnd, estimatedCostVnd: raw.estimatedCostVnd,
-    status: raw.status, isPublished: raw.isPublished, createdAt: raw.updatedAt,
-    lastUpdatedAt: null, tags: raw.tags, likesCount: raw.likesCount,
+    status: raw.status, isPublished: raw.isPublished, updatedAt: raw.updatedAt,
+    tags: raw.tags, likesCount: raw.likesCount,
     likedByMe: raw.likedByMe,
   };
 }
