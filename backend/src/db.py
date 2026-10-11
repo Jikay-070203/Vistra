@@ -188,9 +188,9 @@ def _ensure_import_destinations(db):
 
 
 POSTGRES_ID_TABLES = (
-    "destinations", "sources", "crawl_runs", "source_pages", "raw_place_records",
-    "places", "place_sources", "tags", "opening_intervals", "opening_exceptions",
-    "price_estimates", "place_ratings", "crawl_requests", "place_reviews",
+    "destinations", "sources",
+    "places", "place_sources", "opening_intervals", "opening_exceptions",
+    "price_estimates", "place_ratings", "place_reviews",
 )
 
 

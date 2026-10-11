@@ -718,10 +718,6 @@ def create_app(settings=None, services=None, gemini_client=None):
     def decide_duplicate(left_id: int, right_id: int, decision: Literal["same", "different"], db=Depends(database)):
         return resolve_duplicate(db, left_id, right_id, decision)
 
-    @app.get("/admin/crawl-runs", dependencies=auth)
-    def crawl_runs(limit: int = Query(default=20, ge=1, le=100), db=Depends(database)):
-        return {"items": rows(db, "SELECT * FROM crawl_runs ORDER BY id DESC LIMIT ?", (limit,))}
-
     @app.post("/trips", status_code=201, dependencies=auth)
     def create_trip(data: TripCreate, generate_itinerary: bool = False,
                     vistra_session: str | None = Cookie(default=None), db=Depends(database)):
