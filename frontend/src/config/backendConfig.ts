@@ -41,6 +41,7 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'GET' && /^\/places\/[0-9]+$/.test(path)) return path;
   // All these private routes additionally require an owner check in the proxy handler.
   if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+$/.test(path)) return path;
+  if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;
   if (method === 'GET' && /^\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;
   if (method === 'POST' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/chat$/.test(path)) return path;
   if (method === 'POST' && /^\/trips\/[A-Za-z0-9_-]+\/(generate|confirm|revisions\/(preview|commit))$/.test(path)) return path;
