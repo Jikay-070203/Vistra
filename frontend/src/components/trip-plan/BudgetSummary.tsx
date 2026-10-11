@@ -15,10 +15,10 @@ export default function BudgetSummary({ planned, actual, error }: { planned: Bud
         <dt className="font-semibold">{labels[key]}</dt>
         <dd className="text-[#4B5875]">{money(planned.categories[key].min_vnd)} – {money(planned.categories[key].max_vnd)}</dd>
         {planned.categories[key].unknown_items > 0 && <dd className="text-amber-800">{planned.categories[key].unknown_items} khoản chưa có giá</dd>}
-        {actual && <dd>Đã chi: {money(actual.categories[key].actual_vnd)}</dd>}
+        {actual && actual.categories[key].actual_vnd > 0 && <dd>Đã chi: {money(actual.categories[key].actual_vnd)}</dd>}
       </div>)}
     </dl>
-    {actual && <p className="mt-4 font-semibold">Tổng đã chi: {money(actual.actual_total_vnd)}</p>}
+    {actual && actual.actual_total_vnd > 0 && <p className="mt-4 font-semibold">Tổng đã chi: {money(actual.actual_total_vnd)}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-rose-700">{error}</p>}
   </section>;
 }
