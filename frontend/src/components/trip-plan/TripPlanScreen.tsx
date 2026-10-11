@@ -11,7 +11,7 @@ import BudgetSummary from './BudgetSummary';
 
 export default function TripPlanScreen() {
   const workspace = useTripWorkspace(true);
-  if (!workspace.trip || workspace.loading || !workspace.isLoggedIn) return <TripPageState workspace={workspace} title="Chi tiết hành trình" />;
+  if (!workspace.trip || workspace.loading) return <TripPageState workspace={workspace} title="Chi tiết hành trình" />;
   return <TripPlanDocument key={`${workspace.trip.owner_user_id}:${workspace.trip.id}`} workspace={workspace} />;
 }
 
@@ -29,8 +29,8 @@ function TripPlanDocument({ workspace }: { workspace: ReturnType<typeof useTripW
       <Link className={tripButtonClass} href="/my-trips">← Chuyến đi của tôi</Link>
       <div className="flex flex-wrap gap-2">
         <Link className={tripButtonClass} href={`/planner?id=${encodeURIComponent(trip.id)}`}>Bàn làm việc</Link>
-        {trip.status === 'confirmed' ? <button type="button" disabled={busy} className={tripButtonClass} onClick={workspace.togglePublication}>{trip.is_published ? 'Gỡ khỏi cộng đồng' : 'Xuất bản lên cộng đồng'}</button>
-          : <button type="button" disabled={busy || !itinerary} className={tripButtonClass} onClick={() => setConfirmOpen(true)}>Chốt lịch trình</button>}
+        {workspace.canEdit && (trip.status === 'confirmed' ? <button type="button" disabled={busy} className={tripButtonClass} onClick={workspace.togglePublication}>{trip.is_published ? 'Gỡ khỏi cộng đồng' : 'Xuất bản lên cộng đồng'}</button>
+          : <button type="button" disabled={busy || !itinerary} className={tripButtonClass} onClick={() => setConfirmOpen(true)}>Chốt lịch trình</button>)}
         <button type="button" disabled={!itinerary || busy} className={`${tripButtonClass} bg-[#205BD6] text-white`} onClick={() => window.print()}>In lịch trình</button>
       </div>
     </nav>

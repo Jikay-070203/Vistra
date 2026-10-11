@@ -95,7 +95,7 @@ export const API_ENDPOINTS = {
     CREATE: '/api/v1/trips',
     LIST: '/trips',
     DETAIL: (id: string) => '/api/v1/trips/' + encodeURIComponent(id),
-    BUDGET: (id: string) => '/trips/' + encodeURIComponent(id) + '/budget',
+    BUDGET: (id: string) => '/api/v1/trips/' + encodeURIComponent(id) + '/budget',
     CHAT: (id: string) => '/api/v1/trips/' + encodeURIComponent(id) + '/chat',
     GENERATE: (id: string) => '/trips/' + encodeURIComponent(id) + '/generate',
     PREVIEW: (id: string) => '/trips/' + encodeURIComponent(id) + '/revisions/preview',

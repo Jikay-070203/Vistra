@@ -45,7 +45,7 @@ export function useTripWorkspace(loadBudget = false) {
   const searchParams = useSearchParams();
   const id = searchParams.get('trip_id') ?? searchParams.get('id') ?? '';
   const { user, isLoggedIn, isLoaded } = useUserAuth();
-  const key = isLoggedIn && user ? `${user.id}:${id}` : '';
+  const key = id;
   const currentKey = useRef(key);
   useLayoutEffect(() => { currentKey.current = key; return () => { currentKey.current = ''; }; }, [key]);
   const [resource, setResource] = useState<{ key: string; trip: TripDetailDto } | null>(null);
@@ -226,7 +226,8 @@ export function useTripWorkspace(loadBudget = false) {
     if (valid()) setResource({ key, trip: { ...trip, is_published: data.isPublished } });
   });
 
-  return { id, isLoggedIn, isAuthLoaded: isLoaded, trip, itinerary: trip ? preview?.itinerary ?? trip.itinerary : null,
+  const canEdit = Boolean(trip && isLoggedIn && user && trip.owner_user_id === user.id);
+  return { id, isLoggedIn, isAuthLoaded: isLoaded, canEdit, trip, itinerary: trip ? preview?.itinerary ?? trip.itinerary : null,
     preview: trip ? preview : null, messages: trip ? messages : [], budget: trip ? budget : null, budgetError,
     error, loading: !isLoaded || loading || (!!key && !!id && resource?.key !== key && !error), busy,
     retry: () => setReload(value => value + 1), send, move, remove, addPlaces, replacePlace, generate, savePreview, confirm, togglePublication,

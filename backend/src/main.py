@@ -1769,11 +1769,25 @@ def create_app(settings=None, services=None, gemini_client=None):
 
     @app.get("/api/v1/trips/{trip_id}")
     def v1_get_trip(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
-        user = require_session(vistra_session, db)
-        owner = row(db, "SELECT owner_user_id FROM trips WHERE id=? AND deleted_at IS NULL", (trip_id,))
-        if not owner or owner["owner_user_id"] != user["id"]:
+        owner = row(db, "SELECT owner_user_id,status,is_published FROM trips WHERE id=? AND deleted_at IS NULL", (trip_id,))
+        if not owner:
+            raise HTTPException(404, "Trip not found")
+        user = session_user(db, vistra_session)
+        is_public = owner["status"] == "confirmed" and bool(owner["is_published"])
+        if not is_public and (not user or owner["owner_user_id"] != user["id"]):
             raise HTTPException(404, "Trip not found")
         return get_trip(trip_id, db)
+
+    @app.get("/api/v1/trips/{trip_id}/budget")
+    def v1_trip_budget(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        owner = row(db, "SELECT owner_user_id,status,is_published FROM trips WHERE id=? AND deleted_at IS NULL", (trip_id,))
+        if not owner:
+            raise HTTPException(404, "Trip not found")
+        user = session_user(db, vistra_session)
+        is_public = owner["status"] == "confirmed" and bool(owner["is_published"])
+        if not is_public and (not user or owner["owner_user_id"] != user["id"]):
+            raise HTTPException(404, "Trip not found")
+        return budget(trip_id, db)
 
     @app.post("/api/v1/feedback", status_code=201)
     def v1_feedback(data: FeedbackCreate, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
