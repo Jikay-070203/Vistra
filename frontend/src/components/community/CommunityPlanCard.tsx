@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import type { TripCardView } from '@/types/tripCollectionApi';
 
@@ -39,6 +40,7 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
     >
       {/* Photo Container */}
       <div className="relative h-40 w-full overflow-hidden bg-[#EBF1F0]">
+        <Link href={`/trip-plan?id=${encodeURIComponent(plan.id)}`} className="absolute inset-0" aria-label={`Xem lịch trình ${plan.title}`}>
         {plan.coverImageUrl ? (
           <Image
             src={plan.coverImageUrl}
@@ -55,6 +57,7 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
             <span className="text-[10px] font-medium">Chưa có ảnh bìa</span>
           </div>
         )}
+        </Link>
 
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
           <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-xs text-white text-[10px] font-label-caps font-semibold">
@@ -106,9 +109,9 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
             </span>
           </div>
 
-          <h3 className="font-headline-sm text-xs sm:text-sm font-bold text-[#0E1D4F] line-clamp-2 leading-snug">
+          <Link href={`/trip-plan?id=${encodeURIComponent(plan.id)}`} className="font-headline-sm text-xs sm:text-sm font-bold text-[#0E1D4F] line-clamp-2 leading-snug hover:text-[#205BD6]">
             {plan.title}
-          </h3>
+          </Link>
 
           <div className="text-[11px] text-[#4B5875] mt-1.5 flex items-center justify-between">
             <span>Ngân sách:</span>

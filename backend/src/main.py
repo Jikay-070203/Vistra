@@ -1025,9 +1025,16 @@ def create_app(settings=None, services=None, gemini_client=None):
                 end = (datetime.fromisoformat(start) + timedelta(days=int(days) - 1)).date().isoformat()
             except (TypeError, ValueError):
                 end = None
+        cover = row(db, """SELECT COALESCE(NULLIF(pi.thumbnail_url, ''), pi.image_url) AS image_url
+                           FROM places p
+                           JOIN place_images pi ON pi.place_id = p.id
+                          WHERE p.destination_id = ?
+                            AND COALESCE(NULLIF(pi.thumbnail_url, ''), pi.image_url) IS NOT NULL
+                          ORDER BY pi.created_at ASC, pi.id ASC
+                          LIMIT 1""", (item["destination_id"],))
         return {"id": item["id"], "title": request.get("title") or f"Trip to {destination_item['display_name']}",
                 "origin": request.get("origin"), "destination": destination_item["display_name"],
-                "coverImageUrl": None, "startDate": start,
+                "coverImageUrl": cover["image_url"] if cover else None, "startDate": start,
                 "endDate": end, "durationDays": days,
                 "budgetMinVnd": request.get("budget_vnd"), "budgetMaxVnd": request.get("budget_vnd"),
                 "estimatedCostVnd": request.get("lodging_total_vnd") + request.get("transport_total_vnd")
