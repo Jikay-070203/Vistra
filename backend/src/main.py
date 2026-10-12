@@ -5,6 +5,7 @@ import logging
 import hmac
 import secrets
 import sqlite3
+import unicodedata
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -1039,6 +1040,11 @@ def create_app(settings=None, services=None, gemini_client=None):
                 "isPublished": bool(item.get("is_published")), "updatedAt": item.get("updated_at"),
                 "tags": request.get("interests", []), "likesCount": likes, "likedByMe": liked}
 
+    def search_text(value: object) -> str:
+        """Normalize Vietnamese text so search works with or without accents."""
+        text = unicodedata.normalize("NFD", str(value or "")).lower()
+        return "".join(char for char in text if unicodedata.category(char) != "Mn")
+
     @app.get("/community/plans")
     def community_plans(page: int = Query(default=1, ge=1), page_size: int = Query(default=9, ge=1, le=50),
                         q: str = "", province: str | None = None, duration: int | None = Query(default=None, ge=1),
@@ -1048,18 +1054,19 @@ def create_app(settings=None, services=None, gemini_client=None):
         viewer = session_user(db, vistra_session)
         conditions = ["t.is_published=1", "t.status='confirmed'", "t.deleted_at IS NULL"]
         params = []
-        if q:
-            conditions.append("LOWER(t.request_json) LIKE ?")
-            params.append(f"%{q.lower()}%")
         if province:
             conditions.append("d.slug=?")
             params.append(province)
         where = " AND ".join(conditions)
         base = f"FROM trips t JOIN destinations d ON d.id=t.destination_id WHERE {where}"
-        items = rows(db, "SELECT t.* " + base + " ORDER BY t.created_at DESC", params)
+        items = rows(db, "SELECT t.*, d.display_name AS destination_name " + base + " ORDER BY t.created_at DESC", params)
         cards = []
         for item in items:
             request = json.loads(item["request_json"])
+            if q:
+                searchable = " ".join((item.get("destination_name") or "", item["request_json"]))
+                if search_text(q).strip() not in search_text(searchable):
+                    continue
             if duration and request.get("days") != duration:
                 continue
             budget = request.get("budget_vnd")
