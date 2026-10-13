@@ -1,6 +1,6 @@
 export interface LocalImageAttachment {
   id: string;
-  file: File;
+  file?: File;
   previewUrl: string;
   name: string;
   uploadStatus: 'uploading' | 'uploaded' | 'failed';

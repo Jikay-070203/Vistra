@@ -107,5 +107,6 @@ export function endDateFromDuration(startDate: string | null, durationDays: numb
   const date = new Date(startDate + 'T00:00:00.000Z');
   if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== startDate) return null;
   date.setUTCDate(date.getUTCDate() + durationDays - 1);
+  if (Number.isNaN(date.getTime())) return null;
   return date.toISOString().slice(0, 10);
 }

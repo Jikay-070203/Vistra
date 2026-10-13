@@ -34,9 +34,11 @@ export async function fetchProvinceCatalog(): Promise<ProvinceCatalogItem[]> {
 
 export function useProvinceName(
   idOrSlug?: number | string | null,
-  fallbackSlug?: string | null
+  fallbackSlug?: string | null,
 ): string {
-  const [items, setItems] = useState<ProvinceCatalogItem[]>(cachedProvinces ?? []);
+  const [items, setItems] = useState<ProvinceCatalogItem[]>(
+    cachedProvinces ?? [],
+  );
 
   useEffect(() => {
     let active = true;
@@ -50,31 +52,37 @@ export function useProvinceName(
     };
   }, []);
 
-  if (idOrSlug === undefined || idOrSlug === null || idOrSlug === '') {
-    return fallbackSlug ?? '';
+  if (idOrSlug === undefined || idOrSlug === null || idOrSlug === "") {
+    return fallbackSlug ?? "";
   }
 
   // 1. If destination_id is provided as number (from trip.destination_id)
-  if (typeof idOrSlug === 'number') {
+  if (typeof idOrSlug === "number") {
     const match = items.find((p) => p.id === idOrSlug);
     if (match) return match.name;
     if (fallbackSlug) {
-      const matchSlug = items.find((p) => p.slug === fallbackSlug || p.name === fallbackSlug);
+      const matchSlug = items.find(
+        (p) => p.slug === fallbackSlug || p.name === fallbackSlug,
+      );
       if (matchSlug) return matchSlug.name;
       return fallbackSlug;
     }
-    return '';
+    return "";
   }
 
   // 2. If idOrSlug is string, it might be a numeric string ID or slug
   const numericId = Number(idOrSlug);
-  if (!Number.isNaN(numericId) && Number.isInteger(numericId) && numericId > 0) {
+  if (
+    !Number.isNaN(numericId) &&
+    Number.isInteger(numericId) &&
+    numericId > 0
+  ) {
     const match = items.find((p) => p.id === numericId);
     if (match) return match.name;
   }
 
   const match = items.find((p) => p.slug === idOrSlug || p.name === idOrSlug);
-  return match ? match.name : (fallbackSlug || idOrSlug);
+  return match ? match.name : fallbackSlug || idOrSlug;
 }
 
 export default function PlannerHeader({
@@ -85,22 +93,25 @@ export default function PlannerHeader({
   onConfirm,
   onPublish,
 }: PlannerHeaderProps) {
-  const editable = trip?.status === 'draft';
-  const destinationName = useProvinceName(trip?.destination_id, trip?.request?.destination);
+  const editable = trip?.status === "draft";
+  const destinationName = useProvinceName(
+    trip?.destination_id,
+    trip?.request?.destination,
+  );
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#EBF1F0]/95 backdrop-blur-md border-b border-[#0E1D4F]/10 shadow-[0_2px_12px_rgba(14,29,79,0.04)] transition-all">
       <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
         {/* Left:Back + Trip Title & Metadata */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          {/* Quick Back to My Trips */}
+          {/* Return to the submitted trip form */}
           <Link
-            href="/my-trips"
+            href="/create-trip"
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#4B5875] hover:text-[#0E1D4F] hover:bg-white/80 transition-colors shrink-0"
-            title="Quay lại danh sách chuyến đi của tôi"
+            title="Quay lại trang tạo chuyến đi"
           >
             <Icon name="arrow_back" className="size-4 text-[#205BD6]" />
-            <span className="hidden md:inline">Chuyến đi của tôi</span>
+            <span className="hidden md:inline">Quay lại</span>
           </Link>
           {/* Active Trip Info (when loaded) */}
           {trip && (

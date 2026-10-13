@@ -39,7 +39,7 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'GET' && /^\/api\/v1\/destinations\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'GET' && /^\/destinations\/[A-Za-z0-9_-]+\/seasonality$/.test(path)) return path;
   if (method === 'GET' && /^\/places\/[0-9]+$/.test(path)) return path;
-  // All these private routes additionally require an owner check in the proxy handler.
+  // Trip detail visibility and owner checks for other trip routes are enforced by the proxy handler.
   if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;
   if (method === 'GET' && /^\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;

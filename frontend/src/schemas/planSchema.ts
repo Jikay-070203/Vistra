@@ -35,6 +35,7 @@ function activity(value: unknown): PlanActivityDto {
   return {
     place_id: number(raw.place_id, 'plan activity.place_id'),
     name: string(raw.name, 'plan activity.name'),
+    ...(raw.image_url === undefined ? {} : { image_url: nullable(raw.image_url, string, 'plan activity.image_url') }),
     kind: string(raw.kind, 'plan activity.kind'),
     day: number(raw.day, 'plan activity.day'),
     place_updated_at: string(raw.place_updated_at, 'plan activity.place_updated_at'),

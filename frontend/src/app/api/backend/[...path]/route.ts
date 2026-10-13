@@ -36,19 +36,24 @@ async function forward(request: Request, context: ProxyContext): Promise<Respons
 
   try {
     const tripId = path === API_ENDPOINTS.TRIP_COLLECTION.MINE ? null
-      : path.match(/^\/api\/v1\/trips\/([^/]+)(?:\/chat)?$|^\/trips\/([^/]+)\//);
+      : path.match(/^\/api\/v1\/trips\/([^/]+)(?:\/.*)?$|^\/trips\/([^/]+)(?:\/.*)?$/);
     const body = method === 'GET' ? undefined : await request.arrayBuffer();
     if (tripId) {
-      // Publicly published confirmed trips can be viewed without login. Drafts
-      // and private trips still require the owner session.
+      // Only the exact detail GET is public for confirmed, published trips.
+      // Every subresource and mutation remains owner-only.
       const options = { headers, cache: 'no-store' as const, redirect: 'manual' as const, signal: request.signal };
+      const requestedTripId = tripId[1] ?? tripId[2];
       const detail = tripDetailResponseSchema.parse((await apiRequestToBackend(
-        API_ENDPOINTS.TRIPS.DETAIL(tripId[1] ?? tripId[2]), backendUrl, options,
+        API_ENDPOINTS.TRIPS.DETAIL(requestedTripId), backendUrl, options,
       )).data);
-      const isPublicTrip = detail.status === 'confirmed' && detail.is_published;
-      if (!isPublicTrip) {
+      if (detail.id !== requestedTripId) {
+        return Response.json({ detail: 'Trip not found' }, { status: 404, headers: noStore });
+      }
+      const isPublicDetailRead = method === 'GET' && path === API_ENDPOINTS.TRIPS.DETAIL(detail.id) &&
+        detail.status === 'confirmed' && detail.is_published;
+      if (!isPublicDetailRead) {
         const session = authResponseSchema.parse((await apiRequestToBackend(API_ENDPOINTS.AUTH.ME, backendUrl, options)).data);
-        if (detail.id !== (tripId[1] ?? tripId[2]) || detail.owner_user_id !== session.user.id) {
+        if (detail.owner_user_id !== session.user.id) {
           return Response.json({ detail: 'Only the owner can access this trip' }, { status: 403, headers: noStore });
         }
       }

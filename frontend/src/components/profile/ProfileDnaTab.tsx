@@ -359,6 +359,55 @@ export default function ProfileDnaTab() {
             </div>
           )}
         </div>
+
+        {hasLoadedDnaSuccessfully && (
+          <section className="mt-8 pt-6 border-t border-[#0E1D4F]/10" aria-labelledby="travel-dna-preferences-heading">
+            <div className="mb-4">
+              <h3 id="travel-dna-preferences-heading" className="text-xs font-label-caps uppercase tracking-wider font-bold text-[#0E1D4F]">
+                Tùy chọn du lịch
+              </h3>
+              <p className="text-xs text-[#4B5875] mt-1">Các lựa chọn này được lưu cùng Travel DNA của bạn.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <label className="space-y-1.5">
+                <span className="block text-xs font-semibold text-[#0E1D4F]">Nhịp độ</span>
+                <input
+                  type="text"
+                  maxLength={80}
+                  value={pacePreference}
+                  onChange={(event) => setPacePreference(event.target.value)}
+                  disabled={isSaving}
+                  placeholder="Chưa thiết lập"
+                  className="w-full rounded-xl border border-[#0E1D4F]/10 bg-white px-3 py-2.5 text-sm text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-60"
+                />
+              </label>
+              <label className="space-y-1.5">
+                <span className="block text-xs font-semibold text-[#0E1D4F]">Ưu tiên cảnh quan</span>
+                <input
+                  type="text"
+                  maxLength={80}
+                  value={sceneryFocus}
+                  onChange={(event) => setSceneryFocus(event.target.value)}
+                  disabled={isSaving}
+                  placeholder="Chưa thiết lập"
+                  className="w-full rounded-xl border border-[#0E1D4F]/10 bg-white px-3 py-2.5 text-sm text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-60"
+                />
+              </label>
+              <label className="space-y-1.5">
+                <span className="block text-xs font-semibold text-[#0E1D4F]">Ưu tiên ẩm thực</span>
+                <input
+                  type="text"
+                  maxLength={80}
+                  value={cuisinePriority}
+                  onChange={(event) => setCuisinePriority(event.target.value)}
+                  disabled={isSaving}
+                  placeholder="Chưa thiết lập"
+                  className="w-full rounded-xl border border-[#0E1D4F]/10 bg-white px-3 py-2.5 text-sm text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-60"
+                />
+              </label>
+            </div>
+          </section>
+        )}
       </div>
 
           </div>

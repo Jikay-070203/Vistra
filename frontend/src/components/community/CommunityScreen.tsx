@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
+import Toast from '@/components/shared/Toast';
 import { useCommunityController } from './useCommunityController';
 import CommunityFilters from './CommunityFilters';
 import CommunityGrid from './CommunityGrid';
@@ -42,7 +43,7 @@ export default function CommunityScreen() {
     totalCount,
     handleToggleLike,
     handleResetFilters,
-    actionError, pendingLikes, pendingClone, handleClone,
+    actionError, likeLoginPrompt, clearLikeLoginPrompt, pendingLikes, pendingClone, handleClone,
   } = useCommunityController();
 
   return (
@@ -74,6 +75,7 @@ export default function CommunityScreen() {
       </div>
 
       {actionError && <p role="alert" className="mt-6 p-3 bg-rose-50 text-rose-900 border border-rose-200 rounded-xl">{actionError}</p>}
+      <Toast message={likeLoginPrompt} onClose={clearLikeLoginPrompt} variant="error" />
       {urlProvinceNotice && (
         <div className="mt-6 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center gap-2">
           <Icon name="info" className="size-4 text-amber-700 shrink-0" />

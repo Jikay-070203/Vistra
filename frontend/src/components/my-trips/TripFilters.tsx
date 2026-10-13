@@ -3,7 +3,8 @@
 import { useEffect, useRef } from 'react';
 import Icon from '@/components/ui/Icon';
 import BudgetRangeField from '@/components/shared/BudgetRangeField';
-import { TripFilterType } from './useMyTripsController';
+import { BUDGET_MAX_DEFAULT } from './useMyTripsController';
+import type { TripFilterType } from './useMyTripsController';
 
 interface TripFiltersProps {
   activeFilter: TripFilterType;
@@ -25,7 +26,6 @@ interface TripFiltersProps {
   onDateChange: (start: string, end: string) => void;
   onBudgetChange: (min: number, max: number) => void;
   onClearAll: () => void;
-  isServerMode?: boolean;
 }
 
 export default function TripFilters({
@@ -33,7 +33,6 @@ export default function TripFilters({
   startDate, endDate, budgetMin, budgetMax, isBudgetTouched,
   isAnyFilterActive, dateValidationWarning, budgetValidationWarning, excludedMissingCount,
   onFilterChange, onSearchChange, onDateChange, onBudgetChange, onClearAll,
-  isServerMode = false,
 }: TripFiltersProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -74,15 +73,12 @@ export default function TripFilters({
           {(['all', 'draft', 'confirmed'] as TripFilterType[]).map((filter) => {
             const labels = { all: 'Tất cả', draft: 'Bản nháp', confirmed: 'Đã xác nhận' };
             const countVal = counts[filter] ?? '—';
-            const isButtonDisabled = isServerMode && filter !== 'all';
             return (
               <button
                 key={filter}
                 type="button"
-                disabled={isButtonDisabled}
                 aria-pressed={activeFilter === filter}
                 onClick={() => onFilterChange(filter)}
-                title={isButtonDisabled ? 'Bộ lọc trạng thái đang chờ Backend hỗ trợ' : undefined}
                 className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap cursor-pointer focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-45 disabled:cursor-not-allowed ${
                   activeFilter === filter ? 'bg-[#205BD6] text-white' : 'text-[#4B5875] hover:bg-[#EBF1F0]'
                 }`}
@@ -98,22 +94,19 @@ export default function TripFilters({
             <Icon name="search" className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#4B5875]" />
             <input
               type="search"
-              disabled={isServerMode}
               value={searchQuery}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder={isServerMode ? 'Tìm kiếm chờ Backend hỗ trợ...' : 'Tìm chuyến đi, điểm đến...'}
-              className="w-full pl-9 pr-4 py-2.5 bg-[#EBF1F0] text-sm text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="Tìm chuyến đi, điểm đến..."
+              className="w-full pl-9 pr-4 py-2.5 bg-[#EBF1F0] text-sm text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6]"
             />
           </label>
           <button
             ref={triggerRef}
             type="button"
-            disabled={isServerMode}
             onClick={onToggleSidebar}
             aria-expanded={sidebarOpen}
             aria-controls="trip-filter-sidebar"
-            title={isServerMode ? 'Bộ lọc chi tiết đang chờ Backend hỗ trợ' : undefined}
-            className={`min-h-11 px-3 rounded-xl text-sm font-semibold flex items-center gap-2 border cursor-pointer focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`min-h-11 px-3 rounded-xl text-sm font-semibold flex items-center gap-2 border cursor-pointer focus-visible:outline-2 focus-visible:outline-[#205BD6] ${
               sidebarOpen || isAnyFilterActive ? 'bg-[#205BD6]/10 border-[#205BD6]/30 text-[#205BD6]' : 'bg-white border-[#0E1D4F]/10 text-[#0E1D4F] hover:bg-[#EBF1F0]'
             }`}
           >
@@ -155,7 +148,7 @@ export default function TripFilters({
                 label="Ngân sách ước tính"
                 value={{ min: budgetMin, max: budgetMax }}
                 minLimit={1_000_000}
-                maxLimit={500_000_000}
+                maxLimit={BUDGET_MAX_DEFAULT}
                 step={500_000}
                 onChange={({ min, max }) => onBudgetChange(min, max)}
               />

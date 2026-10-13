@@ -45,6 +45,7 @@ export function useTripWorkspace(loadBudget = false) {
   const searchParams = useSearchParams();
   const id = searchParams.get('trip_id') ?? searchParams.get('id') ?? '';
   const { user, isLoggedIn, isLoaded } = useUserAuth();
+  const userId = user?.id ?? null;
   const key = id;
   const currentKey = useRef(key);
   useLayoutEffect(() => { currentKey.current = key; return () => { currentKey.current = ''; }; }, [key]);
@@ -65,6 +66,8 @@ export function useTripWorkspace(loadBudget = false) {
   useEffect(() => {
     if (!isLoaded) return;
     let active = true;
+    setBudget(null);
+    setBudgetError(null);
     const request = ++generation.current;
     const valid = () => active && request === generation.current;
     queueMicrotask(() => {
@@ -74,18 +77,21 @@ export function useTripWorkspace(loadBudget = false) {
     });
     if (key && id) {
       getTrip(id).then(({ data }) => {
-        if (valid()) setResource({ key, trip: data });
+        if (!valid()) return;
+        setResource({ key, trip: data });
+        if (loadBudget && isLoggedIn && userId && data.owner_user_id === userId) {
+          getTripBudget(id).then(({ data: budgetData }) => {
+            if (valid()) setBudget(budgetData);
+          }).catch((cause: unknown) => {
+            if (valid()) setBudgetError(formatPlannerErrorMessage(cause, 'Không thể tải chi phí thực tế.'));
+          });
+        }
       }).catch((cause: unknown) => {
         if (valid()) setError(formatPlannerErrorMessage(cause, 'Không thể tải hành trình. Vui lòng thử lại.'));
       }).finally(() => { if (valid()) setLoading(false); });
-      if (loadBudget) getTripBudget(id).then(({ data }) => {
-        if (valid()) setBudget(data);
-      }).catch((cause: unknown) => {
-        if (valid()) setBudgetError(formatPlannerErrorMessage(cause, 'Không thể tải chi phí thực tế.'));
-      });
     }
     return () => { active = false; };
-  }, [id, key, isLoaded, reload, loadBudget]);
+  }, [id, key, isLoaded, isLoggedIn, userId, reload, loadBudget]);
 
   async function run(action: (isCurrent: () => boolean) => Promise<void>) {
     if (!trip || !key || actionLock.current) return;

@@ -5,12 +5,12 @@ type IconName =
   | 'arrow_back' | 'arrow_downward' | 'arrow_forward' | 'arrow_upward' | 'auto_fix_high' | 'balance'
   | 'bolt' | 'calendar_month' | 'calendar_today' | 'chat' | 'chat_bubble' | 'check' | 'check_circle'
   | 'chevron_left' | 'chevron_right' | 'close' | 'cloud' | 'cloud_queue' | 'compare_arrows'
-  | 'dashboard' | 'description' | 'diamond' | 'directions_car' | 'directions_walk' | 'dns' | 'download'
+  | 'dashboard' | 'dark_mode' | 'description' | 'diamond' | 'directions_car' | 'directions_walk' | 'dns' | 'download'
   | 'drag_indicator' | 'edit' | 'edit_calendar' | 'equalizer' | 'error' | 'event' | 'event_repeat'
   | 'expand_more' | 'explore' | 'favorite' | 'favorite_border' | 'feedback' | 'fingerprint' | 'flight_takeoff'
   | 'forest' | 'group' | 'groups' | 'handshake' | 'hiking' | 'history' | 'hub' | 'info' | 'insights'
   | 'keyboard_arrow_down' | 'landscape' | 'location_on' | 'lock' | 'login' | 'logout' | 'luggage'
-  | 'map' | 'memory' | 'menu' | 'mic' | 'my_location' | 'nightlife' | 'nordic_walking' | 'payments'
+  | 'map' | 'memory' | 'menu' | 'mic' | 'my_location' | 'nightlife' | 'nordic_walking' | 'notifications' | 'payments'
   | 'person' | 'person_add' | 'photo_camera' | 'photo_library' | 'place' | 'print' | 'psychology'
   | 'receipt_long' | 'remove' | 'replay' | 'restaurant' | 'save' | 'savings' | 'schedule' | 'search'
   | 'search_off' | 'send' | 'share' | 'spa' | 'sparkles' | 'star' | 'swap_driving_apps' | 'swap_vert'
@@ -45,6 +45,7 @@ const paths: Record<IconName, string> = {
   cloud_queue: 'M7 18h10a4 4 0 0 0 .7-7.9A6 6 0 0 0 6 11a3.5 3.5 0 0 0 1 7Z',
   compare_arrows: 'M7 7h13m0 0-3-3m3 3-3 3M17 17H4m0 0 3 3m-3-3 3-3',
   dashboard: 'M3 3h8v8H3V3Zm10 0h8v5h-8V3Zm0 9h8v9h-8v-9ZM3 15h8v6H3v-6Z',
+  dark_mode: 'M9.37 5.51a7 7 0 1 0 9.12 9.12 7.5 7.5 0 1 1-9.12-9.12Z',
   description: 'M6 3h9l4 4v14H6V3Zm9 0v5h4M9 12h6m-6 4h6',
   diamond: 'm12 3 8 6-8 12L4 9l8-6Zm-8 6h16M9 6l3 15 3-15',
   directions_car: 'm5 16 1.5-6h11l1.5 6M7 16v2m10-2v2M6.5 13h11M8 10l1-3h6l1 3M6 16h.01m12 0h.01',
@@ -88,6 +89,7 @@ const paths: Record<IconName, string> = {
   my_location: 'M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4Zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06ZM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7Z',
   nightlife: 'M3 18h18M6 18l3-7 3 4 3-6 3 9M12 3v4m-2-2h4',
   nordic_walking: 'M13 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2Zm-3 17 2-7 2 2v5m-2-7-3-3 1-5 4 1 2 3',
+  notifications: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Zm-8 12h4',
   payments: 'M3 6h18v12H3V6Zm0 4h18m-6 4h3',
   person: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4Z',
   person_add: 'M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4Zm6-7V5h-2v2h-2v2h2v2h2V9h2V7h-2Z',

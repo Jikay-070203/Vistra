@@ -44,18 +44,6 @@ export default function LandingHero({ data, loading, error }: ReturnType<typeof 
                   {loading ? 'Đang tải số liệu' : error ? 'Chưa tải được số liệu' : data?.stats.destinations == null ? 'Chưa có số liệu' : 'Đang được mở khám phá'}
                 </span>
               </div>
-
-              <div className={styles.evidenceCard}>
-                <div className={styles.evidenceValueGroup}>
-                  <span className={styles.evidenceValue}>
-                    {loading ? '…' : data?.stats.places ?? '—'}
-                  </span>
-                  <span className={styles.evidenceLabel}>Địa điểm</span>
-                </div>
-                <span className={styles.evidenceSub}>
-                  {loading ? 'Đang tải số liệu' : error ? 'Chưa tải được số liệu' : data?.stats.places == null ? 'Chưa có số liệu' : 'Trong danh mục khám phá'}
-                </span>
-              </div>
             </div>
           </div>
         </div>

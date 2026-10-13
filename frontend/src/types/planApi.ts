@@ -23,6 +23,8 @@ export interface PlanRequestDto {
 export interface PlanActivityDto {
   place_id: number;
   name: string;
+  // shortcut: planner responses do not map place media yet; upgrade when Backend confirms the activity image field.
+  image_url?: string | null;
   kind: string;
   day: number;
   place_updated_at: string;

@@ -37,6 +37,7 @@ export function useCommunityController() {
   const [isLoadingServerCommunity, setLoading] = useState(true);
   const [serverCommunityError, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [likeLoginPrompt, setLikeLoginPrompt] = useState<string | null>(null);
   const [pendingLikes, setPendingLikes] = useState<string[]>([]);
   const [pendingClone, setPendingClone] = useState<string | null>(null);
   const cloneBusy = useRef(false);
@@ -53,7 +54,7 @@ export function useCommunityController() {
     previousViewer.current = viewer;
     queueMicrotask(() => {
       if (!active) return;
-      busy.current.clear(); setPendingLikes([]); cloneBusy.current = false; setPendingClone(null); setActionError(null);
+      busy.current.clear(); setPendingLikes([]); cloneBusy.current = false; setPendingClone(null); setActionError(null); setLikeLoginPrompt(null);
       if (changed) setCurrentPage(1);
       if (!viewer) setShowOnlyFavorites(false);
     });
@@ -114,7 +115,7 @@ export function useCommunityController() {
 
   async function handleToggleLike(event: React.MouseEvent, id: string) {
     event.stopPropagation();
-    if (!isLoggedIn) { setActionError('Đăng nhập để thích hành trình.'); return; }
+    if (!isLoggedIn) { setActionError(null); setLikeLoginPrompt('Đăng nhập để thích hành trình.'); return; }
     if (busy.current.has(id)) return;
     const item = serverTrips.find(trip => trip.id === id);
     if (!item) return;
@@ -159,13 +160,14 @@ export function useCommunityController() {
     onSelectProvince: (value: string) => { setSelectedProvince(value); setCurrentPage(1); },
     allProvinces, isLoadingProvinces, provincesError, retryLoadProvinces: () => setProvinceReload(value => value + 1), urlProvinceNotice,
     showOnlyFavorites, onToggleShowOnlyFavorites: () => {
-      if (!isLoggedIn) { setActionError('Đăng nhập để xem hành trình đã thích.'); return; }
+      if (!isLoggedIn) { setLikeLoginPrompt('Đăng nhập để xem hành trình đã thích.'); return; }
       setShowOnlyFavorites(value => !value); setCurrentPage(1);
     }, budgetMin, budgetMax, onBudgetChange: (min: number, max: number) => { setBudgetMin(min); setBudgetMax(max); setIsBudgetTouched(true); setCurrentPage(1); },
     isBudgetTouched, budgetValidationWarning, excludedBudgetMissingCount: 0, isBudgetFilterActive,
     currentPage, setCurrentPage, likesState, totalPages: visible?.pages ?? 1, paginatedPlans: serverTrips,
     isLoadingServerCommunity: !isLoaded || isLoadingServerCommunity || (!!result && !visible), serverCommunityError,
     retryLoadCommunity: () => setReload(value => value + 1), totalCount: visible?.total ?? 0,
-    handleToggleLike, handleResetFilters: reset, actionError, pendingLikes, handleClone, pendingClone,
+    handleToggleLike, handleResetFilters: reset, actionError, likeLoginPrompt,
+    clearLikeLoginPrompt: () => setLikeLoginPrompt(null), pendingLikes, handleClone, pendingClone,
   };
 }

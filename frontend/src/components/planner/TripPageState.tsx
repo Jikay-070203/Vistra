@@ -4,23 +4,28 @@ import Icon from '@/components/ui/Icon';
 import type { useTripWorkspace } from './useTripWorkspace';
 import { tripButtonClass, tripPanelClass } from '@/components/trip-plan/ItineraryView';
 
-export default function TripPageState({ workspace, title }: { workspace: ReturnType<typeof useTripWorkspace>; title: string }) {
+export default function TripPageState({ workspace, title, allowAnonymousRead = false }: {
+  workspace: ReturnType<typeof useTripWorkspace>;
+  title: string;
+  allowAnonymousRead?: boolean;
+}) {
   const { id, isAuthLoaded, isLoggedIn, loading, error, retry } = workspace;
+  const showLoginGate = !isLoggedIn && !allowAnonymousRead;
 
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
       <div className={`${tripPanelClass} text-center flex flex-col items-center justify-center p-8 sm:p-12 shadow-sm`}>
-        {!isAuthLoaded || (isLoggedIn && id && loading) ? (
+        {!isAuthLoaded || ((isLoggedIn || allowAnonymousRead) && id && loading) ? (
           <>
             <div className="w-12 h-12 rounded-2xl bg-[#205BD6]/10 text-[#205BD6] flex items-center justify-center mb-4">
               <div className="size-6 border-3 border-[#205BD6]/30 border-t-[#205BD6] rounded-full animate-spin" />
             </div>
             <h1 className="text-xl font-bold text-[#0E1D4F] mb-2">{title}</h1>
             <p className="text-sm text-[#4B5875]" role="status">
-              Đang kết nối dữ liệu và mở bàn làm việc...
+              {allowAnonymousRead ? 'Đang tải hành trình...' : 'Đang kết nối dữ liệu và mở bàn làm việc...'}
             </p>
           </>
-        ) : !isLoggedIn ? (
+        ) : showLoginGate ? (
           <>
             <div className="w-12 h-12 rounded-2xl bg-[#08B3C6]/15 text-[#08B3C6] flex items-center justify-center mb-4">
               <Icon name="lock" className="size-6" />

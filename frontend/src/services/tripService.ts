@@ -14,7 +14,7 @@ import type {
   TripListParams,
   TripListResponse,
 } from '@/types/tripApi';
-import type { PagedTripCardsView, TripPageQuery } from '@/types/tripCollectionApi';
+import type { PagedTripCardsView, TripCardView, TripPageQuery } from '@/types/tripCollectionApi';
 import type { CreatedTripView, TripCreateRequest } from '@/types/tripCreateApi';
 import { tripCreateResponseSchema } from '@/schemas/tripCreateSchema';
 import { confirmedTripSchema, revisionPreviewSchema, savedItinerarySchema, tripChatSchema } from '@/schemas/tripWorkspaceSchema';
@@ -32,6 +32,18 @@ export async function getMyTrips(query: TripPageQuery): Promise<ApiRequestResult
   const params = new URLSearchParams({ page: String(query.page), page_size: String(query.pageSize) });
   const result = await apiRequest(API_ENDPOINTS.TRIP_COLLECTION.MINE + '?' + params, getSessionProxyBaseUrl());
   return { ...result, data: myTripCardsSchema.parse(result.data) };
+}
+
+// shortcut: Loads every owner page for client-side filters; move filters server-side if collections grow large.
+export async function getAllMyTrips(): Promise<TripCardView[]> {
+  const pageSize = 50;
+  const firstPage = await getMyTrips({ page: 1, pageSize });
+  const items = [...firstPage.data.items];
+  for (let page = 2; page <= firstPage.data.totalPages; page += 1) {
+    const result = await getMyTrips({ page, pageSize });
+    items.push(...result.data.items);
+  }
+  return items;
 }
 
 export async function getTrips(params: TripListParams = {}): Promise<ApiRequestResult<TripListResponse>> {

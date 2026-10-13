@@ -17,6 +17,7 @@ export default function MyTripsScreen() {
     counts,
     totalPages,
     totalCount,
+    hasTrips,
     isLoadingServerTrips,
     serverTripsError,
     retryLoadServerTrips,
@@ -90,7 +91,6 @@ export default function MyTripsScreen() {
         onDateChange={handleDateChange}
         onBudgetChange={handleBudgetChange}
         onClearAll={clearAllFilters}
-        isServerMode={true}
       />
 
       {!isAuthLoaded || (isLoggedIn && isLoadingServerTrips) ? (
@@ -128,18 +128,26 @@ export default function MyTripsScreen() {
             <Icon name="flight_takeoff" className="size-6 text-[#205BD6]" />
           </div>
           <h3 className="font-headline-sm text-base font-bold text-[#0E1D4F]">
-            Bạn chưa có chuyến đi nào
+            {hasTrips ? 'Không tìm thấy chuyến đi phù hợp' : 'Bạn chưa có chuyến đi nào'}
           </h3>
           <p className="text-xs text-[#4B5875] mt-1 max-w-sm">
-            Bắt đầu tạo kế hoạch mới hoặc khám phá các hành trình từ cộng đồng Vistra.
+            {hasTrips
+              ? 'Thử đổi từ khóa hoặc điều chỉnh bộ lọc để xem thêm kết quả.'
+              : 'Bắt đầu tạo kế hoạch mới hoặc khám phá các hành trình từ cộng đồng Vistra.'}
           </p>
-          <Link
-            href="/create-trip"
-            className="mt-4 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors inline-flex items-center gap-1.5"
-          >
-            <Icon name="add" className="size-4" />
-            <span>Tạo kế hoạch cá nhân</span>
-          </Link>
+          {hasTrips ? (
+            <button type="button" onClick={clearAllFilters} className="mt-4 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors">
+              Xóa bộ lọc
+            </button>
+          ) : (
+            <Link
+              href="/create-trip"
+              className="mt-4 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors inline-flex items-center gap-1.5"
+            >
+              <Icon name="add" className="size-4" />
+              <span>Tạo kế hoạch cá nhân</span>
+            </Link>
+          )}
         </div>
       ) : (
         <TripGrid

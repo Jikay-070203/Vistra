@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { useUserAuth } from '@/lib/userAuth';
 import { createTrip } from '@/services/tripService';
 import { uploadCloudinaryImage } from '@/services/cloudinaryUploadService';
@@ -9,17 +9,29 @@ import { analyzeTripImages } from '@/services/dnaAnalysisService';
 import { ApiClientError } from '@/services/apiClient';
 import { getProvinceCatalog, getAllergyCatalog } from '@/services/catalogService';
 import type { PlanPace } from '@/types/planApi';
-import type { CreatedTripView } from '@/types/tripCreateApi';
+import type { CreatedTripView, TripCreateRequest } from '@/types/tripCreateApi';
 import type { TravelDnaMetric } from '@/types/tripDna';
 import { DEFAULT_BUDGET_MIN } from '@/components/shared/BudgetRangeField';
 import { validateImageSelection } from './imageUploadValidation';
 import { matchRejectedDnaAttachments } from './dnaAnalysisErrors';
-import { abortPendingUpload, isCurrentUploadSession } from './uploadSession';
+import {
+  abortPendingUpload,
+  getDnaAnalysisStatusAfterBatchChange,
+  isCurrentDnaAnalysisRequest,
+  isCurrentUploadSession,
+  isImageBatchReadyForAnalysis,
+} from './uploadSession';
 import { restoreTravelDnaMetrics } from './travelDnaState';
+import { readCreateTripDraft, saveCreateTripDraft } from './createTripDraft';
 import type { LocalImageAttachment } from './types';
+
+function getSessionStorage() {
+  try { return window.sessionStorage; } catch { return null; }
+}
 
 export function useCreateTripController() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isLoggedIn, isLoaded } = useUserAuth();
   const preferredProvince = useSearchParams().get('province');
   const accountId = isLoggedIn ? user?.id ?? null : null;
@@ -70,9 +82,12 @@ export function useCreateTripController() {
   const attachmentsRef = useRef<LocalImageAttachment[]>(attachments);
   attachmentsRef.current = attachments;
   const dnaRequestIdRef = useRef(0);
+  const dnaAnalysisStartedRef = useRef(false);
   const originalTravelDnaRef = useRef<TravelDnaMetric[]>([]);
   const uploadGenerationRef = useRef(0);
   const previousAccountIdRef = useRef(accountId);
+  const previousDraftContextRef = useRef<{ pathname: string | null; accountId: string | null }>({ pathname: null, accountId: null });
+  const draftRestoredRef = useRef(false);
   const uploadControllersRef = useRef(new Map<string, AbortController>());
 
   const updateAttachments = (update: (current: LocalImageAttachment[]) => LocalImageAttachment[]) => {
@@ -82,12 +97,23 @@ export function useCreateTripController() {
     return next;
   };
 
+  const invalidateDnaAnalysis = (attachmentCount = attachmentsRef.current.length) => {
+    dnaRequestIdRef.current += 1;
+    originalTravelDnaRef.current = [];
+    setTravelDna([]);
+    setTravelDnaAnalysisId(null);
+    setDnaStatus(getDnaAnalysisStatusAfterBatchChange(dnaAnalysisStartedRef.current, attachmentCount));
+    setDnaError(null);
+  };
+
   const invalidateAttachmentSession = () => {
     uploadGenerationRef.current += 1;
+    dnaAnalysisStartedRef.current = false;
     uploadControllersRef.current.forEach((controller) => controller.abort());
     uploadControllersRef.current.clear();
     dnaRequestIdRef.current += 1;
     attachmentsRef.current.forEach((attachment) => {
+      if (!attachment.previewUrl.startsWith('blob:')) return;
       try {
         URL.revokeObjectURL(attachment.previewUrl);
       } catch {
@@ -99,21 +125,33 @@ export function useCreateTripController() {
   };
 
   const analyzeUploadedImages = async () => {
-    const imageUrls = attachmentsRef.current
-      .filter((attachment) => attachment.uploadStatus === 'uploaded' && attachment.imageUrl)
-      .map((attachment) => attachment.imageUrl as string);
-
-    if (imageUrls.length === 0) {
+    const currentAttachments = attachmentsRef.current;
+    if (currentAttachments.length === 0) {
       dnaRequestIdRef.current += 1;
+      dnaAnalysisStartedRef.current = false;
       originalTravelDnaRef.current = [];
       setTravelDna([]);
       setTravelDnaAnalysisId(null);
-      setDnaStatus('idle');
+      setDnaStatus(getDnaAnalysisStatusAfterBatchChange(dnaAnalysisStartedRef.current, 0));
       setDnaError(null);
       return;
     }
 
+    const imageUrls = currentAttachments
+      .filter((attachment) => attachment.uploadStatus === 'uploaded' && attachment.imageUrl)
+      .map((attachment) => attachment.imageUrl as string);
+
+    if (!isImageBatchReadyForAnalysis(currentAttachments)) return;
+
     const requestId = ++dnaRequestIdRef.current;
+    dnaAnalysisStartedRef.current = true;
+    const requestedBatch = currentAttachments.map(({ id, uploadStatus, imageUrl }) => ({ id, uploadStatus, imageUrl }));
+    const isCurrentRequest = () => isCurrentDnaAnalysisRequest(
+      requestId,
+      dnaRequestIdRef.current,
+      requestedBatch,
+      attachmentsRef.current,
+    );
     originalTravelDnaRef.current = [];
     setTravelDna([]);
     setTravelDnaAnalysisId(null);
@@ -121,7 +159,8 @@ export function useCreateTripController() {
     setDnaError(null);
     try {
       const result = await analyzeTripImages(imageUrls);
-      if (requestId !== dnaRequestIdRef.current) return;
+      if (!isCurrentRequest()) return;
+      dnaAnalysisStartedRef.current = false;
       if (result.data.status !== 'completed' || !result.data.analysisId.trim()) {
         throw new Error('Phân tích ảnh chưa hoàn tất. Vui lòng thử lại trước khi tạo chuyến đi.');
       }
@@ -143,7 +182,8 @@ export function useCreateTripController() {
       setTravelDna(restoreTravelDnaMetrics(originalTravelDnaRef.current));
       setDnaStatus(result.data.metrics.length > 0 ? 'ready' : 'empty');
     } catch (cause: unknown) {
-      if (requestId !== dnaRequestIdRef.current) return;
+      if (!isCurrentRequest()) return;
+      dnaAnalysisStartedRef.current = false;
       setTravelDnaAnalysisId(null);
       setDnaStatus('error');
       const rejectedAttachments = cause instanceof ApiClientError
@@ -162,12 +202,46 @@ export function useCreateTripController() {
     }
   };
 
+  const restoreDraft = useCallback((targetAccountId: string | null) => {
+    if (!targetAccountId || typeof window === 'undefined') return;
+    const storage = getSessionStorage();
+    if (!storage) return;
+    const draft = readCreateTripDraft(storage, targetAccountId);
+    if (!draft) return;
+    dnaAnalysisStartedRef.current = false;
+    setDestination(draft.destination);
+    setStartDate(draft.startDate);
+    setEndDate(draft.endDate);
+    setBudget(draft.budget);
+    setPeople(draft.people);
+    setPace(draft.pace);
+    setNotes(draft.notes);
+    setSelectedAllergies(draft.selectedAllergies);
+    setTravelDna(restoreTravelDnaMetrics(draft.travelDna));
+    originalTravelDnaRef.current = restoreTravelDnaMetrics(draft.originalTravelDna);
+    setTravelDnaAnalysisId(draft.travelDnaAnalysisId);
+    setDnaStatus(draft.travelDnaAnalysisId ? (draft.travelDna.length ? 'ready' : 'empty') : 'idle');
+    setDnaError(null);
+    const restoredAttachments: LocalImageAttachment[] = draft.attachments.map(attachment => ({
+      ...attachment,
+      previewUrl: attachment.imageUrl,
+      uploadStatus: 'uploaded',
+    }));
+    attachmentsRef.current = restoredAttachments;
+    setAttachments(restoredAttachments);
+    setPreviewAttachment(null);
+    setError(null);
+    setCreated(null);
+    draftRestoredRef.current = true;
+  }, []);
+
   useLayoutEffect(() => {
     const accountChanged = previousAccountIdRef.current !== accountId;
     previousAccountIdRef.current = accountId;
     accountRef.current = accountId;
     if (!accountChanged) return;
 
+    draftRestoredRef.current = false;
     invalidateAttachmentSession();
     setAttachments([]);
     setPreviewAttachment(null);
@@ -187,6 +261,16 @@ export function useCreateTripController() {
     setCreated(null);
   }, [accountId]);
 
+  useEffect(() => {
+    const context = previousDraftContextRef.current;
+    if (pathname !== '/create-trip') {
+      setCreated(null);
+    } else if (accountId && (context.pathname !== pathname || context.accountId !== accountId)) {
+      restoreDraft(accountId);
+    }
+    previousDraftContextRef.current = { pathname, accountId };
+  }, [accountId, pathname, restoreDraft]);
+
   useEffect(() => () => invalidateAttachmentSession(), []);
 
   useEffect(() => {
@@ -195,7 +279,7 @@ export function useCreateTripController() {
       if (!active) return;
       setCatalog(items);
       setCatalogError(null);
-      if (preferredProvince) {
+      if (preferredProvince && !draftRestoredRef.current) {
         const match = items.find(item => item.slug === preferredProvince || item.name === preferredProvince);
         if (match) setDestination(match.slug);
       }
@@ -261,6 +345,7 @@ export function useCreateTripController() {
       };
     });
 
+    invalidateDnaAnalysis(attachmentsRef.current.length + newAttachments.length);
     updateAttachments((current) => [...current, ...newAttachments]);
     for (const attachment of newAttachments) void uploadAttachment(attachment.id);
   };
@@ -268,7 +353,8 @@ export function useCreateTripController() {
   const uploadAttachment = async (id: string) => {
     const attachment = attachmentsRef.current.find((item) => item.id === id);
     const uploadAccountId = accountRef.current;
-    if (!attachment || !uploadAccountId) return;
+    if (!attachment?.file || !uploadAccountId) return;
+    if (attachment.uploadStatus !== 'uploading') invalidateDnaAnalysis();
     const uploadSession = { accountId: uploadAccountId, generation: uploadGenerationRef.current };
     const controller = new AbortController();
     uploadControllersRef.current.set(id, controller);
@@ -294,9 +380,18 @@ export function useCreateTripController() {
       if (stillAttached) await analyzeUploadedImages();
     } catch (cause: unknown) {
       if (!isCurrentUploadSession(uploadSession, accountRef.current, uploadGenerationRef.current)) return;
+      const uploadError = cause instanceof Error ? cause.message : 'Không thể tải ảnh lên.';
       updateAttachments((current) => current.map((item) => item.id === id
-        ? { ...item, uploadStatus: 'failed', uploadError: cause instanceof Error ? cause.message : 'Không thể tải ảnh lên.' }
+        ? { ...item, uploadStatus: 'failed', uploadError }
         : item));
+      const status = getDnaAnalysisStatusAfterBatchChange(
+        dnaAnalysisStartedRef.current,
+        attachmentsRef.current.length,
+        true,
+      );
+      dnaAnalysisStartedRef.current = false;
+      setDnaStatus(status);
+      setDnaError(status === 'error' ? uploadError : null);
     } finally {
       if (uploadControllersRef.current.get(id) === controller) uploadControllersRef.current.delete(id);
     }
@@ -304,14 +399,16 @@ export function useCreateTripController() {
 
   const removeImage = (id: string) => {
     const target = attachmentsRef.current.find((item) => item.id === id);
+    if (!target) return;
+    invalidateDnaAnalysis(attachmentsRef.current.length - 1);
     if (target?.uploadStatus === 'uploading') abortPendingUpload(uploadControllersRef.current, id);
     updateAttachments((current) => current.filter((item) => item.id !== id));
-    if (target) URL.revokeObjectURL(target.previewUrl);
+    if (target?.previewUrl.startsWith('blob:')) URL.revokeObjectURL(target.previewUrl);
 
     if (previewAttachment?.id === id) {
       setPreviewAttachment(null);
     }
-    if (target?.uploadStatus === 'uploaded') void analyzeUploadedImages();
+    void analyzeUploadedImages();
   };
 
   const changeTravelDnaMetric = (key: string, score: number) => {
@@ -346,7 +443,7 @@ export function useCreateTripController() {
     setError(null);
     setCreated(null);
     try {
-      const result = await createTrip({
+      const request: TripCreateRequest = {
         destination,
         start_date: startDate,
         days,
@@ -360,8 +457,35 @@ export function useCreateTripController() {
         ...(travelDna.length > 0 ? {
           travel_dna_override: { metrics: travelDna.map(({ key, score }) => ({ key, score })) },
         } : {}),
-      });
+      };
+      const result = await createTrip(request);
       if (accountRef.current === currentAccId) {
+        const storage = getSessionStorage();
+        if (storage) {
+          saveCreateTripDraft(storage, currentAccId, {
+            destination,
+            startDate,
+            endDate,
+            budget,
+            people,
+            pace,
+            notes: request.notes ?? '',
+            selectedAllergies,
+            travelDna,
+            originalTravelDna: originalTravelDnaRef.current,
+            travelDnaAnalysisId,
+            attachments: attachmentsRef.current.flatMap(attachment =>
+              attachment.uploadStatus === 'uploaded' && attachment.imageUrl
+                ? [{
+                    id: attachment.id,
+                    name: attachment.name,
+                    imageUrl: attachment.imageUrl,
+                    ...(attachment.cloudinaryPublicId ? { cloudinaryPublicId: attachment.cloudinaryPublicId } : {}),
+                  }]
+                : []
+            ),
+          });
+        }
         setCreated({ ...result.data, accountId: currentAccId });
         router.push(`/planner?trip_id=${encodeURIComponent(result.data.id)}`);
       }
