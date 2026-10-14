@@ -1676,10 +1676,18 @@ def create_app(settings=None, services=None, gemini_client=None):
         where, params = "", []
         if q:
             text_fields = [f for f in allowed if f not in ("id", "enabled", "is_published")]
+            if actual == "itinerary_versions":
+                text_fields = ["trip_id", "version"]
             where = " WHERE " + " OR ".join(f"CAST({f} AS TEXT) LIKE ?" for f in text_fields)
             params = [f"%{q}%"] * len(text_fields)
         total = db.execute(f"SELECT COUNT(*) FROM {actual}{where}", params).fetchone()[0]
-        items = rows(db, f"SELECT {','.join(allowed)} FROM {actual}{where} LIMIT ? OFFSET ?",
+        select_columns = ",".join(allowed)
+        # itinerary_versions uses a composite primary key (trip_id, version),
+        # so it has no physical id column. Expose a stable virtual id for the
+        # admin UI without changing the domain schema.
+        if actual == "itinerary_versions":
+            select_columns = "(trip_id || ':' || CAST(version AS TEXT)) AS id, trip_id, version"
+        items = rows(db, f"SELECT {select_columns} FROM {actual}{where} LIMIT ? OFFSET ?",
                      [*params, page_size, (page - 1) * page_size])
         return {"data": {"table": table, "items": items, "page": page, "pageSize": page_size, "total": total}}
 
@@ -1696,7 +1704,7 @@ def create_app(settings=None, services=None, gemini_client=None):
         },
         "itinerary_days": {
             "actual": "itinerary_versions", "id": "id",
-            "fields": {"trip_id", "version"},
+            "fields": {"trip_id", "version", "payload_json"},
         },
         "activities": {
             "actual": "places", "id": "id",
@@ -1720,12 +1728,28 @@ def create_app(settings=None, services=None, gemini_client=None):
             raise HTTPException(422, "At least one writable field is required")
         return payload
 
+    def itinerary_key(record_id: str):
+        """Convert the admin virtual id trip_id:version to its composite key."""
+        try:
+            trip_id, version_text = record_id.rsplit(":", 1)
+            version = int(version_text)
+        except (ValueError, AttributeError):
+            raise HTTPException(422, "itinerary_days id must be '<trip_id>:<version>'")
+        if not trip_id or version <= 0:
+            raise HTTPException(422, "Invalid itinerary_days id")
+        return trip_id, version
+
     @app.post("/api/v1/admin/entities/{table}/records", status_code=201)
     def v1_create_entity(table: str, payload: dict,
                          vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
         spec = entity_spec(table)
         values = entity_payload(payload, spec)
+        if table == "itinerary_days":
+            values = dict(values)
+            values.setdefault("payload_json", "{}")
+            values.setdefault("created_at", now())
+            values.pop("id", None)
         columns = list(values)
         placeholders = ",".join("?" for _ in columns)
         try:
@@ -1747,10 +1771,17 @@ def create_app(settings=None, services=None, gemini_client=None):
         if not values:
             raise HTTPException(422, "At least one writable field is required")
         assignments = ",".join(f"{column}=?" for column in values)
-        result = db.execute(
-            f"UPDATE {spec['actual']} SET {assignments} WHERE {spec['id']}=?",
-            [*values.values(), record_id],
-        )
+        if table == "itinerary_days":
+            trip_id, version = itinerary_key(record_id)
+            result = db.execute(
+                f"UPDATE {spec['actual']} SET {assignments} WHERE trip_id=? AND version=?",
+                [*values.values(), trip_id, version],
+            )
+        else:
+            result = db.execute(
+                f"UPDATE {spec['actual']} SET {assignments} WHERE {spec['id']}=?",
+                [*values.values(), record_id],
+            )
         if result.rowcount != 1:
             raise HTTPException(404, "Entity record not found")
         return {"data": {"table": table, "id": record_id, "updated": True}}
@@ -1760,7 +1791,11 @@ def create_app(settings=None, services=None, gemini_client=None):
                          vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
         spec = entity_spec(table)
-        result = db.execute(f"DELETE FROM {spec['actual']} WHERE {spec['id']}=?", (record_id,))
+        if table == "itinerary_days":
+            trip_id, version = itinerary_key(record_id)
+            result = db.execute("DELETE FROM itinerary_versions WHERE trip_id=? AND version=?", (trip_id, version))
+        else:
+            result = db.execute(f"DELETE FROM {spec['actual']} WHERE {spec['id']}=?", (record_id,))
         if result.rowcount != 1:
             raise HTTPException(404, "Entity record not found")
         return {"data": {"table": table, "id": record_id, "deleted": True}}
