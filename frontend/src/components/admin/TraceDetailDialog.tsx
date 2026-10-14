@@ -43,7 +43,7 @@ export default function TraceDetailDialog({
       aria-labelledby="trace-dialog-title"
       className="fixed inset-0 z-50 bg-[#0E1D4F]/60 backdrop-blur-sm flex items-center justify-center p-4"
     >
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+      <div className="bg-warm-surface rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-4 border-b border-[#0E1D4F]/10 mb-5">
           <div className="flex items-center gap-3">
             <span id="trace-dialog-title" className="font-mono text-lg font-bold text-[#205BD6]">
@@ -59,7 +59,7 @@ export default function TraceDetailDialog({
             type="button"
             onClick={onClose}
             aria-label="Đóng hộp thoại"
-            className="w-8 h-8 rounded-full bg-[#EBF1F0] text-[#0E1D4F] hover:bg-[#0E1D4F] hover:text-white flex items-center justify-center font-bold text-sm transition-all cursor-pointer"
+            className="inline-flex size-11 shrink-0 rounded-full bg-warm-paper text-[#0E1D4F] hover:bg-[#0E1D4F] hover:text-white items-center justify-center font-bold text-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
           >
             ✕
           </button>
@@ -78,7 +78,7 @@ export default function TraceDetailDialog({
               <button
                 type="button"
                 onClick={onRetry}
-                className="px-3 py-1 rounded-xl bg-rose-600 text-white font-semibold text-xs hover:bg-rose-700 transition-colors shrink-0 cursor-pointer"
+                className="min-h-11 px-3 rounded-xl bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition-colors shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700"
               >
                 Thử lại
               </button>
@@ -87,7 +87,7 @@ export default function TraceDetailDialog({
         )}
 
         {isLoading && (
-          <div className="py-4 mb-4 flex items-center justify-center gap-2 text-xs text-[#4B5875] bg-[#EBF1F0]/30 rounded-xl">
+          <div className="py-4 mb-4 flex items-center justify-center gap-2 text-xs text-[#4B5875] bg-warm-paper rounded-xl">
             <div className="w-4 h-4 border-2 border-[#205BD6] border-t-transparent rounded-full animate-spin" />
             <span>Đang tải thông tin chi tiết đầy đủ từ máy chủ...</span>
           </div>
@@ -95,7 +95,7 @@ export default function TraceDetailDialog({
 
         {log && (
           <div className="space-y-4 text-xs">
-            <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
+            <div className="p-3.5 rounded-2xl bg-warm-paper border border-[#0E1D4F]/5">
               <span className="font-bold text-[#0E1D4F] block mb-1">Dấu thời gian &amp; Độ trễ:</span>
               <div className="text-[#4B5875]">
                 {log.timestamp} — Thời gian phản hồi: <strong>{log.latencyMs != null ? `${log.latencyMs} ms` : '—'}</strong> — Độ tin cậy:{' '}
@@ -105,7 +105,7 @@ export default function TraceDetailDialog({
 
             <div>
               <span className="font-bold text-[#0E1D4F] block mb-1">Tóm tắt đầu vào (Input):</span>
-              <p className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[#4B5875] font-mono leading-relaxed">
+              <p className="p-3 rounded-xl bg-warm-paper border border-[#0E1D4F]/10 text-[#4B5875] font-mono leading-relaxed">
                 {log.details.inputSummary || '—'}
               </p>
             </div>
@@ -130,7 +130,7 @@ export default function TraceDetailDialog({
                   {log.details.decisionImpact}
                 </p>
               ) : (
-                <p className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[#4B5875] italic">
+                <p className="p-3 rounded-xl bg-warm-paper border border-[#0E1D4F]/10 text-[#4B5875] italic">
                   Không có thông tin tác động bản nháp được ghi nhận.
                 </p>
               )}
@@ -142,7 +142,7 @@ export default function TraceDetailDialog({
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 rounded-full bg-[#0E1D4F] text-white text-xs font-bold hover:bg-[#205BD6] transition-all cursor-pointer"
+            className="min-h-11 px-6 rounded-full bg-[#0E1D4F] text-white text-sm font-bold hover:bg-[#205BD6] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
           >
             Đóng
           </button>

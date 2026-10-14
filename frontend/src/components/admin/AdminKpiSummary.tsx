@@ -48,17 +48,17 @@ export default function AdminKpiSummary() {
   return <section className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[#4B5875]">
       <p role="status">{!accountId ? 'Cần phiên quản trị.' : loading ? 'Đang tải số liệu…' : error || 'Số liệu do máy chủ cung cấp; trường chưa đo lường hiển thị chưa có dữ liệu.'}</p>
-      <button type="button" disabled={!accountId || loading} onClick={() => { setSnapshot(null); setReload(value => value + 1); }} className="px-4 py-2.5 rounded-xl border border-[#0E1D4F]/15 bg-white text-[#205BD6] font-semibold disabled:opacity-50">Tải lại số liệu</button>
+      <button type="button" disabled={!accountId || loading} onClick={() => { setSnapshot(null); setReload(value => value + 1); }} className="min-h-11 px-4 py-2.5 rounded-xl border border-[#0E1D4F]/15 bg-warm-surface text-[#205BD6] font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]">Tải lại số liệu</button>
     </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {cards.map(card => <div key={card.label} className="bg-white rounded-3xl p-6 border border-[#0E1D4F]/10 shadow-sm">
+    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      {cards.map(card => <div key={card.label} className="bg-warm-surface rounded-3xl p-6 border border-[#0E1D4F]/10 shadow-sm">
         <h3 className="text-xs font-bold uppercase tracking-wider text-[#4B5875]">{card.label}</h3>
         <p className="text-xl font-bold text-[#0E1D4F] mt-3">{card.value}</p>
       </div>)}
     </div>
     {metrics && <p className="text-xs text-[#4B5875]">Máy chủ cập nhật: {metrics.checkedAt}</p>}
-    <div className="bg-white rounded-2xl p-4 border border-[#0E1D4F]/10 flex flex-wrap items-center gap-4">
-      <button type="button" id="btn-check-api-health" disabled={health.loading} onClick={checkHealth} className="inline-flex gap-2 items-center px-4 py-2.5 rounded-xl bg-[#205BD6] text-white text-sm font-semibold disabled:opacity-50">
+    <div className="bg-warm-surface rounded-2xl p-4 border border-[#0E1D4F]/10 flex flex-wrap items-center gap-4">
+      <button type="button" id="btn-check-api-health" disabled={health.loading} onClick={checkHealth} className="inline-flex min-h-11 gap-2 items-center px-4 py-2.5 rounded-xl bg-[#205BD6] text-white text-sm font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#205BD6]">
         <Icon name="sync" className="size-4" aria-hidden="true" />{health.loading ? 'Đang kiểm tra…' : 'Kiểm tra API'}
       </button>
       <p role="status" className={`text-sm ${health.error ? 'text-rose-700' : 'text-[#4B5875]'}`}>{health.message}{health.latencyMs != null && ` · ${health.latencyMs} ms (request /health gần nhất)`}</p>

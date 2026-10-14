@@ -6,7 +6,7 @@
     padding: 0;
   }
   body {
-    background-color: #EBF1F0;
+    background-color: var(--color-warm-paper);
     color: #0E1D4F;
     font-family: var(--font-body), 'Plus Jakarta Sans', system-ui, sans-serif;
   }
@@ -28,6 +28,8 @@
 
 @theme {
   --color-paper: #EBF1F0;
+  --color-warm-paper: #F5F2E9;
+  --color-warm-surface: #FFFEFA;
   --color-ink: #0E1D4F;
   --color-ink-muted: #4B5875;
   --color-turquoise: #08B3C6;
@@ -268,9 +270,20 @@
 .gap-gutter-desktop { gap: 2rem; }
 
 /* Focus styles */
-button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+:where(a, button, input, textarea, select, [role="button"]):focus-visible {
   outline: 2px solid #205BD6;
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Print styles for /trip-plan */

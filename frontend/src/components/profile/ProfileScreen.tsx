@@ -68,7 +68,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6 sm:py-10 lg:px-12">
       <ProfileHeader
         formData={formData}
         avatarUrl={avatarUrl}
@@ -80,42 +80,50 @@ export default function ProfileScreen() {
         onSelectTab={setActiveTab}
       />
 
-      {activeTab === 'info' && (
-        <ProfileInfoTab
-          formData={formData}
-          setFormData={setFormData}
-          savedSuccess={savedSuccess}
-          setSavedSuccess={setSavedSuccess}
-          saveError={saveError}
-          isSaving={isSaving}
-          isLoading={isLoading}
-          onRetry={retryLoadProfile}
-          hasLoadedProfile={hasLoadedProfile}
-          handleSave={handleSave}
-          isLoggedIn={isLoggedIn}
-        />
-      )}
+      <section
+        id="profile-tabpanel"
+        role="tabpanel"
+        aria-labelledby={`profile-tab-${activeTab}`}
+        tabIndex={0}
+        className="mt-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#205BD6] sm:mt-6"
+      >
+        {activeTab === 'info' && (
+          <ProfileInfoTab
+            formData={formData}
+            setFormData={setFormData}
+            savedSuccess={savedSuccess}
+            setSavedSuccess={setSavedSuccess}
+            saveError={saveError}
+            isSaving={isSaving}
+            isLoading={isLoading}
+            onRetry={retryLoadProfile}
+            hasLoadedProfile={hasLoadedProfile}
+            handleSave={handleSave}
+            isLoggedIn={isLoggedIn}
+          />
+        )}
 
-      {activeTab === 'dna' && <ProfileDnaTab />}
+        {activeTab === 'dna' && <ProfileDnaTab />}
 
-      {activeTab === 'subscription' && <ProfileSubscriptionTab />}
+        {activeTab === 'subscription' && <ProfileSubscriptionTab />}
 
-      {activeTab === 'activity' && (
-        <ProfileActivityTab
-          isLoggedIn={isLoggedIn}
-          serverTrips={serverTrips}
-          isLoadingServerTrips={isLoadingActivity}
-          serverTripsError={activityError}
-          serverTotal={serverTotal}
-          serverTotalPages={serverTotalPages}
-          currentPage={activityPage}
-          pageSize={activityPageSize}
-          onPageChange={handleActivityPageChange}
-          onRetry={retryLoadActivity}
-        />
-      )}
+        {activeTab === 'activity' && (
+          <ProfileActivityTab
+            isLoggedIn={isLoggedIn}
+            serverTrips={serverTrips}
+            isLoadingServerTrips={isLoadingActivity}
+            serverTripsError={activityError}
+            serverTotal={serverTotal}
+            serverTotalPages={serverTotalPages}
+            currentPage={activityPage}
+            pageSize={activityPageSize}
+            onPageChange={handleActivityPageChange}
+            onRetry={retryLoadActivity}
+          />
+        )}
 
-      {activeTab === 'feedback' && <ProfileFeedbackTab />}
+        {activeTab === 'feedback' && <ProfileFeedbackTab />}
+      </section>
     </div>
   );
 }

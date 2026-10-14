@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/ui/Icon';
@@ -15,6 +15,7 @@ interface NavLink {
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const { isLoggedIn, user, logout } = useUserAuth();
 
   const navLinks: NavLink[] = [
@@ -28,13 +29,27 @@ export default function Navbar() {
     return pathname.startsWith(href);
   };
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileMenuOpen]);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#EBF1F0]/92 backdrop-blur-md border-b border-[#0E1D4F]/10 shadow-[0_2px_12px_rgba(14,29,79,0.04)] transition-all">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#0E1D4F]/10 bg-warm-paper shadow-[0_2px_12px_rgba(14,29,79,0.04)]">
       <div className="h-[76px] max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 flex items-center justify-between gap-4">
         {/* Brand Logo */}
         <div className="flex items-center gap-6 lg:gap-8 shrink-0">
           <Link href="/" className="flex items-center gap-2.5 group" aria-label="VISTRA — Trang chủ">
-            <div className="w-9 h-9 rounded-xl bg-[#08B3C6]/15 border border-[#08B3C6]/30 flex items-center justify-center text-[#08B3C6] shadow-2xs group-hover:bg-[#08B3C6] group-hover:text-white transition-all">
+            <div className="w-9 h-9 rounded-lg bg-[#08B3C6]/12 border border-[#08B3C6]/30 flex items-center justify-center text-[#08B3C6] group-hover:bg-[#08B3C6] group-hover:text-white transition-colors">
               <Icon name="explore" className="size-5" />
             </div>
             <div className="flex flex-col">
@@ -55,10 +70,10 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all font-medium flex items-center gap-1 ${
+                  className={`min-h-11 text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-colors font-medium flex items-center gap-1 ${
                     active
-                      ? 'text-[#205BD6] bg-[#205BD6]/10 font-semibold shadow-2xs'
-                      : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-white/60'
+                      ? 'text-[#0E1D4F] bg-warm-surface font-semibold'
+                      : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-surface'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
@@ -75,11 +90,12 @@ export default function Navbar() {
           {!isLoggedIn ? (
             <Link
               href="/login"
-              className={`hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-label-md transition-all ${
+              className={`hidden sm:inline-flex min-h-11 items-center gap-2 px-3 rounded-lg text-xs font-label-md transition-colors ${
                 pathname === '/login' || pathname === '/register'
-                  ? 'text-[#205BD6] bg-[#205BD6]/10 font-semibold'
-                  : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-white/60'
+                  ? 'text-[#0E1D4F] bg-warm-surface font-semibold'
+                  : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-surface'
               }`}
+              aria-current={pathname === '/login' ? 'page' : undefined}
             >
               <Icon name="login" className="size-3.5" />
               <span>Đăng nhập</span>
@@ -89,7 +105,7 @@ export default function Navbar() {
               {/* Profile Avatar Button */}
               <Link
                 href="/profile"
-                className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs transition-all ${
+                className={`min-w-11 min-h-11 rounded-full border flex items-center justify-center font-bold text-xs transition-colors ${
                   pathname.startsWith('/profile')
                     ? 'bg-[#205BD6] text-white border-[#205BD6] shadow-xs'
                     : 'bg-white/90 text-[#0E1D4F] border-[#0E1D4F]/15 hover:border-[#205BD6] hover:shadow-xs'
@@ -105,7 +121,7 @@ export default function Navbar() {
                 onClick={async () => {
                   await logout();
                 }}
-                className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-label-md text-[#4B5875] hover:text-[#ba1a1a] hover:bg-red-50/50 transition-all cursor-pointer"
+                className="hidden sm:inline-flex min-h-11 min-w-11 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-label-md text-[#4B5875] hover:text-[#ba1a1a] hover:bg-red-50/50 transition-colors cursor-pointer"
                 title="Đăng xuất"
                 aria-label="Đăng xuất"
               >
@@ -118,9 +134,11 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-[#0E1D4F] hover:bg-white/60 transition-colors"
-            aria-label="Toggle navigation menu"
+            ref={menuButtonRef}
+            className="md:hidden min-w-11 min-h-11 grid place-items-center rounded-lg text-[#0E1D4F] hover:bg-warm-surface transition-colors"
+            aria-label={mobileMenuOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
             aria-expanded={mobileMenuOpen}
+            aria-controls="primary-navigation-mobile"
           >
             <Icon name={mobileMenuOpen ? 'close' : 'menu'} className="size-5" />
           </button>
@@ -129,8 +147,8 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-4 py-3 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
-          <nav className="flex flex-col gap-1" aria-label="Điều hướng di động">
+        <div id="primary-navigation-mobile" className="md:hidden max-h-[calc(100dvh-76px)] overflow-y-auto bg-warm-surface border-t border-[#0E1D4F]/10 px-4 py-3">
+          <nav className="flex flex-col gap-1" aria-label="Điều hướng chính">
             {navLinks.map((link) => {
               const active = isActive(link.href);
               return (
@@ -138,10 +156,10 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`text-sm px-3 py-2.5 rounded-lg transition-all font-medium ${
+                  className={`min-h-11 text-sm px-3 py-2.5 rounded-lg transition-colors font-medium ${
                     active
-                      ? 'text-[#205BD6] bg-[#205BD6]/10 font-semibold'
-                      : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]'
+                      ? 'text-[#0E1D4F] bg-warm-paper font-semibold'
+                      : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
@@ -156,7 +174,7 @@ export default function Navbar() {
                   <Link
                     href="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] flex items-center gap-2"
+                    className="min-h-11 text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper flex items-center gap-2"
                   >
                     <Icon name="person" className="size-4 text-[#205BD6]" />
                     <span>Hồ sơ du khách ({user?.fullName || 'VISTRA'})</span>
@@ -167,7 +185,7 @@ export default function Navbar() {
                       setMobileMenuOpen(false);
                       await logout();
                     }}
-                    className="text-sm px-3 py-2 rounded-lg text-[#ba1a1a] hover:bg-red-50 flex items-center gap-2 text-left w-full cursor-pointer"
+                    className="min-h-11 text-sm px-3 py-2 rounded-lg text-[#ba1a1a] hover:bg-red-50 flex items-center gap-2 text-left w-full cursor-pointer"
                   >
                     <Icon name="logout" className="size-4 text-[#ba1a1a]" />
                     <span>Đăng xuất</span>
@@ -177,7 +195,7 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] flex items-center gap-2"
+                  className="min-h-11 text-sm px-3 py-2 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper flex items-center gap-2"
                 >
                   <Icon name="login" className="size-4 text-[#205BD6]" />
                   <span>Đăng nhập / Đăng ký</span>

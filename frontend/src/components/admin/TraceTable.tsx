@@ -33,7 +33,7 @@ export default function TraceTable({
   pageSize = 5,
 }: TraceTableProps) {
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm mb-8">
+    <div className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#0E1D4F]/10 mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -56,7 +56,7 @@ export default function TraceTable({
             <select
               value="ALL"
               disabled
-              className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-gray-100 text-xs font-semibold text-[#4B5875] cursor-not-allowed opacity-75"
+              className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-warm-paper text-xs font-semibold text-[#4B5875] cursor-not-allowed opacity-75"
               title="Backend chưa hỗ trợ lọc theo trạng thái (status query param). Phân trang máy chủ được bảo toàn nguyên vẹn."
             >
               <option value="ALL">Tất cả ({totalCount})</option>
@@ -70,7 +70,7 @@ export default function TraceTable({
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs text-[#0E1D4F]">
-          <thead className="bg-[#EBF1F0]/60 border-b border-[#0E1D4F]/10 text-[#4B5875] font-label-caps uppercase">
+          <thead className="bg-warm-paper border-b border-[#0E1D4F]/10 text-[#4B5875] font-label-caps uppercase">
             <tr>
               <th className="py-3 px-4">Mã Trace</th>
               <th className="py-3 px-4">Thời gian</th>
@@ -103,7 +103,7 @@ export default function TraceTable({
                       <button
                         type="button"
                         onClick={onRetry}
-                        className="mt-2 px-4 py-1.5 rounded-xl bg-rose-600 text-white font-semibold text-xs hover:bg-rose-700 transition-colors cursor-pointer"
+                        className="mt-2 min-h-11 px-4 py-2 rounded-xl bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700"
                       >
                         Thử lại
                       </button>
@@ -123,7 +123,7 @@ export default function TraceTable({
               </tr>
             ) : (
               logs.map((log) => (
-                <tr key={log.id} className="hover:bg-[#EBF1F0]/30 transition-colors">
+                <tr key={log.id} className="hover:bg-warm-paper transition-colors">
                   <td className="py-3.5 px-4 font-mono font-bold text-[#205BD6]">{log.id}</td>
                   <td className="py-3.5 px-4 text-[#4B5875]">{log.timestamp}</td>
                   <td className="py-3.5 px-4 font-semibold text-[#0E1D4F]">
@@ -153,7 +153,7 @@ export default function TraceTable({
                     <button
                       type="button"
                       onClick={() => onSelectLog(log)}
-                      className="px-3 py-1 rounded-lg bg-[#205BD6]/10 text-[#205BD6] hover:bg-[#205BD6] hover:text-white font-bold transition-all cursor-pointer"
+                      className="min-h-11 px-3 rounded-lg bg-[#205BD6]/10 text-[#205BD6] hover:bg-[#205BD6] hover:text-white font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                     >
                       Xem chi tiết
                     </button>
@@ -186,7 +186,7 @@ export default function TraceTable({
               type="button"
               disabled={currentPage <= 1 || isLoading}
               onClick={() => onPageChange(currentPage - 1)}
-              className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer"
+              className="min-h-11 px-3 rounded-xl border border-[#0E1D4F]/15 bg-warm-surface text-[#0E1D4F] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-warm-paper transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
             >
               ← Trước
             </button>
@@ -197,7 +197,7 @@ export default function TraceTable({
               type="button"
               disabled={currentPage >= totalPages || isLoading}
               onClick={() => onPageChange(currentPage + 1)}
-              className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer"
+              className="min-h-11 px-3 rounded-xl border border-[#0E1D4F]/15 bg-warm-surface text-[#0E1D4F] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-warm-paper transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
             >
               Sau →
             </button>

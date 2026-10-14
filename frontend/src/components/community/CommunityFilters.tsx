@@ -10,6 +10,7 @@ import {
 } from "./useCommunityController";
 
 interface CommunityFiltersProps {
+  className?: string;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedDuration: string;
@@ -37,6 +38,7 @@ interface CommunityFiltersProps {
 }
 
 export default function CommunityFilters({
+  className = "lg:col-span-4",
   searchQuery,
   onSearchChange,
   selectedDuration,
@@ -76,9 +78,11 @@ export default function CommunityFilters({
   };
 
   return (
-    <aside className="lg:col-span-3 bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-5 space-y-6 shadow-xs lg:sticky lg:top-24">
+    <aside
+      className={`rounded-xl border border-[#0E1D4F]/10 bg-warm-surface p-4 shadow-sm md:grid md:grid-cols-2 md:gap-x-5 md:gap-y-5 md:space-y-0 lg:sticky lg:top-24 lg:block lg:space-y-6 lg:p-5 ${className}`}
+    >
       {/* Top Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#0E1D4F]/10">
+      <div className="flex items-center justify-between border-b border-[#0E1D4F]/10 pb-3 md:col-span-2">
         <h2 className="font-headline-sm text-sm font-bold text-[#0E1D4F] flex items-center gap-2">
           <Icon name="tune" className="size-4 text-[#205BD6]" />
           <span>Bộ lọc tìm kiếm</span>
@@ -87,7 +91,7 @@ export default function CommunityFilters({
           <button
             type="button"
             onClick={onResetFilters}
-            className="text-[11px] text-[#205BD6] hover:underline cursor-pointer"
+            className="inline-flex min-h-11 items-center text-xs font-semibold text-[#205BD6] hover:underline focus-visible:outline-2 focus-visible:outline-[#205BD6]"
           >
             Đặt lại tất cả
           </button>
@@ -95,7 +99,7 @@ export default function CommunityFilters({
       </div>
 
       {/* 1. Search Box */}
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 md:col-span-2">
         <label
           htmlFor="comm-search"
           className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]"
@@ -113,27 +117,13 @@ export default function CommunityFilters({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Nhập tên điểm đến, xuất phát..."
-            className="w-full bg-[#EBF1F0] text-[#0E1D4F] placeholder:text-[#4B5875]/60 text-xs pl-9 pr-3 py-2.5 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6] transition-all"
+            className="min-h-11 w-full rounded-lg border border-[#0E1D4F]/15 bg-white py-2.5 pl-9 pr-3 text-sm text-[#0E1D4F] placeholder:text-[#4B5875]/70 transition-colors focus:border-[#205BD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/30"
           />
         </div>
       </div>
 
-      {/* 2. Search & Filter Summary */}
-      <div className="p-3 bg-[#EBF1F0] rounded-xl text-xs text-[#4B5875] space-y-1">
-        <div className="flex justify-between items-center">
-          <span>Kết quả khớp:</span>
-          <strong className="text-[#0E1D4F] font-bold">
-            {totalFilteredCount} hành trình
-          </strong>
-        </div>
-        <div className="flex justify-between items-center">
-          <span>Tổng số trang:</span>
-          <strong className="text-[#0E1D4F]">{totalPages || 1} trang</strong>
-        </div>
-      </div>
-
       {/* 3 & 4. Favorite Toggle & Province Filter Row (COM-01: 1/3 and 2/3 on desktop, stacked on mobile) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+      <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-3 md:col-span-2">
         {/* 1/3: Đã thích */}
         <div className="sm:col-span-1 space-y-1.5">
           <label className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F] truncate">
@@ -142,7 +132,7 @@ export default function CommunityFilters({
           <button
             type="button"
             onClick={onToggleShowOnlyFavorites}
-            className={`w-full h-[38px] flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex min-h-11 w-full items-center justify-between rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-[#205BD6] ${
               showOnlyFavorites
                 ? "bg-rose-50 border-rose-300 text-rose-600 shadow-2xs"
                 : "bg-[#EBF1F0] hover:bg-[#E4ECEB] border-[#0E1D4F]/10 text-[#0E1D4F]"
@@ -249,7 +239,7 @@ export default function CommunityFilters({
                   );
                 }
               }}
-              className="w-full bg-[#EBF1F0] text-[#0E1D4F] font-semibold text-xs px-2.5 py-1.5 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
+              className="min-h-11 w-full rounded-lg border border-[#0E1D4F]/15 bg-white px-2.5 py-2 text-sm font-semibold text-[#0E1D4F] focus:border-[#205BD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/30"
             />
           </div>
 
@@ -276,7 +266,7 @@ export default function CommunityFilters({
                   );
                 }
               }}
-              className="w-full bg-[#EBF1F0] text-[#0E1D4F] font-semibold text-xs px-2.5 py-1.5 rounded-xl border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6]"
+              className="min-h-11 w-full rounded-lg border border-[#0E1D4F]/15 bg-white px-2.5 py-2 text-sm font-semibold text-[#0E1D4F] focus:border-[#205BD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/30"
             />
           </div>
         </div>
@@ -363,7 +353,7 @@ export default function CommunityFilters({
           id="comm-duration"
           value={selectedDuration}
           onChange={(event) => onSelectDuration(event.target.value)}
-          className="w-full bg-[#EBF1F0] text-[#0E1D4F] text-sm px-3 py-2.5 rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6] cursor-pointer"
+          className="min-h-11 w-full rounded-lg border border-[#0E1D4F]/15 bg-white px-3 py-2.5 text-sm text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
         >
           <option value="all">Tất cả thời lượng</option>
           {durationOptions.map((duration) => (
@@ -372,6 +362,20 @@ export default function CommunityFilters({
             </option>
           ))}
         </select>
+      </div>
+
+      {/* 2. Search & Filter Summary */}
+      <div className="space-y-1 rounded-lg bg-[#EBF1F0] p-3 text-sm text-[#4B5875] md:col-span-2">
+        <div className="flex justify-between items-center">
+          <span>Kết quả khớp:</span>
+          <strong className="text-[#0E1D4F] font-bold">
+            {totalFilteredCount} hành trình
+          </strong>
+        </div>
+        <div className="flex justify-between items-center">
+          <span>Tổng số trang:</span>
+          <strong className="text-[#0E1D4F]">{totalPages || 1} trang</strong>
+        </div>
       </div>
 
       {/* 7. Category / Theme Filter (BE-TAG-01: Pending backend taxonomy catalog) */}

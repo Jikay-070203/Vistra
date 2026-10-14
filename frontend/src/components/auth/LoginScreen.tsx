@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import { useLoginController } from './useLoginController';
@@ -37,21 +38,39 @@ export default function LoginScreen() {
   const closeComingSoon = React.useCallback(() => setComingSoonOpen(false), []);
 
   return (
-    <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-10 sm:py-16 flex items-center justify-center min-h-[calc(100vh-76px-300px)]">
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-6 sm:p-8 shadow-[0_8px_30px_rgba(14,29,79,0.06)] space-y-6">
+    <div className="mx-auto grid min-h-[calc(100vh-76px-300px)] w-full max-w-[1180px] grid-cols-1 items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[5fr_7fr] lg:gap-[5%] lg:px-12 lg:py-16">
+      <aside className="relative hidden min-h-[560px] overflow-hidden rounded-[1.75rem] bg-[#0E1D4F] lg:block">
+        <Image
+          src="/landing/hero-inspiration.jpg"
+          alt="Lối đi bên hồ giữa rừng thông"
+          fill
+          priority
+          sizes="(max-width: 1280px) 40vw, 520px"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0E1D4F]/90 via-[#0E1D4F]/10 to-[#0E1D4F]/10" />
+        <div className="absolute inset-x-0 bottom-0 p-8 text-white xl:p-10">
+          <p className="font-label-caps text-xs font-bold uppercase tracking-[0.16em] text-[#E7AD2E]">Tài khoản du khách</p>
+          <h2 className="mt-3 max-w-sm font-headline-lg text-3xl font-bold leading-tight xl:text-4xl">Tiếp tục lên kế hoạch theo cách của bạn.</h2>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/85">Đăng nhập để quản lý hành trình và sở thích du lịch cá nhân hóa.</p>
+        </div>
+      </aside>
+
+      <div className="mx-auto w-full max-w-[470px] space-y-6 rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 shadow-[0_12px_36px_rgba(14,29,79,0.07)] sm:p-8 lg:justify-self-center">
         {/* Header */}
-        <div className="text-center space-y-1.5">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#08B3C6]/15 border border-[#08B3C6]/30 text-[#08B3C6] mb-2 shadow-2xs">
+        <div className="space-y-2 text-center sm:text-left">
+          <div className="mb-2 inline-flex size-11 items-center justify-center rounded-xl border border-[#08B3C6]/30 bg-[#EBF1F0] text-[#0E1D4F]">
             <Icon name="lock" className="size-6" />
           </div>
-          <h1 className="font-headline-sm text-2xl font-bold text-[#0E1D4F]">
+          <h1 className="font-headline-sm text-2xl font-bold text-[#0E1D4F] sm:text-3xl">
             Đăng nhập tài khoản
           </h1>
+          <p className="text-sm text-[#4B5875]">Trở lại VISTRA để tiếp tục thao tác.</p>
         </div>
 
         {/* Redirect notice when redirected from protected action */}
         {redirectNotice && (
-          <div role="status" className="p-3.5 rounded-xl bg-[#205BD6]/10 border border-[#205BD6]/25 text-xs text-[#0739A8] leading-relaxed flex items-start gap-2.5">
+          <div role="status" className="flex items-start gap-2.5 rounded-xl border border-[#205BD6]/25 bg-[#EBF1F0] p-3.5 text-sm leading-relaxed text-[#0E1D4F]">
             <Icon name="info" className="size-4 shrink-0 text-[#205BD6] mt-0.5" />
             <span>{redirectNotice}</span>
           </div>
@@ -59,7 +78,7 @@ export default function LoginScreen() {
 
         {/* Feedback alert */}
         {feedbackMessage && (
-          <div className="p-3 rounded-xl bg-[#205BD6]/10 border border-[#205BD6]/30 text-xs text-[#0739A8] leading-relaxed flex items-start gap-2">
+          <div className="flex items-start gap-2 rounded-xl border border-[#205BD6]/30 bg-[#EBF1F0] p-3 text-sm leading-relaxed text-[#0E1D4F]">
             <Icon name="check_circle" className="size-4 shrink-0 text-[#205BD6] mt-0.5" />
             <span>{feedbackMessage}</span>
           </div>
@@ -71,7 +90,7 @@ export default function LoginScreen() {
           <div className="space-y-1.5">
             <label
               htmlFor="login-email"
-              className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]"
+              className="block text-xs font-label-caps font-bold uppercase text-[#0E1D4F]"
             >
               Email đăng nhập <span className="text-[#ba1a1a]">*</span>
             </label>
@@ -85,8 +104,7 @@ export default function LoginScreen() {
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 placeholder="traveler@vistra.vn"
-                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${errors.email ? 'border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
-                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                className={`min-h-11 w-full rounded-lg border bg-white px-3.5 py-3 text-sm text-[#0E1D4F] placeholder:text-[#4B5875]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/40 ${errors.email ? 'border-[#ba1a1a] focus-visible:ring-[#ba1a1a]' : 'border-[#0E1D4F]/20 focus:border-[#205BD6]'} transition-colors`}
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'login-email-error' : undefined}
               />
@@ -104,14 +122,14 @@ export default function LoginScreen() {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="login-password"
-                className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]"
+                className="block text-xs font-label-caps font-bold uppercase text-[#0E1D4F]"
               >
                 Mật khẩu <span className="text-[#ba1a1a]">*</span>
               </label>
               <button
                 type="button"
                 onClick={(event) => handleUnavailableAction('Khôi phục mật khẩu', event.currentTarget)}
-                className="text-[11px] text-[#205BD6] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
+                className="inline-flex min-h-11 items-center text-xs font-semibold text-[#205BD6] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
               >
                 Quên mật khẩu?
               </button>
@@ -126,15 +144,14 @@ export default function LoginScreen() {
                   if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 placeholder="Nhập mật khẩu của bạn"
-                className={`w-full pl-3.5 pr-10 py-2.5 text-sm rounded-xl bg-white border ${errors.password ? 'border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
-                  } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none focus:border-[#205BD6] transition-all`}
+                className={`min-h-11 w-full rounded-lg border bg-white py-3 pl-3.5 pr-12 text-sm text-[#0E1D4F] placeholder:text-[#4B5875]/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/40 ${errors.password ? 'border-[#ba1a1a] focus-visible:ring-[#ba1a1a]' : 'border-[#0E1D4F]/20 focus:border-[#205BD6]'} transition-colors`}
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? 'login-password-error' : undefined}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4B5875] hover:text-[#0E1D4F] p-1 cursor-pointer"
+                className="absolute right-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-[#4B5875] hover:bg-[#EBF1F0] hover:text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
                 aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
               >
                 <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="size-4" />
@@ -152,7 +169,7 @@ export default function LoginScreen() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 px-4 bg-[#205BD6] hover:bg-[#1847a8] disabled:bg-[#4B5875]/50 text-white font-semibold text-sm rounded-xl transition-all shadow-[0_4px_14px_rgba(32,91,214,0.25)] active:scale-[0.98] cursor-pointer mt-2 disabled:cursor-not-allowed"
+            className="mt-2 min-h-12 w-full rounded-lg bg-[#205BD6] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:bg-[#4B5875]/50"
           >
             {isLoading ? 'Đang xác thực...' : 'Đăng nhập'}
           </button>
@@ -161,17 +178,17 @@ export default function LoginScreen() {
         {/* Divider */}
         <div className="relative flex items-center justify-center my-4">
           <div className="border-t border-[#0E1D4F]/10 w-full"></div>
-          <span className="bg-white px-3 text-[11px] text-[#4B5875] font-label-caps uppercase shrink-0">
+          <span className="bg-warm-surface px-3 text-xs font-label-caps uppercase text-[#4B5875] shrink-0">
             Hoặc tiếp tục với
           </span>
         </div>
 
         {/* OAuth Provider Buttons */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button
             type="button"
             onClick={(event) => handleUnavailableAction('Google', event.currentTarget)}
-            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#0E1D4F]/20 bg-white px-3 py-2 text-sm font-semibold text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
           >
             <span className="font-bold text-[#205BD6]">G</span>
             <span>Google</span>
@@ -179,7 +196,7 @@ export default function LoginScreen() {
           <button
             type="button"
             onClick={(event) => handleUnavailableAction('Facebook', event.currentTarget)}
-            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#0E1D4F]/20 bg-white px-3 py-2 text-sm font-semibold text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
           >
             <span className="font-bold text-[#205BD6]">f</span>
             <span>Facebook</span>

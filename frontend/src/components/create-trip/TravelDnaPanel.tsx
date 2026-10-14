@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Icon from '@/components/ui/Icon';
 import { getTravelDnaLabel } from '@/config/travelDnaLabels';
 import type { TravelDnaMetric } from '@/types/tripDna';
@@ -10,11 +11,14 @@ interface TravelDnaPanelProps {
   error: string | null;
   onChange: (key: string, score: number) => void;
   onReset: () => void;
+  children?: ReactNode;
 }
 
-export default function TravelDnaPanel({ metrics, status, error, onChange, onReset }: TravelDnaPanelProps) {
+export default function TravelDnaPanel({ metrics, status, error, onChange, onReset, children }: TravelDnaPanelProps) {
   return (
     <section aria-labelledby="trip-dna-title" className="rounded-2xl border border-[#0E1D4F]/10 bg-white/85 p-5 shadow-xs backdrop-blur-md sm:p-6">
+      {children && <div className="mb-5 border-b border-[#0E1D4F]/10 pb-5">{children}</div>}
+
       <div className="flex items-center justify-between gap-3 border-b border-[#0E1D4F]/10 pb-3">
         <div className="flex items-center gap-2">
           <Icon name="fingerprint" className="size-4 text-[#205BD6]" />

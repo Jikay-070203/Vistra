@@ -194,7 +194,7 @@ function TicketDetailInspector({
   };
 
   return (
-    <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-[#0E1D4F]/10 shadow-sm space-y-6 print:w-full print:p-0 print:border-none print:shadow-none">
+    <div className="xl:col-span-7 bg-warm-surface rounded-3xl p-6 sm:p-7 border border-[#0E1D4F]/10 shadow-sm space-y-6 print:w-full print:p-0 print:border-none print:shadow-none">
       {/* Header of Inspector */}
       <div className="border-b border-[#0E1D4F]/10 pb-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -212,7 +212,7 @@ function TicketDetailInspector({
                 aria-expanded={isClassificationModalOpen}
                 aria-haspopup="dialog"
                 aria-label="Mở menu phân loại và mức độ nghiêm trọng"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#EBF1F0] hover:bg-white text-[#0E1D4F] border border-[#0E1D4F]/10 text-xs font-medium transition-colors cursor-pointer group"
+                className="inline-flex min-h-11 items-center gap-1.5 px-3 py-2 rounded-xl bg-warm-paper hover:bg-warm-surface text-[#0E1D4F] border border-[#0E1D4F]/10 text-xs font-medium transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                 title="Nhấn để thay đổi phân loại"
               >
                 <span className="font-semibold text-[#205BD6]">
@@ -232,7 +232,7 @@ function TicketDetailInspector({
                   role="dialog"
                   aria-modal="false"
                   aria-label="Phân loại phiếu"
-                  className="absolute top-full left-0 mt-2 z-50 w-80 bg-white rounded-2xl shadow-xl border border-[#0E1D4F]/15 p-4 space-y-3.5 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute top-full left-0 mt-2 z-50 w-80 bg-warm-surface rounded-2xl shadow-xl border border-[#0E1D4F]/15 p-4 space-y-3.5 animate-in fade-in zoom-in-95 duration-150"
                 >
                   <div className="flex items-center justify-between border-b border-[#0E1D4F]/10 pb-2">
                     <h4 className="font-bold text-xs text-[#0E1D4F] flex items-center gap-1.5">
@@ -245,7 +245,8 @@ function TicketDetailInspector({
                         setIsClassificationModalOpen(false);
                         triggerButtonRef.current?.focus();
                       }}
-                      className="w-6 h-6 rounded-full hover:bg-gray-100 flex items-center justify-center text-[#4B5875]"
+                      aria-label="Đóng phân loại"
+                      className="size-11 rounded-full hover:bg-warm-paper flex items-center justify-center text-[#4B5875] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                     >
                       <Icon name="close" className="size-3.5" />
                     </button>
@@ -265,7 +266,7 @@ function TicketDetailInspector({
                       <select
                         value={editCategory}
                         onChange={(e) => setEditCategory(e.target.value as FeedbackCategory)}
-                        className="w-full text-xs px-2.5 py-1.5 rounded-xl bg-[#EBF1F0] border border-[#0E1D4F]/10 text-[#0E1D4F]"
+                        className="min-h-11 w-full text-xs px-3 py-2 rounded-xl bg-warm-paper border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                       >
                         <option value="Vấn đề giao diện (UX)">Vấn đề giao diện (UX)</option>
                         <option value="Lỗi logic hành trình">Lỗi logic hành trình</option>
@@ -281,7 +282,7 @@ function TicketDetailInspector({
                       <select
                         value={editSeverity}
                         onChange={(e) => setEditSeverity(e.target.value as TicketSeverity)}
-                        className="w-full text-xs px-2.5 py-1.5 rounded-xl bg-[#EBF1F0] border border-[#0E1D4F]/10 text-[#0E1D4F]"
+                        className="min-h-11 w-full text-xs px-3 py-2 rounded-xl bg-warm-paper border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                       >
                         <option value="Thấp">Thấp (Tiểu tiết)</option>
                         <option value="Trung bình">Trung bình</option>
@@ -298,7 +299,7 @@ function TicketDetailInspector({
                         setIsClassificationModalOpen(false);
                         triggerButtonRef.current?.focus();
                       }}
-                      className="px-3 py-1 rounded-lg border border-[#0E1D4F]/15 text-[#4B5875] hover:bg-gray-100 text-[11px] font-semibold"
+                      className="min-h-11 px-4 py-2 rounded-lg border border-[#0E1D4F]/15 text-[#4B5875] hover:bg-warm-paper text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                     >
                       Đóng
                     </button>
@@ -306,7 +307,7 @@ function TicketDetailInspector({
                       type="button"
                       disabled={isUpdatingClassification}
                       onClick={handleSaveClassification}
-                      className="px-3 py-1 rounded-lg bg-[#205BD6] text-white hover:bg-[#1847a8] disabled:opacity-50 text-[11px] font-semibold"
+                      className="min-h-11 px-4 py-2 rounded-lg bg-[#205BD6] text-white hover:bg-[#1847a8] disabled:opacity-50 text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] focus-visible:ring-offset-2"
                     >
                       {isUpdatingClassification ? 'Đang lưu...' : 'Lưu'}
                     </button>
@@ -327,7 +328,7 @@ function TicketDetailInspector({
                 value={currentStatus}
                 onChange={(e) => handleStatusChange(e.target.value as TicketStatus)}
                 aria-label="Cập nhật trạng thái tiến độ xử lý phiếu"
-                className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#EBF1F0] border border-[#0E1D4F]/15 text-[#0E1D4F] cursor-pointer focus:outline-none focus:border-[#205BD6]"
+                className="min-h-11 text-xs font-semibold px-3 py-2 rounded-xl bg-warm-paper border border-[#0E1D4F]/15 text-[#0E1D4F] cursor-pointer focus:outline-none focus:border-[#205BD6] focus-visible:ring-2 focus-visible:ring-[#205BD6]"
               >
                 <option value="unassigned">Chờ phân loại</option>
                 <option value="in_progress">Đang xử lý</option>
@@ -339,7 +340,7 @@ function TicketDetailInspector({
             <button
               type="button"
               onClick={handleExportPdf}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-[#0E1D4F] border border-[#0E1D4F]/15 text-xs font-semibold shadow-xs transition-colors cursor-pointer print:hidden"
+              className="inline-flex min-h-11 items-center gap-1.5 px-3 py-2 rounded-xl bg-warm-surface hover:bg-warm-paper text-[#0E1D4F] border border-[#0E1D4F]/15 text-xs font-semibold shadow-xs transition-colors cursor-pointer print:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
               title="Xuất file PDF hoặc In phiếu phản hồi này"
             >
               <Icon name="print" size={14} className="text-[#205BD6]" />
@@ -375,7 +376,7 @@ function TicketDetailInspector({
       </div>
 
       {/* Original Problem Statement */}
-      <div className="p-4 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/10 space-y-2">
+      <div className="p-4 rounded-2xl bg-warm-paper border border-[#0E1D4F]/10 space-y-2">
         <span className="text-[11px] font-bold uppercase tracking-wider text-[#4B5875] block">
           Nội dung du khách gửi lên:
         </span>
@@ -385,7 +386,7 @@ function TicketDetailInspector({
       </div>
 
       {/* Dedicated Status Progress Section */}
-      <div className="p-4 rounded-2xl bg-white border border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+      <div className="p-4 rounded-2xl bg-warm-surface border border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
         <div>
           <span className="text-xs font-bold text-[#0E1D4F] block">
             Trạng thái tiến độ xử lý
@@ -400,7 +401,7 @@ function TicketDetailInspector({
             value={currentStatus}
             onChange={(e) => handleStatusChange(e.target.value as TicketStatus)}
             aria-label="Chọn trạng thái tiến độ xử lý"
-            className="text-xs font-semibold px-3 py-2 rounded-xl bg-[#EBF1F0] border border-[#0E1D4F]/15 text-[#0E1D4F] cursor-pointer"
+            className="text-xs font-semibold px-3 py-2 rounded-xl bg-warm-paper border border-[#0E1D4F]/15 text-[#0E1D4F] cursor-pointer"
           >
             <option value="unassigned">Chờ phân loại</option>
             <option value="in_progress">Đang xử lý</option>
@@ -420,7 +421,7 @@ function TicketDetailInspector({
 
         {ticket.staffReplies && ticket.staffReplies.length > 0 ? (
           ticket.staffReplies.map((reply) => (
-            <div key={reply.id} className="p-4 rounded-2xl bg-[#EBF1F0]/50 border border-[#0E1D4F]/10 space-y-1.5">
+            <div key={reply.id} className="p-4 rounded-2xl bg-warm-paper border border-[#0E1D4F]/10 space-y-1.5">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-bold text-[#0E1D4F]">
                   {reply.senderName || reply.senderRole || 'Bộ phận hỗ trợ'}
@@ -434,7 +435,7 @@ function TicketDetailInspector({
             </div>
           ))
         ) : (
-          <div className="p-4 rounded-xl bg-white border border-dashed border-[#0E1D4F]/15 text-center text-xs text-[#4B5875]">
+          <div className="p-4 rounded-xl bg-warm-surface border border-dashed border-[#0E1D4F]/15 text-center text-xs text-[#4B5875]">
             Chưa có câu trả lời nào từ kỹ sư cho phiếu này.
           </div>
         )}
@@ -597,7 +598,7 @@ export default function AdminFeedbackScreen() {
       )}
 
       {/* Top Banner (print:hidden) */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden">
+      <div className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden">
         <div>
           <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
             Hòm thư Phản hồi &amp; Đóng góp Trải nghiệm
@@ -605,7 +606,7 @@ export default function AdminFeedbackScreen() {
         </div>
 
         {/* Quick Metrics from Global Backend Counts (authoritative only, never fall back to tickets subset) */}
-        <div className="flex flex-wrap items-center gap-4 bg-[#EBF1F0]/50 p-4 rounded-2xl border border-[#0E1D4F]/5">
+        <div className="flex flex-wrap items-center gap-4 bg-warm-paper p-4 rounded-2xl border border-[#0E1D4F]/5">
           <div className="text-center px-2">
             <div className="text-2xl font-bold text-[#0E1D4F]">
               {counts ? counts.total : countsLoading ? '—' : '—'}
@@ -657,9 +658,9 @@ export default function AdminFeedbackScreen() {
       )}
 
       {/* Main 2-Column Split View: Tickets Queue (5 cols) & Work Item Inspector (7 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start print:block">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start print:block">
         {/* Left: Tickets Queue List with Embedded Search & Filter (print:hidden) */}
-        <div className="lg:col-span-5 bg-white rounded-3xl p-5 border border-[#0E1D4F]/10 shadow-sm space-y-4 print:hidden">
+        <div className="xl:col-span-5 bg-warm-surface rounded-3xl p-5 border border-[#0E1D4F]/10 shadow-sm space-y-4 print:hidden">
           <div className="flex items-center justify-between pb-3 border-b border-[#0E1D4F]/10 text-xs font-bold text-[#0E1D4F]">
             <span>Hòm thư phản hồi ({total})</span>
             <span className="text-[#4B5875] font-normal">Trang {activePage} / {Math.max(1, totalPages)}</span>
@@ -675,7 +676,7 @@ export default function AdminFeedbackScreen() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Tìm mã FB, từ khóa phản hồi..."
                 aria-label="Tìm kiếm mã hoặc nội dung phản hồi"
-                className="w-full text-xs pl-9 pr-3 py-2 rounded-xl bg-[#EBF1F0] border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6] text-[#0E1D4F]"
+                className="min-h-11 w-full text-xs pl-9 pr-3 py-2 rounded-xl bg-warm-paper border border-[#0E1D4F]/10 focus:outline-none focus:border-[#205BD6] focus-visible:ring-2 focus-visible:ring-[#205BD6] text-[#0E1D4F]"
               />
             </div>
 
@@ -689,7 +690,7 @@ export default function AdminFeedbackScreen() {
                   setRequestedPage(1);
                 }}
                 aria-label="Lọc theo trạng thái phiếu"
-                className="w-full text-xs px-2.5 py-1.5 rounded-xl bg-[#EBF1F0] border border-[#0E1D4F]/10 text-[#0E1D4F]"
+                className="min-h-11 w-full text-xs px-3 py-2 rounded-xl bg-warm-paper border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
               >
                 <option value="all">Tất cả trạng thái</option>
                 <option value="unassigned">Chờ phân loại</option>
@@ -773,7 +774,7 @@ export default function AdminFeedbackScreen() {
                     className={`p-4 rounded-2xl border transition-all cursor-pointer text-left space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
                       isSelected
                         ? 'border-[#205BD6] bg-[#205BD6]/5 shadow-xs'
-                        : 'border-[#0E1D4F]/10 bg-white hover:bg-[#EBF1F0]/40'
+                        : 'border-[#0E1D4F]/10 bg-warm-surface hover:bg-warm-paper'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -824,7 +825,7 @@ export default function AdminFeedbackScreen() {
                   type="button"
                   disabled={activePage <= 1 || loading}
                   onClick={() => handlePageChange(activePage - 1)}
-                  className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] font-semibold text-[#0E1D4F] cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-warm-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-warm-paper font-semibold text-[#0E1D4F] cursor-pointer"
                   aria-label="Trang trước"
                 >
                   Trước
@@ -836,7 +837,7 @@ export default function AdminFeedbackScreen() {
                   type="button"
                   disabled={activePage >= totalPages || loading}
                   onClick={() => handlePageChange(activePage + 1)}
-                  className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] font-semibold text-[#0E1D4F] cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-warm-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-warm-paper font-semibold text-[#0E1D4F] cursor-pointer"
                   aria-label="Trang sau"
                 >
                   Sau
@@ -896,7 +897,7 @@ export default function AdminFeedbackScreen() {
             }}
           />
         ) : (
-          <div className="lg:col-span-7 bg-white rounded-3xl p-12 border border-[#0E1D4F]/10 shadow-sm text-center text-[#4B5875] space-y-2">
+          <div className="xl:col-span-7 bg-warm-surface rounded-3xl p-12 border border-[#0E1D4F]/10 shadow-sm text-center text-[#4B5875] space-y-2">
             <Icon name="mark_email_read" className="size-10 text-[#4B5875]/40 mx-auto" />
             <h3 className="font-bold text-sm text-[#0E1D4F]">Chưa chọn phản hồi nào</h3>
             <p className="text-xs max-w-sm mx-auto">

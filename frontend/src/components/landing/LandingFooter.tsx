@@ -1,158 +1,74 @@
-import React from "react";
-import Link from "next/link";
-import Icon from "@/components/ui/Icon";
-import styles from "./landing.module.css";
+import Image from 'next/image';
+import Link from 'next/link';
+import Icon from '@/components/ui/Icon';
+import styles from './landing-redesign.module.css';
+
+const FOOTER_PHOTOS = [
+  {
+    src: '/landing/destinations/destination-photo-01.jpg',
+    alt: 'Thuyền du lịch giữa những đảo đá vôi ở vịnh Hạ Long',
+    position: '50% 55%',
+  },
+  {
+    src: '/landing/destinations/destination-photo-02.jpg',
+    alt: 'Cầu Vàng uốn quanh đôi bàn tay đá ở Bà Nà Hills',
+    position: '50% 46%',
+  },
+  {
+    src: '/landing/destinations/destination-photo-03.jpg',
+    alt: 'Thuyền nan trên dòng nước xanh ở Tam Cốc, Ninh Bình',
+    position: '34% 58%',
+  },
+  {
+    src: '/landing/place_sample/ryan-le-EKFPwbPkDec-unsplash.jpg',
+    alt: 'Đoàn tàu chạy giữa phố đường ray ở Hà Nội',
+    position: '50% 50%',
+  },
+] as const;
+
+const FOOTER_LINKS = [
+  { label: 'Điểm đến', href: '/destinations' },
+  { label: 'Cộng đồng', href: '/community' },
+  { label: 'Chuyến đi của tôi', href: '/my-trips' },
+  { label: 'Tạo chuyến đi', href: '/create-trip' },
+];
 
 export default function LandingFooter() {
   return (
-    <footer
-      className={`${styles.footer} py-8 sm:py-10 border-t border-[#0E1D4F]/12 bg-[#EBF1F0]`}
-      role="contentinfo"
-    >
-      <div className={styles.container}>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pb-2 border-b border-[#0E1D4F]/10 items-start">
-          {/* Col 1: Brand & Tagline (4 cols) */}
-          <div className="md:col-span-4 space-y-2.5">
-            <Link
-              href="/"
-              className={styles.logo}
-              aria-label="VISTRA — Trang chủ"
-            >
-              <div className={styles.logoIcon}>
-                <Icon name="explore" className="size-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className={styles.logoText}>VISTRA</span>
-                <span className={styles.logoSub}>Travel Intelligence</span>
-              </div>
-            </Link>
-            <p className="text-xs sm:text-[13px] leading-relaxed text-[#4B5875] max-w-sm">
-              Lên kế hoạch du lịch từ hình ảnh và mong muốn cá nhân; bạn toàn
-              quyền làm chủ hành trình.
+    <footer className={styles.footer}>
+      <div className={styles.footerPhotoStrip}>
+        {FOOTER_PHOTOS.map((photo) => (
+          <div className={styles.footerPhoto} key={photo.src}>
+            <Image
+              src={photo.src}
+              alt={photo.alt}
+              fill
+              sizes="(max-width: 760px) 47vw, 25vw"
+              style={{ objectPosition: photo.position }}
+            />
+          </div>
+        ))}
+      </div>
+      <div className={styles.footerPanel}>
+        <div className={styles.footerTop}>
+          <div className={styles.footerBrand}>
+            <p className={styles.footerDescription}>
+              Lên ý tưởng chuyến đi từ ảnh và ghi chú, rồi tự chọn lộ trình phù hợp.
             </p>
           </div>
-
-          {/* Col 2: On this page (5 cols, 2-column compact layout for 6 items) */}
-          <div className="md:col-span-5 space-y-2">
-            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#0739A8]">
-              Trên trang này (Landing Page)
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
-              <a
-                href="#y-tuong"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#08B3C6] transition-colors"
-              >
-                <Icon
-                  name="arrow_forward"
-                  className="size-3 text-[#08B3C6] shrink-0"
-                />
-                <span>Ý tưởng &amp; Điểm nhìn</span>
-              </a>
-              <a
-                href="#cung-xay"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#08B3C6] transition-colors"
-              >
-                <Icon
-                  name="arrow_forward"
-                  className="size-3 text-[#08B3C6] shrink-0"
-                />
-                <span>Cùng xây lịch trình</span>
-              </a>
-              <a
-                href="#tong-quan"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#08B3C6] transition-colors"
-              >
-                <Icon
-                  name="arrow_forward"
-                  className="size-3 text-[#08B3C6] shrink-0"
-                />
-                <span>Tổng quan 3 bước</span>
-              </a>
-              <a
-                href="#xac-nhan"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#08B3C6] transition-colors"
-              >
-                <Icon
-                  name="arrow_forward"
-                  className="size-3 text-[#08B3C6] shrink-0"
-                />
-                <span>Rà soát &amp; Đánh đổi</span>
-              </a>
-              <a
-                href="#kham-pha"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#08B3C6] transition-colors"
-              >
-                <Icon
-                  name="arrow_forward"
-                  className="size-3 text-[#08B3C6] shrink-0"
-                />
-                <span>Bản đồ khám phá</span>
-              </a>
-              <a
-                href="#trai-nghiem"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#08B3C6] transition-colors"
-              >
-                <Icon
-                  name="arrow_forward"
-                  className="size-3 text-[#08B3C6] shrink-0"
-                />
-                <span>Khởi hành thực tế</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Col 3: Product / System (3 cols) */}
-          <div className="md:col-span-3 space-y-2">
-            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#0739A8]">
-              Hệ thống sản phẩm
-            </h4>
-            <div className="flex flex-col gap-1">
-              <Link
-                href="/create-trip"
-                className="inline-flex items-center gap-1.5 py-1 text-xs font-semibold text-[#0739A8] hover:text-[#205BD6] transition-colors"
-              >
-                <Icon
-                  name="add_circle"
-                  className="size-3.5 text-[#205BD6] shrink-0"
-                />
-                <span>Tạo chuyến đi mới</span>
+          <nav className={styles.footerLinks} aria-label="Tiếp tục với VISTRA">
+            {FOOTER_LINKS.map((item) => (
+              <Link key={item.label} href={item.href} className={styles.footerLink}>
+                <Icon name="arrow_forward" className="size-4" aria-hidden="true" />
+                {item.label}
               </Link>
-              <Link
-                href="/my-trips"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#205BD6] transition-colors"
-              >
-                <Icon
-                  name="history"
-                  className="size-3.5 text-[#4B5875] shrink-0"
-                />
-                <span>Chuyến đi của tôi</span>
-              </Link>
-              <Link
-                href="/destinations"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#205BD6] transition-colors"
-              >
-                <Icon
-                  name="place"
-                  className="size-3.5 text-[#4B5875] shrink-0"
-                />
-                <span>Khám phá điểm đến</span>
-              </Link>
-              <Link
-                href="/community"
-                className="inline-flex items-center gap-1.5 py-1 text-xs text-[#0E1D4F] hover:text-[#205BD6] transition-colors"
-              >
-                <Icon
-                  name="group"
-                  className="size-3.5 text-[#4B5875] shrink-0"
-                />
-                <span>Khám phá cộng đồng</span>
-              </Link>
-            </div>
-          </div>
+            ))}
+          </nav>
         </div>
-        <div>
-          © 2026 VISTRA Project. Hệ thống hỗ trợ xây dựng kế hoạch du lịch thông
-          minh.
+        <div className={styles.footerSignature}>
+          <p className={styles.footerTagline}>VISTRA · LÊN KẾ HOẠCH THEO CÁCH CỦA BẠN</p>
+          <hr className={styles.footerRule} />
+          <p className={styles.footerCopyright}>© VISTRA · Điểm đến, lịch trình và lựa chọn theo cách của bạn.</p>
         </div>
       </div>
     </footer>

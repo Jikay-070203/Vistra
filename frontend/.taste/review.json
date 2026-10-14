@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "verdict": "repair",
+  "summary": "Cần sửa hình học dải điểm đến trên desktop. Ảnh tĩnh không xác minh được autoplay hoặc reduced motion.",
+  "findings": [
+    {
+      "id": "destination_carousel_desktop_geometry",
+      "severity": "major",
+      "area": "desktop / destination_carousel",
+      "evidenceType": "visual_inspection",
+      "confidence": "high",
+      "evidence": "Ảnh desktop 1440px cho thấy các ảnh điểm đến gần vuông và còn lộ một phần thẻ thứ tư. Tham chiếu Waveyu và blueprint yêu cầu ba thẻ ảnh dọc trọn vẹn trên một hàng. Ảnh mobile giữ một thẻ chính và hé thẻ kế tiếp như thiết kế.",
+      "repair": "Điều chỉnh bố cục desktop để vừa đúng ba thẻ ảnh dọc trong vùng nội dung, không lộ thẻ thứ tư; giữ nguyên cách hiển thị mobile."
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import { useRegisterController } from './useRegisterController';
@@ -50,11 +51,26 @@ export default function RegisterScreen() {
 
   return (
     <>
-    <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-10 sm:py-16 flex items-center justify-center min-h-[calc(100vh-76px-300px)]">
-      <div className="w-full max-w-lg bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-6 sm:p-8 shadow-[0_8px_30px_rgba(14,29,79,0.06)] space-y-6">
+    <div className="mx-auto grid min-h-[calc(100vh-76px-300px)] w-full max-w-[1240px] grid-cols-1 items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[.72fr_1.28fr] lg:gap-8 lg:px-12 lg:py-12">
+      <aside className="relative hidden min-h-[620px] overflow-hidden rounded-[1.75rem] bg-[#0E1D4F] lg:block">
+        <Image
+          src="/landing/hero-inspiration.jpg"
+          alt="Lối đi bên hồ giữa rừng thông"
+          fill
+          sizes="(max-width: 1280px) 36vw, 460px"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0E1D4F]/90 via-[#0E1D4F]/15 to-[#0E1D4F]/10" />
+        <div className="absolute inset-x-0 bottom-0 p-8 text-white">
+          <p className="font-label-caps text-xs font-bold uppercase tracking-[0.16em] text-[#E7AD2E]">Tài khoản du khách</p>
+          <h2 className="mt-3 max-w-sm font-headline-lg text-3xl font-bold leading-tight">Tạo tài khoản VISTRA</h2>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/85">Chuẩn bị họ tên, ngày sinh, email và mật khẩu.</p>
+        </div>
+      </aside>
+      <div className="mx-auto w-full max-w-[800px] space-y-6 rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 shadow-[0_12px_36px_rgba(14,29,79,0.07)] sm:p-8 lg:mx-0 lg:max-w-none">
         {/* Header */}
-        <div className="text-center space-y-1.5">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#08B3C6]/15 border border-[#08B3C6]/30 text-[#08B3C6] mb-2 shadow-2xs">
+        <div className="space-y-1.5 text-center sm:text-left">
+          <div className="mb-2 inline-flex size-11 items-center justify-center rounded-xl border border-[#08B3C6]/30 bg-[#EBF1F0] text-[#0E1D4F]">
             <Icon name="person_add" className="size-6" />
           </div>
           <h1 className="font-headline-sm text-2xl font-bold text-[#0E1D4F]">
@@ -66,7 +82,7 @@ export default function RegisterScreen() {
         </div>
 
         {/* Demo Notice */}
-        <div className="p-3 bg-[#EBF1F0] rounded-xl border border-[#0E1D4F]/10 flex items-start gap-2.5 text-xs text-[#4B5875]">
+        <div className="flex items-start gap-2.5 rounded-xl border border-[#0E1D4F]/10 bg-[#EBF1F0] p-3 text-sm text-[#4B5875]">
           <Icon name="info" className="size-4 text-[#205BD6] shrink-0 mt-0.5" />
           <span>
             Tài khoản được đăng ký và lưu trên hệ thống VISTRA.
@@ -75,7 +91,7 @@ export default function RegisterScreen() {
 
         {/* Feedback message */}
         {feedbackMessage && (
-          <div className="p-3 rounded-xl bg-[#205BD6]/10 border border-[#205BD6]/30 text-xs text-[#0739A8] leading-relaxed flex items-start gap-2">
+          <div role="status" className="flex items-start gap-2 rounded-xl border border-[#205BD6]/30 bg-[#EBF1F0] p-3 text-sm leading-relaxed text-[#0E1D4F]">
             <Icon name="check_circle" className="size-4 shrink-0 text-[#205BD6] mt-0.5" />
             <span>{feedbackMessage}</span>
           </div>
@@ -87,9 +103,10 @@ export default function RegisterScreen() {
             setErrorPopupDismissed(false);
             void handleRegisterSubmit(event);
           }}
-          className="space-y-4"
+          className="space-y-5"
           noValidate
         >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Full Name */}
           <div className="space-y-1.5">
             <label
@@ -107,7 +124,7 @@ export default function RegisterScreen() {
                 if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: undefined }));
               }}
               placeholder="Nguyễn Văn An"
-              className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${
+              className={`min-h-11 w-full rounded-lg border bg-white px-3.5 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/40 ${
                 errors.fullName ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
               } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none ${errors.fullName ? '' : 'focus:border-[#205BD6]'} transition-all`}
               aria-invalid={!!errors.fullName}
@@ -116,8 +133,7 @@ export default function RegisterScreen() {
             <AccessibleFieldError id="reg-fullname-error" message={errors.fullName} />
           </div>
 
-          {/* Date of Birth & Email Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Date of birth and email */}
             <div className="space-y-1.5">
               <label
                 htmlFor="reg-dob"
@@ -133,7 +149,7 @@ export default function RegisterScreen() {
                   setDateOfBirth(e.target.value);
                   if (errors.dateOfBirth) setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
                 }}
-                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${
+              className={`min-h-11 w-full rounded-lg border bg-white px-3.5 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/40 ${
                   errors.dateOfBirth ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
                 } text-[#0E1D4F] focus:outline-none ${errors.dateOfBirth ? '' : 'focus:border-[#205BD6]'} transition-all`}
                 aria-invalid={!!errors.dateOfBirth}
@@ -142,7 +158,7 @@ export default function RegisterScreen() {
               <AccessibleFieldError id="reg-dob-error" message={errors.dateOfBirth} />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <label
                 htmlFor="reg-email"
                 className="block text-xs font-label-caps uppercase font-bold text-[#0E1D4F]"
@@ -158,7 +174,7 @@ export default function RegisterScreen() {
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 placeholder={`traveler${allowedSuffix}`}
-                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border ${
+              className={`min-h-11 w-full rounded-lg border bg-white px-3.5 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/40 ${
                   errors.email
                     ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]'
                     : emailFeedback && !emailFeedback.isValid
@@ -209,7 +225,7 @@ export default function RegisterScreen() {
                     if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                   }}
                   placeholder="Tối thiểu 8 ký tự"
-                  className={`w-full pl-3.5 pr-9 py-2.5 text-sm rounded-xl bg-white border ${
+                  className={`min-h-11 w-full rounded-lg border bg-white py-3 pl-3.5 pr-12 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/40 ${
                     errors.password
                       ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]'
                       : password && isPasswordValid
@@ -222,7 +238,7 @@ export default function RegisterScreen() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#4B5875] hover:text-[#0E1D4F] p-1 cursor-pointer"
+                  className="absolute right-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-[#4B5875] hover:bg-[#EBF1F0] hover:text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="size-4" />
@@ -248,7 +264,7 @@ export default function RegisterScreen() {
                     if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
                   }}
                   placeholder="Nhập lại mật khẩu"
-                  className={`w-full pl-3.5 pr-9 py-2.5 text-sm rounded-xl bg-white border ${
+                  className={`min-h-11 w-full rounded-lg border bg-white py-3 pl-3.5 pr-12 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]/40 ${
                     errors.confirmPassword ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-1 focus:ring-[#ba1a1a]' : 'border-[#0E1D4F]/15'
                   } text-[#0E1D4F] placeholder:text-[#4B5875]/60 focus:outline-none ${errors.confirmPassword ? '' : 'focus:border-[#205BD6]'} transition-all`}
                   aria-invalid={!!errors.confirmPassword}
@@ -257,7 +273,7 @@ export default function RegisterScreen() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#4B5875] hover:text-[#0E1D4F] p-1 cursor-pointer"
+                  className="absolute right-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-[#4B5875] hover:bg-[#EBF1F0] hover:text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
                   aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   <Icon name={showConfirmPassword ? 'visibility_off' : 'visibility'} className="size-4" />
@@ -269,7 +285,7 @@ export default function RegisterScreen() {
 
           {/* Terms checkbox */}
           <div className="space-y-1 pt-1">
-            <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-[#4B5875]">
+            <label className="flex min-h-11 items-start gap-2.5 cursor-pointer select-none text-sm text-[#4B5875]">
               <input
                 id="reg-terms"
                 type="checkbox"
@@ -295,7 +311,7 @@ export default function RegisterScreen() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 px-4 bg-[#205BD6] hover:bg-[#1847a8] text-white font-semibold text-sm rounded-xl transition-all shadow-[0_4px_14px_rgba(32,91,214,0.25)] active:scale-[0.98] cursor-pointer mt-2"
+            className="mt-2 min-h-12 w-full rounded-lg bg-[#205BD6] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLoading ? 'Đang đăng ký…' : 'Tạo tài khoản'}
           </button>
@@ -304,7 +320,7 @@ export default function RegisterScreen() {
         {/* Divider */}
         <div className="relative flex items-center justify-center my-4">
           <div className="border-t border-[#0E1D4F]/10 w-full"></div>
-          <span className="bg-white px-3 text-[11px] text-[#4B5875] font-label-caps uppercase shrink-0">
+          <span className="bg-warm-surface px-3 text-xs font-label-caps uppercase text-[#4B5875] shrink-0">
             Hoặc đăng ký nhanh bằng
           </span>
         </div>
@@ -315,7 +331,7 @@ export default function RegisterScreen() {
             type="button"
             disabled
             title="Backend chưa cấu hình Google OAuth"
-            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all cursor-pointer"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#0E1D4F]/20 bg-white px-3 py-2 text-sm font-semibold text-[#0E1D4F] opacity-55 disabled:cursor-not-allowed"
           >
             <span className="font-bold text-[#205BD6]">G</span>
             <span>Google</span>
@@ -324,7 +340,7 @@ export default function RegisterScreen() {
             type="button"
             disabled
             title="Backend chưa cấu hình Facebook OAuth"
-            className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#0E1D4F]/15 bg-white hover:bg-[#EBF1F0] text-xs font-semibold text-[#0E1D4F] transition-all cursor-pointer"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#0E1D4F]/20 bg-white px-3 py-2 text-sm font-semibold text-[#0E1D4F] opacity-55 disabled:cursor-not-allowed"
           >
             <span className="font-bold text-[#205BD6]">f</span>
             <span>Facebook</span>
@@ -347,7 +363,7 @@ export default function RegisterScreen() {
         <div
           role="alert"
           aria-live="assertive"
-          className="max-h-[min(36svh,18rem)] overflow-y-auto rounded-xl border border-rose-200 bg-white/95 p-4 text-[#0E1D4F] shadow-xl backdrop-blur-md"
+          className="max-h-[min(36svh,18rem)] overflow-y-auto rounded-xl border border-rose-200 bg-warm-surface p-4 text-[#0E1D4F] shadow-xl"
         >
           <div className="flex items-start gap-3">
             <Icon name="error" className="mt-0.5 size-5 shrink-0 text-[#ba1a1a]" />

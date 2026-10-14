@@ -45,11 +45,11 @@ export default function AdminOverviewScreen() {
 
   return (
     <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 space-y-8">
-      <header className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <header className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
           Tổng quan Vận hành &amp; Tương tác Du khách
         </h1>
-        <button type="button" disabled={!accountId} onClick={() => { setOverview(null); setTraces(null); setReload(value => value + 1); }} className="rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm text-[#205BD6] font-semibold disabled:opacity-50 cursor-pointer">
+        <button type="button" disabled={!accountId} onClick={() => { setOverview(null); setTraces(null); setReload(value => value + 1); }} className="min-h-11 rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm text-[#205BD6] font-semibold disabled:opacity-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]">
           Tải lại dữ liệu
         </button>
       </header>
@@ -63,14 +63,14 @@ export default function AdminOverviewScreen() {
             {!accountId ? 'Cần phiên quản trị.' : currentOverview?.error ?? (currentOverview?.data ? 'Cập nhật: ' + currentOverview.data.updatedAt : 'Đang tải số liệu…')}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
           {[
             ['Tổng người dùng', currentOverview?.data?.users],
             ['Tổng chuyến đi', currentOverview?.data?.trips],
             ['Địa điểm', currentOverview?.data?.places],
             ['Feedback đã nhận', currentOverview?.data?.feedback],
           ].map(([label, value]) => (
-            <div key={String(label)} className="bg-white rounded-3xl p-6 border border-[#0E1D4F]/10 shadow-sm">
+            <div key={String(label)} className="bg-warm-surface rounded-3xl p-6 border border-[#0E1D4F]/10 shadow-sm">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#4B5875]">{label}</h3>
               <p className="text-2xl font-bold text-[#0E1D4F] mt-3">{formatCount(value as number | undefined)}</p>
             </div>
@@ -78,27 +78,27 @@ export default function AdminOverviewScreen() {
         </div>
       </section>
 
-      <section className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-6">
+      <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#0E1D4F]/10">
           <div>
             <h2 className="text-xl font-bold text-[#0E1D4F]">Xu hướng kế hoạch</h2>
             <p className="text-xs sm:text-sm text-[#4B5875] mt-1">Chưa có dữ liệu kế hoạch theo tháng trong API tổng quan hiện tại.</p>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EBF1F0] text-[#4B5875] border border-[#0E1D4F]/10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-warm-paper text-[#4B5875] border border-[#0E1D4F]/10">
             <Icon name="info" className="size-3.5 text-[#205BD6]" />
             <span>Chưa có dữ liệu</span>
           </span>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="p-8 rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-[#EBF1F0]/30 text-center space-y-3">
-            <div className="size-10 rounded-xl bg-white border border-[#0E1D4F]/10 flex items-center justify-center mx-auto text-[#205BD6]">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="p-8 rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-warm-paper text-center space-y-3">
+            <div className="size-10 rounded-xl bg-warm-surface border border-[#0E1D4F]/10 flex items-center justify-center mx-auto text-[#205BD6]">
               <Icon name="trending_up" className="size-5" />
             </div>
             <h3 className="text-sm font-bold text-[#0E1D4F]">Kế hoạch theo tháng</h3>
             <p className="text-sm text-[#4B5875]">API hiện chỉ cung cấp tổng số chuyến đi, chưa có chuỗi dữ liệu theo tháng.</p>
           </div>
-          <div className="p-8 rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-[#EBF1F0]/30 text-center space-y-3">
-            <div className="size-10 rounded-xl bg-white border border-[#0E1D4F]/10 flex items-center justify-center mx-auto text-[#205BD6]">
+          <div className="p-8 rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-warm-paper text-center space-y-3">
+            <div className="size-10 rounded-xl bg-warm-surface border border-[#0E1D4F]/10 flex items-center justify-center mx-auto text-[#205BD6]">
               <Icon name="pie_chart" className="size-5" />
             </div>
             <h3 className="text-sm font-bold text-[#0E1D4F]">Trạng thái hành trình</h3>
@@ -107,7 +107,7 @@ export default function AdminOverviewScreen() {
         </div>
       </section>
 
-      <section className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-4">
+      <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-bold text-[#0E1D4F]">Trace gần nhất</h2>
           <Link href="/admin/system" className="text-sm font-semibold text-[#205BD6]">Xem tất cả trace</Link>
@@ -123,7 +123,7 @@ export default function AdminOverviewScreen() {
         ) : (
           <div className="space-y-3">
             {currentTraces.items.map(trace => (
-              <Link key={trace.id} href={'/admin/system?traceId=' + encodeURIComponent(trace.id)} className="block rounded-2xl border border-[#0E1D4F]/10 p-4 hover:bg-[#EBF1F0]/50">
+          <Link key={trace.id} href={'/admin/system?traceId=' + encodeURIComponent(trace.id)} className="block rounded-2xl border border-[#0E1D4F]/10 p-4 hover:bg-warm-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]">
                 <p className="break-words text-sm font-semibold text-[#0E1D4F]">{trace.traceType} · {trace.status}</p>
                 <p className="text-xs text-[#4B5875] mt-1 break-all">
                   {trace.id} · {trace.timestamp} · {trace.latencyMs == null ? 'Chưa đo độ trễ' : trace.latencyMs + ' ms'}
@@ -132,7 +132,7 @@ export default function AdminOverviewScreen() {
             ))}
           </div>
         )}
-        <button type="button" disabled={!accountId || !currentTraces} onClick={() => { setTraces(null); setReload(value => value + 1); }} className="rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm text-[#205BD6] font-semibold disabled:opacity-50 cursor-pointer">
+        <button type="button" disabled={!accountId || !currentTraces} onClick={() => { setTraces(null); setReload(value => value + 1); }} className="min-h-11 rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm text-[#205BD6] font-semibold disabled:opacity-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]">
           Tải lại trace
         </button>
       </section>

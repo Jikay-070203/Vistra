@@ -1,0 +1,39 @@
+{
+  "originalRequest": "các autoplay trên Landing Page không hề hoạt động",
+  "subject": "Sửa trải nghiệm autoplay trên Landing Page hiện có của VISTRA, ứng dụng lập kế hoạch du lịch.",
+  "pageType": "Trang landing hiện có tại route /.",
+  "scope": "Tập trung xác định và khôi phục các autoplay được dự định cho Landing Page đang được render. Không xây lại trang hoặc thay đổi route và nghiệp vụ. Giữ các điều khiển thủ công hiện có.",
+  "primaryGoal": "Các nội dung được thiết kế để tự chạy phải chuyển trạng thái đúng và ổn định trên Landing Page, không tạo cảm giác nút hoặc khu vực tĩnh đang tương tác.",
+  "audience": "Du khách Việt Nam khám phá điểm đến và xem cách VISTRA hỗ trợ phác thảo chuyến đi.",
+  "offer": "VISTRA hỗ trợ gom cảm hứng, chọn điểm đến và xem bản nháp hành trình.",
+  "primaryAction": "Bắt đầu ý tưởng chuyến đi tại /create-trip.",
+  "creativeControl": "Giữ nguyên thiết kế và cấu trúc trang hiện tại. Chỉ điều chỉnh cách các trạng thái được chủ đích thiết kế để tự chạy được kích hoạt, đồng bộ và phản hồi với người dùng.",
+  "requiredContent": [
+    "Hero với ảnh nền Đà Lạt, tiêu đề, mô tả và liên kết hiện có; giữ nguyên bố cục và nội dung.",
+    "Dải chọn điểm đến với các ảnh và nút điều hướng hiện có; nếu được thiết kế tự chạy, cập nhật điểm đang chọn đồng bộ với ảnh, trạng thái chọn và vị trí cuộn.",
+    "Section Explore đang được trang chủ render, giữ các trạng thái bản đồ và nội dung cùng điều khiển lựa chọn hiện có.",
+    "Các bản xem trước nhịp đi và lịch trình hiện có; chỉ tự chuyển trạng thái nếu đó là hành vi đã được thiết kế cho khu vực đang render.",
+    "Giữ nguyên thao tác bàn phím, cảm ứng và con trỏ; hiển thị trạng thái đang chọn rõ ràng và không phụ thuộc hover."
+  ],
+  "constraints": [
+    "Chỉ tập trung vào autoplay của Landing Page; không thay đổi các trang khác, API, dữ liệu hay nghiệp vụ.",
+    "Kiểm tra component thực sự được render tại route / trước khi thay đổi autoplay; không coi timer trong component không được sử dụng là bằng chứng autoplay đang hoạt động.",
+    "Tự chạy cần có cơ chế dừng hoặc tạm dừng khi người dùng chủ động tương tác, giảm chuyển động theo cài đặt hệ thống và không làm nội dung biến mất.",
+    "Không tự động xác nhận hoặc lưu chuyến đi; mọi trạng thái minh họa phải tiếp tục được nhận biết là bản xem trước.",
+    "Giữ nguyên hệ màu, nội dung và nhận diện VISTRA hiện có."
+  ],
+  "brandInputs": [
+    ".taste/brand.json và src/app/globals.css: nền ấm #F5F2E9, bề mặt #FFFEFA, navy #0E1D4F, turquoise #08B3C6, xanh #205BD6 và vàng #E7AD2E.",
+    "src/app/layout.tsx và .taste/brand.json: Plus Jakarta Sans và Inter là hệ font hiện có.",
+    "src/components/landing/LandingPage.tsx: Landing Page tiếng Việt với ảnh du lịch, lựa chọn điểm đến và bản nháp hành trình."
+  ],
+  "assumptions": [
+    "Yêu cầu nói đến các autoplay trên trang chủ đang hoạt động tại route /, không phải tất cả component landing cũ trong thư mục source.",
+    "Autoplay chỉ áp dụng cho vùng có nội dung thực sự được thiết kế để luân phiên; không tự tạo chuyển động cho ảnh hoặc nội dung tĩnh.",
+    "Giữ các điều khiển chọn thủ công và ưu tiên chúng khi có tương tác của người dùng."
+  ],
+  "unresolved": [
+    "Chưa xác định cụ thể vùng autoplay nào người dùng đang nhắc tới; cần đối chiếu hành vi dự kiến của từng vùng đang được render khi triển khai."
+  ],
+  "explicitAnswers": []
+}

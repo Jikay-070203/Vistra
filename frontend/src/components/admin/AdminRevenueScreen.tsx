@@ -33,12 +33,12 @@ export default function AdminRevenueScreen() {
 
   return (
     <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 space-y-8">
-      <header className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">Doanh thu &amp; Thống kê Giao dịch</h1>
           <p className="text-sm text-[#4B5875] mt-1">Dữ liệu doanh thu chỉ hiển thị khi máy chủ có lịch sử thanh toán.</p>
         </div>
-        <button type="button" disabled={!accountId || current == null} onClick={() => { setSnapshot(null); setReload(value => value + 1); }} className="rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm text-[#205BD6] font-semibold disabled:opacity-50">
+        <button type="button" disabled={!accountId || current == null} onClick={() => { setSnapshot(null); setReload(value => value + 1); }} className="min-h-11 rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm text-[#205BD6] font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]">
           Tải lại
         </button>
       </header>
@@ -47,33 +47,33 @@ export default function AdminRevenueScreen() {
         {!accountId ? 'Cần phiên quản trị.' : current?.error ?? (current ? (data?.available ? 'Dữ liệu doanh thu đã được tải.' : data?.message) : 'Đang tải dữ liệu doanh thu…')}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
         {[
           ['Tổng doanh thu tích lũy', formatMoney(data?.total ?? null, data?.currency ?? 'VND')],
           ['Doanh thu định kỳ', formatMoney(data?.mrr ?? null, data?.currency ?? 'VND')],
           ['Lịch sử thanh toán', data?.available ? 'Đã cấu hình' : current ? 'Chưa cấu hình' : '—'],
           ['Giao dịch', data?.items.length ? String(data.items.length) : current ? 'Chưa có dữ liệu' : '—'],
         ].map(([label, value]) => (
-          <div key={label} className="bg-white rounded-2xl p-5 border border-[#0E1D4F]/10 shadow-xs space-y-1">
+          <div key={label} className="bg-warm-surface rounded-2xl p-5 border border-[#0E1D4F]/10 shadow-xs space-y-1">
             <span className="text-xs text-[#4B5875] font-semibold">{label}</span>
             <p className="text-xl font-bold text-[#0E1D4F] mt-2">{current?.error ? '—' : value}</p>
           </div>
         ))}
       </div>
 
-      <section className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-5">
+      <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-[#0E1D4F]/10">
           <h2 className="text-lg font-bold text-[#0E1D4F] flex items-center gap-2">
             <Icon name="donut_large" className="size-5 text-[#205BD6]" />
             <span>Phân bố doanh thu</span>
           </h2>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EBF1F0] text-[#4B5875] border border-[#0E1D4F]/10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-warm-paper text-[#4B5875] border border-[#0E1D4F]/10">
             <Icon name="info" className="size-3.5 text-[#205BD6]" />
             <span>{data?.available ? 'Chưa có phân bố' : 'Chưa khả dụng'}</span>
           </span>
         </div>
-        <div className="p-8 rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-[#EBF1F0]/30 text-center space-y-3">
-          <div className="size-10 rounded-xl bg-white border border-[#0E1D4F]/10 flex items-center justify-center mx-auto text-[#205BD6]">
+        <div className="p-8 rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-warm-paper text-center space-y-3">
+          <div className="size-10 rounded-xl bg-warm-surface border border-[#0E1D4F]/10 flex items-center justify-center mx-auto text-[#205BD6]">
             <Icon name="pie_chart" className="size-5" />
           </div>
           <div>
@@ -85,12 +85,12 @@ export default function AdminRevenueScreen() {
         </div>
       </section>
 
-      <section className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-5">
+      <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-5">
         <div>
           <h2 className="text-xl font-bold text-[#0E1D4F]">Lịch sử giao dịch</h2>
           <p className="text-xs text-[#4B5875] mt-0.5">API hiện chưa cung cấp danh sách giao dịch.</p>
         </div>
-        <div className="rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-[#EBF1F0]/30 p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-[#0E1D4F]/15 bg-warm-paper p-10 text-center">
           {current?.error ? (
             <p role="alert" className="text-sm text-rose-700">{current.error}</p>
           ) : !current ? (

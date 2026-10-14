@@ -167,11 +167,11 @@ export default function ProfileFeedbackTab() {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm">
+    <section className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 sm:p-8" aria-labelledby="feedback-title">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#0E1D4F]/10 mb-6">
         <div>
-          <h2 className="font-headline-sm text-xl text-[#0E1D4F] font-bold">
+          <h2 id="feedback-title" className="font-headline-sm text-xl text-[#0E1D4F] font-bold">
             Hồ sơ Phản hồi &amp; Đóng góp Trải nghiệm
           </h2>
           <p className="text-xs text-[#4B5875] mt-1">
@@ -193,7 +193,7 @@ export default function ProfileFeedbackTab() {
         </div>
       ) : error ? (
         <div
-          className="text-center py-12 px-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 space-y-3"
+          className="text-center py-12 px-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 space-y-3"
           role="alert"
         >
           <Icon name="error" className="size-8 mx-auto text-red-600 mb-1" />
@@ -202,7 +202,7 @@ export default function ProfileFeedbackTab() {
           <button
             type="button"
             onClick={() => loadTickets({ page: activePage, pageSize: effectivePageSize, isAdmin: false })}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
+            className="min-h-11 px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer inline-flex items-center gap-1.5"
             aria-label="Thử lại tải danh sách phản hồi"
           >
             <Icon name="refresh" className="size-3.5" />
@@ -210,7 +210,7 @@ export default function ProfileFeedbackTab() {
           </button>
         </div>
       ) : tickets.length === 0 ? (
-        <div className="text-center py-12 text-[#4B5875]">
+        <div className="text-center py-12 px-4 rounded-xl border border-dashed border-[#0E1D4F]/15 bg-[#EBF1F0]/30 text-[#4B5875]">
           <Icon name="feedback" className="size-12 mx-auto text-[#4B5875]/40 mb-3" />
           <p className="font-semibold text-sm">Bạn chưa gửi phản hồi nào</p>
           <p className="text-xs mt-1">Nhấp vào nút &quot;Phản hồi &amp; Báo lỗi&quot; ở góc phải màn hình để gửi ý kiến đầu tiên.</p>
@@ -240,7 +240,7 @@ export default function ProfileFeedbackTab() {
                   className={`p-4 rounded-2xl border transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
                     isSelected
                       ? 'border-[#205BD6] bg-[#205BD6]/5 shadow-sm'
-                      : 'border-[#0E1D4F]/10 bg-white hover:bg-[#EBF1F0]/40'
+                      : 'border-[#0E1D4F]/10 bg-warm-surface hover:bg-[#EBF1F0]/40'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -283,7 +283,7 @@ export default function ProfileFeedbackTab() {
                     type="button"
                     disabled={activePage <= 1 || loading}
                     onClick={() => handlePageChange(activePage - 1)}
-                    className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] font-semibold text-[#0E1D4F] cursor-pointer"
+                    className="min-h-11 min-w-11 rounded-lg border border-[#0E1D4F]/15 bg-warm-surface px-3 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] font-semibold text-[#0E1D4F] cursor-pointer"
                     aria-label="Trang trước"
                   >
                     Trước
@@ -295,7 +295,7 @@ export default function ProfileFeedbackTab() {
                     type="button"
                     disabled={activePage >= totalPages || loading}
                     onClick={() => handlePageChange(activePage + 1)}
-                    className="px-2.5 py-1 rounded-lg border border-[#0E1D4F]/15 bg-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] font-semibold text-[#0E1D4F] cursor-pointer"
+                    className="min-h-11 min-w-11 rounded-lg border border-[#0E1D4F]/15 bg-warm-surface px-3 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] font-semibold text-[#0E1D4F] cursor-pointer"
                     aria-label="Trang sau"
                   >
                     Sau
@@ -307,11 +307,11 @@ export default function ProfileFeedbackTab() {
 
           {/* Ticket Detail & Staff Replies (7 cols) */}
           {selectedTicket ? (
-            <div className="lg:col-span-7 bg-[#EBF1F0]/30 rounded-2xl p-6 border border-[#0E1D4F]/10 space-y-6">
+            <div className="lg:col-span-7 bg-[#EBF1F0]/40 rounded-xl p-5 sm:p-6 border border-[#0E1D4F]/10 space-y-6">
               {/* Detail Header */}
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-sm font-bold text-[#205BD6] bg-white px-2.5 py-1 rounded-lg border border-[#0E1D4F]/10">
                       {selectedTicket.id}
                     </span>
@@ -340,7 +340,7 @@ export default function ProfileFeedbackTab() {
               </div>
 
               {/* User Original Message */}
-              <div className="bg-white p-4 rounded-xl border border-[#0E1D4F]/10 text-xs leading-relaxed space-y-2">
+              <div className="bg-warm-surface p-4 rounded-xl border border-[#0E1D4F]/10 text-xs leading-relaxed space-y-2">
                 <div className="font-semibold text-[#0E1D4F] flex items-center gap-1.5">
                   <Icon name="person" className="size-4 text-[#205BD6]" />
                   <span>Nội dung phản ánh từ bạn:</span>
@@ -363,7 +363,7 @@ export default function ProfileFeedbackTab() {
                   selectedTicket.staffReplies.map((reply) => (
                     <div
                       key={reply.id}
-                      className="bg-white p-5 rounded-2xl border border-[#08B3C6]/30 shadow-xs space-y-2 relative"
+                      className="bg-warm-surface p-5 rounded-xl border border-[#08B3C6]/30 space-y-2 relative"
                     >
                       <div className="flex items-center justify-between gap-2 border-b border-[#0E1D4F]/5 pb-2">
                         <div className="flex items-center gap-2">
@@ -391,7 +391,7 @@ export default function ProfileFeedbackTab() {
 
               {/* Answer Rating Form if replied */}
               {selectedTicket.staffReplies && selectedTicket.staffReplies.length > 0 && (
-                <div className="bg-white p-5 rounded-2xl border border-[#0E1D4F]/10 space-y-3">
+                <div className="bg-warm-surface p-5 rounded-xl border border-[#0E1D4F]/10 space-y-3">
                   <div className="flex items-center justify-between">
                     <h5 className="font-bold text-xs text-[#0E1D4F]">
                       Đánh giá câu trả lời của chuyên viên hỗ trợ
@@ -429,7 +429,7 @@ export default function ProfileFeedbackTab() {
                                 [selectedTicket.id]: star,
                               })
                             }
-                            className="text-lg transition-transform hover:scale-125 cursor-pointer text-amber-400"
+                            className="inline-flex min-h-11 min-w-11 items-center justify-center text-lg transition-colors hover:text-amber-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer text-amber-500"
                             aria-label={`${star} sao`}
                           >
                             {star <= current ? '★' : '☆'}
@@ -454,7 +454,7 @@ export default function ProfileFeedbackTab() {
                           [selectedTicket.id]: e.target.value,
                         })
                       }
-                      className="w-full text-xs px-3 py-2 rounded-xl border border-[#0E1D4F]/15 focus:outline-none focus:border-[#205BD6] text-[#0E1D4F]"
+                      className="w-full min-h-11 text-sm px-3 py-2 rounded-xl border border-[#0E1D4F]/15 bg-[#EBF1F0]/25 focus:outline-none focus:ring-2 focus:ring-[#205BD6]/40 focus:border-[#205BD6] text-[#0E1D4F]"
                     />
                     {rateError && (
                       <p className="text-xs text-red-600 font-semibold">{rateError}</p>
@@ -464,7 +464,7 @@ export default function ProfileFeedbackTab() {
                         type="button"
                         disabled={isSubmittingRating}
                         onClick={() => handleRateSubmit(selectedTicket.id)}
-                        className="px-4 py-2 bg-[#205BD6] hover:bg-[#1847a8] disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-xs"
+                        className="min-h-11 px-4 py-2 bg-[#205BD6] hover:bg-[#1847a8] disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer"
                       >
                         {isSubmittingRating ? 'Đang gửi...' : 'Gửi đánh giá'}
                       </button>
@@ -476,6 +476,6 @@ export default function ProfileFeedbackTab() {
           ) : null}
         </div>
       )}
-    </div>
+    </section>
   );
 }

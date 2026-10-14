@@ -9,6 +9,7 @@ import CommunityPlanCard from './CommunityPlanCard';
 interface CommunityGridProps {
   paginatedPlans: TripCardView[];
   likesState: Record<string, { liked: boolean; count: number }>;
+  totalCount: number;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -18,11 +19,13 @@ interface CommunityGridProps {
   pendingClone: string | null;
   onClone: (id: string) => void;
   isFiltered?: boolean;
+  className?: string;
 }
 
 export default function CommunityGrid({
   paginatedPlans,
   likesState,
+  totalCount,
   currentPage,
   totalPages,
   onPageChange,
@@ -30,11 +33,16 @@ export default function CommunityGrid({
   onClearFilters,
   pendingLikes, pendingClone, onClone,
   isFiltered = false,
+  className = "lg:col-span-8",
 }: CommunityGridProps) {
   return (
-    <main className="lg:col-span-9 flex flex-col gap-6">
+    <main className={`flex flex-col gap-5 ${className}`}>
+      <div className="flex items-end justify-between gap-4 border-b border-[#0E1D4F]/10 pb-3">
+        <h2 className="font-headline-sm text-base font-bold text-[#0E1D4F] sm:text-lg">Hành trình từ cộng đồng</h2>
+        <p className="shrink-0 text-xs text-[#4B5875]">{totalCount} kết quả</p>
+      </div>
       {paginatedPlans.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {paginatedPlans.map((plan, index) => {
             const currentLike = likesState[plan.id] ?? {
               liked: plan.likedByMe,
@@ -56,7 +64,7 @@ export default function CommunityGrid({
           })}
         </div>
       ) : isFiltered ? (
-        <div className="text-center py-16 bg-white/80 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-8">
+        <div className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-8 py-16 text-center">
           <Icon name="search_off" className="size-10 text-[#4B5875]/60 mb-3 mx-auto" />
           <h3 className="font-headline-sm text-lg text-[#0E1D4F] font-bold mb-1">
             Không tìm thấy hành trình cộng đồng phù hợp
@@ -67,13 +75,13 @@ export default function CommunityGrid({
           <button
             type="button"
             onClick={onClearFilters}
-            className="px-4 py-2 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors cursor-pointer"
+            className="min-h-11 rounded-lg bg-[#205BD6] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
           >
             Xóa tất cả bộ lọc
           </button>
         </div>
       ) : (
-        <div className="text-center py-16 bg-white/80 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-8">
+        <div className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-8 py-16 text-center">
           <Icon name="auto_awesome" className="size-10 text-[#205BD6] mb-3 mx-auto" />
           <h3 className="font-headline-sm text-lg text-[#0E1D4F] font-bold mb-1">
             Hãy tạo dấu ấn riêng của bạn
@@ -83,7 +91,7 @@ export default function CommunityGrid({
           </p>
           <Link
             href="/create-trip"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors shadow-sm"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#205BD6] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
           >
             <Icon name="add" className="size-4" />
             <span>Tạo chuyến đi mới</span>
@@ -93,7 +101,7 @@ export default function CommunityGrid({
 
       {/* 12-CARD PAGINATION CONTROLS (UX-COM-01D) */}
       {totalPages > 1 && (
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#0E1D4F]/10" aria-label="Phân trang cộng đồng">
+        <nav className="mt-3 flex flex-col items-center justify-between gap-3 border-t border-[#0E1D4F]/10 pt-4 text-center sm:flex-row sm:text-left" aria-label="Phân trang cộng đồng">
           <span className="text-xs text-[#4B5875]">
             Đang xem trang <strong className="text-[#0E1D4F]">{currentPage}</strong> / {totalPages}
           </span>
@@ -103,13 +111,13 @@ export default function CommunityGrid({
               type="button"
               disabled={currentPage === 1}
               onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer flex items-center gap-1"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-[#0E1D4F]/20 bg-warm-surface px-3 py-2 text-sm font-semibold text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Icon name="arrow_back" className="size-3.5" />
               <span>Trước</span>
             </button>
 
-            <span className="px-3 py-1.5 text-xs text-[#4B5875] font-medium">
+            <span className="px-3 py-1.5 text-sm font-medium text-[#4B5875]">
               {currentPage} / {totalPages}
             </span>
 
@@ -117,13 +125,13 @@ export default function CommunityGrid({
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#0E1D4F]/15 bg-white text-[#0E1D4F] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer flex items-center gap-1"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-[#0E1D4F]/20 bg-warm-surface px-3 py-2 text-sm font-semibold text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span>Sau</span>
               <Icon name="arrow_forward" className="size-3.5" />
             </button>
           </div>
-        </div>
+        </nav>
       )}
     </main>
   );

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useCallback } from 'react';
-import Link from 'next/link';
-import Icon from '@/components/ui/Icon';
-import { useMyTripsController } from './useMyTripsController';
-import TripFilters from './TripFilters';
-import TripGrid from './TripGrid';
+import React, { useCallback } from "react";
+import Link from "next/link";
+import Icon from "@/components/ui/Icon";
+import { useMyTripsController } from "./useMyTripsController";
+import TripFilters from "./TripFilters";
+import TripGrid from "./TripGrid";
 
 export default function MyTripsScreen() {
   const {
@@ -41,7 +41,10 @@ export default function MyTripsScreen() {
     clearAllFilters,
   } = useMyTripsController();
 
-  const toggleSidebar = useCallback(() => setSidebarOpen((open) => !open), [setSidebarOpen]);
+  const toggleSidebar = useCallback(
+    () => setSidebarOpen((open) => !open),
+    [setSidebarOpen],
+  );
 
   return (
     <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
@@ -53,17 +56,18 @@ export default function MyTripsScreen() {
               KHO LƯU TRỮ HÀNH TRÌNH CÁ NHÂN
             </span>
           </div>
-          <h1 className="font-headline-lg text-2xl sm:text-4xl text-[#0E1D4F] tracking-tight font-bold">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#0E1D4F] sm:text-4xl">
             Chuyến đi của tôi
           </h1>
           <p className="font-body-md text-sm sm:text-base text-[#4B5875] mt-2 leading-relaxed">
-            Thư viện quản lý bản nháp đang trao đổi cùng Vistra và những hành trình đã xác nhận.
+            Thư viện quản lý bản nháp đang trao đổi cùng Vistra và những hành
+            trình đã xác nhận.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href="/create-trip"
-            className="inline-flex items-center gap-2 bg-[#205BD6] hover:bg-[#1847a8] text-white font-label-lg text-sm px-5 py-2.5 rounded-xl transition-all active:scale-[0.99] shadow-[0_4px_14px_rgba(32,91,214,0.22)] font-semibold"
+            className="inline-flex min-h-11 items-center gap-2 bg-[#205BD6] hover:bg-[#1847a8] text-white font-label-lg text-sm px-5 py-2.5 rounded-xl transition-all active:scale-[0.99] shadow-[0_4px_14px_rgba(32,91,214,0.22)] font-semibold"
           >
             <Icon name="add" className="size-[18px]" />
             <span>Tạo kế hoạch cá nhân</span>
@@ -94,17 +98,29 @@ export default function MyTripsScreen() {
       />
 
       {!isAuthLoaded || (isLoggedIn && isLoadingServerTrips) ? (
-        <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-16 text-center flex flex-col items-center justify-center my-6">
+        <div className="bg-warm-surface rounded-2xl border border-[#0E1D4F]/10 p-8 sm:p-12 text-center flex flex-col items-center justify-center my-6">
           <div className="w-10 h-10 border-4 border-[#205BD6]/30 border-t-[#205BD6] rounded-full animate-spin mb-3" />
           <h3 className="font-headline-sm text-base font-bold text-[#0E1D4F]">
             Đang tải dữ liệu chuyến đi...
           </h3>
-          <p className="text-xs text-[#4B5875] mt-1">Vui lòng chờ trong giây lát.</p>
+          <p className="text-xs text-[#4B5875] mt-1">
+            Vui lòng chờ trong giây lát.
+          </p>
         </div>
       ) : !isLoggedIn ? (
-        <div className="rounded-2xl bg-white border p-8 my-6 text-center"><h2 className="font-bold text-[#0E1D4F]">Đăng nhập để xem chuyến đi của bạn</h2><Link href="/login?next=/my-trips" className="inline-block mt-4 p-3 rounded-xl bg-[#205BD6] text-white">Đăng nhập</Link></div>
+        <div className="rounded-2xl bg-warm-surface border border-[#0E1D4F]/10 p-8 my-6 text-center">
+          <h2 className="font-bold text-[#0E1D4F]">
+            Đăng nhập để xem chuyến đi của bạn
+          </h2>
+          <Link
+            href="/login?next=/my-trips"
+            className="inline-flex min-h-11 items-center mt-4 px-4 rounded-xl bg-[#205BD6] text-white"
+          >
+            Đăng nhập
+          </Link>
+        </div>
       ) : serverTripsError ? (
-        <div className="bg-rose-50 rounded-2xl border border-rose-200 p-8 text-center flex flex-col items-center justify-center my-6">
+        <div className="bg-[#FFF4F2] rounded-2xl border border-[#B42318]/25 p-8 text-center flex flex-col items-center justify-center my-6">
           <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-3">
             <Icon name="error" className="size-6" />
           </div>
@@ -117,32 +133,38 @@ export default function MyTripsScreen() {
           <button
             type="button"
             onClick={retryLoadServerTrips}
-            className="mt-4 px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-xl hover:bg-rose-700 transition-colors cursor-pointer"
+            className="mt-4 min-h-11 px-4 py-2 bg-[#B42318] text-white text-xs font-semibold rounded-xl hover:bg-[#912018] transition-colors cursor-pointer"
           >
             Thử lại
           </button>
         </div>
       ) : isLoggedIn && paginatedPlans.length === 0 ? (
-        <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-16 text-center flex flex-col items-center justify-center my-6">
-          <div className="w-12 h-12 rounded-2xl bg-[#EBF1F0] flex items-center justify-center text-[#4B5875] mb-3">
+        <div className="bg-warm-surface rounded-2xl border border-[#0E1D4F]/10 p-8 sm:p-12 text-center flex flex-col items-center justify-center my-6">
+          <div className="w-12 h-12 rounded-2xl bg-warm-paper flex items-center justify-center text-[#4B5875] mb-3">
             <Icon name="flight_takeoff" className="size-6 text-[#205BD6]" />
           </div>
           <h3 className="font-headline-sm text-base font-bold text-[#0E1D4F]">
-            {hasTrips ? 'Không tìm thấy chuyến đi phù hợp' : 'Bạn chưa có chuyến đi nào'}
+            {hasTrips
+              ? "Không tìm thấy chuyến đi phù hợp"
+              : "Bạn chưa có chuyến đi nào"}
           </h3>
           <p className="text-xs text-[#4B5875] mt-1 max-w-sm">
             {hasTrips
-              ? 'Thử đổi từ khóa hoặc điều chỉnh bộ lọc để xem thêm kết quả.'
-              : 'Bắt đầu tạo kế hoạch mới hoặc khám phá các hành trình từ cộng đồng Vistra.'}
+              ? "Thử đổi từ khóa hoặc điều chỉnh bộ lọc để xem thêm kết quả."
+              : "Bắt đầu tạo kế hoạch mới hoặc khám phá các hành trình từ cộng đồng Vistra."}
           </p>
           {hasTrips ? (
-            <button type="button" onClick={clearAllFilters} className="mt-4 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors">
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="mt-4 min-h-11 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors"
+            >
               Xóa bộ lọc
             </button>
           ) : (
             <Link
               href="/create-trip"
-              className="mt-4 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors inline-flex items-center gap-1.5"
+              className="mt-4 min-h-11 px-5 py-2.5 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors inline-flex items-center gap-1.5"
             >
               <Icon name="add" className="size-4" />
               <span>Tạo kế hoạch cá nhân</span>
@@ -160,12 +182,15 @@ export default function MyTripsScreen() {
         />
       )}
 
-      <div className="mt-8 p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#4B5875]">
+      <div className="mt-8 p-4 rounded-2xl bg-warm-surface border border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#4B5875]">
         <div className="flex items-center gap-2">
           <Icon name="info" className="size-4 text-[#205BD6] shrink-0" />
           <span>Chuyến đi được lưu trên tài khoản của bạn.</span>
         </div>
-        <Link href="/community" className="text-[#205BD6] font-semibold hover:underline shrink-0">
+        <Link
+          href="/community"
+          className="text-[#205BD6] font-semibold hover:underline shrink-0"
+        >
           Khám phá thêm lịch trình cộng đồng →
         </Link>
       </div>

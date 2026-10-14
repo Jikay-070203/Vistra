@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "dalat_hero_photo",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Ảnh nền Hero, gợi ý điểm đến Đà Lạt.",
+      "requirements": [
+        "JPEG 1280×960, 4:3, 1.23 MP; file cục bộ đã kiểm tra.",
+        "Nguồn: Nguyễn Tấn Phát, CC BY-SA 3.0; cần ghi công và giữ điều khoản chia sẻ tương tự."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "hero_inspiration"
+      ],
+      "aspectRatio": "4:3",
+      "composition": "Thung lũng Vàng trong sương; hồ ở nửa dưới, rừng và thung lũng phía trên. Giữ vùng sương ít chi tiết phía trên bên trái làm vùng an toàn cho chữ.",
+      "source": {
+        "kind": "project",
+        "reference": "public/landing/hero-inspiration.jpg",
+        "license": "Ảnh của Nguyễn Tấn Phát, CC BY-SA 3.0. Nguồn gốc: https://commons.wikimedia.org/wiki/File:Golden_Valley_in_morning_fog.jpg."
+      },
+      "destination": "public/landing/hero-inspiration.jpg"
+    },
+    {
+      "id": "destination_hal_long_photo",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Ảnh Vịnh Hạ Long dùng trong Hero và dải điểm đến.",
+      "requirements": [
+        "JPEG 4800×3200, 3:2, 15.36 MP; file cục bộ đã kiểm tra.",
+        "Unsplash License; ảnh của Ammie Ngo; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "hero_inspiration",
+        "destination_carousel"
+      ],
+      "aspectRatio": "3:2",
+      "composition": "Thuyền ở một phần ba phía dưới, núi đá vôi nổi rõ ở giữa và nền trời phía trên. Giữ đủ bối cảnh, không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "project",
+        "reference": "public/landing/destinations/destination-photo-01.jpg",
+        "license": "Ảnh của Ammie Ngo, Unsplash License. Nguồn gốc: https://unsplash.com/photos/high-angle-photography-of-boats-on-water-near-hill-during-daytime-vcu-OZBxxRk."
+      },
+      "destination": "public/landing/destinations/destination-photo-01.jpg"
+    },
+    {
+      "id": "destination_golden_bridge_photo",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Ảnh Cầu Vàng dùng trong Hero và dải điểm đến.",
+      "requirements": [
+        "JPEG 4800×3000, 8:5, 14.4 MP; file cục bộ đã kiểm tra.",
+        "Unsplash License; ảnh của Andreea Popa; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "hero_inspiration",
+        "destination_carousel"
+      ],
+      "aspectRatio": "8:5",
+      "composition": "Cầu Vàng và hai bàn tay đá ở trung tâm; giữ đường cong cầu cùng cảnh nền rõ ràng. Không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "project",
+        "reference": "public/landing/destinations/destination-photo-02.jpg",
+        "license": "Ảnh của Andreea Popa, Unsplash License. Nguồn gốc: https://unsplash.com/de/fotos/menschen-die-tagsuber-auf-der-brucke-spazieren-gehen-PknaOrb1lVo."
+      },
+      "destination": "public/landing/destinations/destination-photo-02.jpg"
+    },
+    {
+      "id": "destination_ninh_binh_photo",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Ảnh thuyền chèo tại Ninh Bình dùng trong Hero và dải điểm đến.",
+      "requirements": [
+        "JPEG 4000×2249, 4000:2249, 9.00 MP; file cục bộ đã kiểm tra.",
+        "Unsplash License; ảnh của Giau Tran; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "hero_inspiration",
+        "destination_carousel"
+      ],
+      "aspectRatio": "4000:2249",
+      "composition": "Người chèo và thuyền ở vùng trái; mặt nước thoáng cùng cảnh quan ở vùng phải. Giữ thuyền trọn trong crop, không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "project",
+        "reference": "public/landing/destinations/destination-photo-03.jpg",
+        "license": "Ảnh của Giau Tran, Unsplash License. Nguồn gốc: https://unsplash.com/photos/woman-on-boat-Mz7tFZQ6CVg."
+      },
+      "destination": "public/landing/destinations/destination-photo-03.jpg"
+    },
+    {
+      "id": "destination_hanoi_train_street_photo",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Ảnh phố đường tàu Hà Nội cho dải điểm đến.",
+      "requirements": [
+        "JPEG 4843×3285, 4843:3285, 15.91 MP; file cục bộ đã kiểm tra.",
+        "Unsplash License; ảnh của Ryan Le; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "destination_carousel"
+      ],
+      "aspectRatio": "4843:3285",
+      "composition": "Đoàn tàu ở giữa khung, đường ray hội tụ về phía sau và phố đường tàu ở hai bên. Giữ bối cảnh phố, không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "project",
+        "reference": "public/landing/place_sample/ryan-le-EKFPwbPkDec-unsplash.jpg",
+        "license": "Ảnh của Ryan Le, Unsplash License. Nguồn gốc: https://unsplash.com/photos/a-train-traveling-down-train-tracks-next-to-a-crowd-of-people-EKFPwbPkDec."
+      },
+      "destination": "public/landing/place_sample/ryan-le-EKFPwbPkDec-unsplash.jpg"
+    },
+    {
+      "id": "destination_hoi_an_photo",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Ảnh phố Hội An ngập nước cho dải điểm đến.",
+      "requirements": [
+        "JPEG 4592×2914, 2296:1457, 13.38 MP; file cục bộ đã kiểm tra.",
+        "Unsplash License; ảnh của Toomas Tartes; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "destination_carousel"
+      ],
+      "aspectRatio": "2296:1457",
+      "composition": "Thuyền và người ở giữa phía dưới, mặt tiền vàng hai bên. Giữ thuyền trong khung và bối cảnh phố, không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "project",
+        "reference": "public/landing/place_sample/toomas-tartes-27HacQwqvA0-unsplash.jpg",
+        "license": "Ảnh của Toomas Tartes, Unsplash License. Nguồn gốc: https://unsplash.com/photos/two-women-riding-boat-beside-brown-house-27HacQwqvA0."
+      },
+      "destination": "public/landing/place_sample/toomas-tartes-27HacQwqvA0-unsplash.jpg"
+    },
+    {
+      "id": "destination_hanoi_railway_photo",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Ảnh đường ray trong ngõ Hà Nội cho dải điểm đến.",
+      "requirements": [
+        "JPEG 4800×3200, 3:2, 15.36 MP; file cục bộ đã kiểm tra.",
+        "Unsplash License; ảnh của Silver Ringvee; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "destination_carousel"
+      ],
+      "aspectRatio": "3:2",
+      "composition": "Đường ray hội tụ từ tiền cảnh vào giữa ngõ; cờ nằm dọc phía trái. Giữ bối cảnh phố trong crop, không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "project",
+        "reference": "public/landing/destinations/destination-photo-06.jpg",
+        "license": "Ảnh của Silver Ringvee, Unsplash License. Nguồn gốc: https://unsplash.com/photos/a-train-track-running-through-an-alley-way-niFWqrLdjlE."
+      },
+      "destination": "public/landing/destinations/destination-photo-06.jpg"
+    },
+    {
+      "id": "dalat_day_01_photo",
+      "kind": "image",
+      "status": "ready",
+      "purpose": "Ảnh ngày đầu của lịch trình ví dụ tại Đà Lạt.",
+      "requirements": [
+        "JPEG 3000×2000, 3:2, 6 MP; file cục bộ đã kiểm tra.",
+        "Ảnh minh họa lịch trình ví dụ, không hàm ý VISTRA sở hữu ảnh.",
+        "Unsplash License; ảnh của Mạnh Ngô; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "itinerary_preview"
+      ],
+      "aspectRatio": "3:2",
+      "composition": "Hồ Đà Lạt lúc bình minh; thuyền nhỏ ở một phần ba phía trên, mặt nước phản chiếu rộng phía dưới. Không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "external",
+        "reference": "https://unsplash.com/photos/a-small-boat-on-a-calm-lake-at-sunrise-UAthxIK6v58",
+        "license": "Unsplash License; ảnh của Mạnh Ngô; trang nguồn ghi địa điểm Đà Lạt, Lâm Đồng."
+      },
+      "destination": "public/landing/place_sample/dalat-day-01.jpg"
+    },
+    {
+      "id": "dalat_day_02_photo",
+      "kind": "image",
+      "status": "ready",
+      "purpose": "Ảnh ngày thứ hai của lịch trình ví dụ tại Đà Lạt.",
+      "requirements": [
+        "JPEG 3000×2000, 3:2, 6 MP; file cục bộ đã kiểm tra.",
+        "Ảnh chợ minh họa bối cảnh địa phương; không gán cho điểm dừng cụ thể hoặc xem là ảnh do VISTRA sở hữu.",
+        "Unsplash License; ảnh của ANNIE HATUANH; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "itinerary_preview"
+      ],
+      "aspectRatio": "3:2",
+      "composition": "Người bán lệch phải tâm, sản vật ở tiền cảnh và quầy chợ phía sau. Giữ rõ bối cảnh chợ Đà Lạt, không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "external",
+        "reference": "https://unsplash.com/photos/woman-selling-dragon-fruit-and-other-fruits-at-market-R_wHZ6Xp6eU",
+        "license": "Unsplash License; ảnh của ANNIE HATUANH; trang nguồn ghi Chợ Đà Lạt."
+      },
+      "destination": "public/landing/place_sample/dalat-day-02.jpg"
+    },
+    {
+      "id": "dalat_day_03_photo",
+      "kind": "image",
+      "status": "ready",
+      "purpose": "Ảnh ngày thứ ba của lịch trình ví dụ tại Đà Lạt.",
+      "requirements": [
+        "JPEG 3000×2000, 3:2, 6 MP; file cục bộ đã kiểm tra.",
+        "Ảnh minh họa lịch trình ví dụ, không hàm ý VISTRA sở hữu ảnh.",
+        "Unsplash License; ảnh của Pete Walls; sử dụng thương mại và phi thương mại, khuyến khích ghi công."
+      ],
+      "role": "photography",
+      "sectionIds": [
+        "itinerary_preview"
+      ],
+      "aspectRatio": "3:2",
+      "composition": "Cảnh cao nguyên với các lớp đồi, rừng thông và sương tạo chiều sâu. Giữ đường chân trời trong khung, không đặt chữ lên ảnh.",
+      "source": {
+        "kind": "external",
+        "reference": "https://unsplash.com/photos/a-grassy-field-with-trees-and-mountains-in-the-background-Fl3bY0hWXv4",
+        "license": "Unsplash License; ảnh của Pete Walls; trang nguồn mô tả cao nguyên miền Trung Việt Nam, Đà Lạt."
+      },
+      "destination": "public/landing/place_sample/dalat-day-03.jpg"
+    },
+    {
+      "id": "plus_jakarta_sans",
+      "kind": "font",
+      "status": "existing",
+      "purpose": "Font tiêu đề, nội dung chính và điều hướng của VISTRA.",
+      "requirements": [
+        "Tệp biến thiên upright có sẵn; các trọng số thương hiệu dùng 400, 500, 600, 700 và 800.",
+        "Giấy phép SIL Open Font License 1.1 có tại public/fonts/plus-jakarta-sans/OFL.txt."
+      ],
+      "role": "font",
+      "sectionIds": [
+        "hero_inspiration",
+        "destination_carousel",
+        "explore_route_stages",
+        "pace_preview",
+        "itinerary_preview"
+      ],
+      "source": {
+        "kind": "project",
+        "reference": "public/fonts/plus-jakarta-sans/PlusJakartaSans-variable.ttf",
+        "license": "SIL Open Font License 1.1; kho Google Fonts chính thức: https://github.com/google/fonts/tree/main/ofl/plusjakartasans."
+      },
+      "destination": "public/fonts/plus-jakarta-sans/PlusJakartaSans-variable.ttf"
+    },
+    {
+      "id": "inter",
+      "kind": "font",
+      "status": "existing",
+      "purpose": "Font nhãn ngắn, metadata và nhãn điều khiển của VISTRA.",
+      "requirements": [
+        "Tệp biến thiên upright có sẵn; các trọng số thương hiệu dùng 400, 500, 600, 700, 800 và 900.",
+        "Giấy phép SIL Open Font License 1.1 có tại public/fonts/inter/OFL.txt."
+      ],
+      "role": "font",
+      "sectionIds": [
+        "hero_inspiration",
+        "destination_carousel",
+        "explore_route_stages",
+        "pace_preview",
+        "itinerary_preview"
+      ],
+      "source": {
+        "kind": "project",
+        "reference": "public/fonts/inter/Inter-variable.ttf",
+        "license": "SIL Open Font License 1.1; kho Google Fonts chính thức: https://github.com/google/fonts/tree/main/ofl/inter."
+      },
+      "destination": "public/fonts/inter/Inter-variable.ttf"
+    }
+  ]
+}

@@ -270,10 +270,10 @@ export default function CreateTripScreen() {
             KHỞI TẠO Ý TƯỞNG HÀNH TRÌNH
           </span>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-[#0E1D4F] tracking-tight">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#0E1D4F] sm:text-4xl">
           Tạo kế hoạch cá nhân
         </h1>
-        <p className="text-sm sm:text-base text-[#4B5875] mt-2 max-w-2xl leading-relaxed">
+        <p className="text-sm sm:text-base text-[#4B5875] mt-2 leading-relaxed w-full">
           Phác thảo chuyến đi theo mong muốn riêng của bạn. VISTRA kết nối điểm
           đến, thời gian và gợi ý lịch trình phù hợp nhất.
         </p>
@@ -351,7 +351,7 @@ export default function CreateTripScreen() {
               </div>
 
               {/* 2. Dates */}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
                   <label
                     htmlFor="create-start-date"
@@ -385,10 +385,6 @@ export default function CreateTripScreen() {
                     onChange={(event) => form.setEndDate(event.target.value)}
                   />
                 </div>
-              </div>
-
-              {/* 3. Group Size, Pace & Allergy Preferences */}
-              <div className="grid items-end gap-4 md:grid-cols-3">
                 <div className="space-y-1.5">
                   <label
                     htmlFor="create-people"
@@ -410,49 +406,9 @@ export default function CreateTripScreen() {
                     }
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <VistraSelect
-                    label="NHỊP ĐỘ CHUYẾN ĐI"
-                    value={form.pace}
-                    onChange={(val) => form.setPace(val as typeof form.pace)}
-                    triggerClassName="h-11"
-                    options={[
-                      {
-                        value: "relaxed",
-                        label: "Thư thái",
-                        description:
-                          "Mức vận động nhẹ, di chuyển ngắn và có nhiều thời gian nghỉ.",
-                      },
-                      {
-                        value: "normal",
-                        label: "Cân bằng",
-                        description:
-                          "Mức vận động vừa phải, xen kẽ tham quan và nghỉ ngơi.",
-                      },
-                      {
-                        value: "busy",
-                        label: "Năng động",
-                        description:
-                          "Mức vận động cao, nhiều điểm và hoạt động; cần sức bền tốt.",
-                      },
-                    ]}
-                  />
-                </div>
-                <AllergySelect
-                  selected={form.selectedAllergies}
-                  options={form.allergyOptions}
-                  loading={form.allergyLoading}
-                  error={form.allergyError}
-                  onRetry={form.retryAllergies}
-                  onToggle={form.toggleAllergy}
-                  disabled={form.isSubmitting || Boolean(form.created)}
-                />
               </div>
-              {/* {form.selectedAllergies.length > 0 && (
-                <p className="text-xs text-amber-700">Lưu ý: Lựa chọn dị ứng hiện chỉ lưu trên giao diện và chưa được áp dụng vào lịch trình đề xuất.</p>
-              )} */}
 
-              {/* 4. Budget Range */}
+              {/* 3. Budget Range */}
               <div className="space-y-1.5 pt-1">
                 <BudgetRangeField
                   label="NGÂN SÁCH TỔNG DỰ KIẾN (VNĐ)"
@@ -557,7 +513,62 @@ export default function CreateTripScreen() {
               error={form.dnaError}
               onChange={form.changeTravelDnaMetric}
               onReset={form.resetTravelDna}
-            />
+            >
+              <fieldset
+                disabled={form.isSubmitting || Boolean(form.created)}
+                className="space-y-4"
+              >
+                <div>
+                  <h3 className="text-sm font-semibold text-[#0E1D4F]">
+                    Tùy chọn chuyến đi
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-[#4B5875]">
+                    Chọn nhịp di chuyển và lưu ý ăn uống cho bản nháp này.
+                  </p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <VistraSelect
+                    label="NHỊP ĐỘ CHUYẾN ĐI"
+                    value={form.pace}
+                    onChange={(val) => form.setPace(val as typeof form.pace)}
+                    triggerClassName="h-11"
+                    options={[
+                      {
+                        value: "relaxed",
+                        label: "Thư thái",
+                        description:
+                          "Mức vận động nhẹ, di chuyển ngắn và có nhiều thời gian nghỉ.",
+                      },
+                      {
+                        value: "normal",
+                        label: "Cân bằng",
+                        description:
+                          "Mức vận động vừa phải, xen kẽ tham quan và nghỉ ngơi.",
+                      },
+                      {
+                        value: "busy",
+                        label: "Năng động",
+                        description:
+                          "Mức vận động cao, nhiều điểm và hoạt động; cần sức bền tốt.",
+                      },
+                    ]}
+                  />
+                  <AllergySelect
+                    selected={form.selectedAllergies}
+                    options={form.allergyOptions}
+                    loading={form.allergyLoading}
+                    error={form.allergyError}
+                    onRetry={form.retryAllergies}
+                    onToggle={form.toggleAllergy}
+                    disabled={form.isSubmitting || Boolean(form.created)}
+                  />
+                </div>
+                <p className="text-xs leading-relaxed text-[#4B5875]">
+                  Lựa chọn dị ứng hiện được lưu trong giao diện, chưa được gửi
+                  cùng yêu cầu tạo chuyến.
+                </p>
+              </fieldset>
+            </TravelDnaPanel>
           </aside>
         </div>
       )}

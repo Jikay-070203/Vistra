@@ -1,0 +1,325 @@
+{
+  "version": 1,
+  "page": {
+    "title": "VISTRA | Lên ý tưởng chuyến đi",
+    "route": "/",
+    "description": "Gom cảm hứng, chọn điểm đến và xem bản nháp hành trình cùng VISTRA."
+  },
+  "architecture": {
+    "contract": "Trang giúp du khách Việt Nam xem cách VISTRA biến cảm hứng thành bản nháp chuyến đi và quyết định bắt đầu ý tưởng; kết quả kinh doanh là lượt bắt đầu lập kế hoạch, chuyển đổi chính là “Bắt đầu ý tưởng chuyến đi” tại /create-trip.",
+    "mode": "persuade_convert",
+    "novelty": "low",
+    "grid": "Giữ lưới 12 cột, chiều rộng tối đa 1320px và bố cục hiện tại. Gutter 32–56px ở desktop, 24px ở tablet, 16–20px ở mobile; dùng nhịp 8px.",
+    "signatureRule": "Giữ ảnh Đà Lạt làm trường ảnh liền mạch của Hero, với tiêu đề là điểm neo thị giác. Chuyển động chỉ chạy trong các khung ảnh và nhóm nội dung sẵn có.",
+    "rhythm": "Giữ thứ tự Hero, điểm đến, bản đồ, lựa chọn nhịp đi và lịch trình. Tạo khoảng nghỉ theo quan hệ nội dung, khoảng 64–80px giữa các phần và 16–24px giữa điều khiển liên quan."
+  },
+  "navigation": [
+    {
+      "label": "Điểm đến",
+      "target": "#ban-muon-di-dau"
+    },
+    {
+      "label": "Tổng quan",
+      "target": "#tong-quan"
+    },
+    {
+      "label": "Khám phá",
+      "target": "#kham-pha"
+    },
+    {
+      "label": "Cùng xây",
+      "target": "#cung-xay"
+    },
+    {
+      "label": "Xác nhận",
+      "target": "#xac-nhan"
+    },
+    {
+      "label": "Khởi hành",
+      "target": "#trai-nghiem"
+    },
+    {
+      "label": "Bắt đầu ý tưởng",
+      "target": "/create-trip"
+    }
+  ],
+  "navigationDesign": {
+    "layoutCase": "reference-navigation",
+    "layout": "Giữ LandingHeader hiện có theo khung điều hướng waveyu-14-team: desktop một hàng, wordmark VISTRA bên trái, liên kết giữa trang ở giữa và CTA bên phải. Mobile giữ wordmark và nút menu ở đầu trang; tham chiếu desktop 1505×1045, mobile 783×2009.",
+    "behavior": [
+      "Liên kết neo cuộn đến section hiện có và đánh dấu vị trí hiện tại bằng aria-current.",
+      "Nút menu công bố aria-expanded và aria-controls; nhấn Escape đóng menu và trả focus về nút.",
+      "CTA luôn đi đến /create-trip. Giữ skip link đến nội dung chính."
+    ],
+    "transformation": {
+      "compact": "Thu gọn liên kết vào menu hiện có; giữ CTA ở đầu menu và giữ nguyên thứ tự các liên kết.",
+      "medium": "Giữ wordmark, liên kết và CTA trong hàng hiện có nếu vừa chỗ; nếu không, dùng menu compact.",
+      "expanded": "Giữ một hàng điều hướng, wordmark trái, liên kết giữa trang ở giữa và CTA bên phải."
+    }
+  },
+  "sections": [
+    {
+      "id": "hero_inspiration",
+      "layoutFamily": "hero",
+      "layoutCases": [
+        "wedddingly-01-hero"
+      ],
+      "referenceDirectionId": "wedddingly-01-hero",
+      "purpose": "Giới thiệu cách bắt đầu lên ý tưởng và dẫn đến luồng tạo chuyến đi.",
+      "userQuestion": "VISTRA giúp tôi bắt đầu ý tưởng chuyến đi như thế nào?",
+      "stage": "orient",
+      "dependencies": [],
+      "evidence": [
+        "src/app/page.tsx gắn LandingPage với route /.",
+        "src/components/landing/LandingPage.tsx hiện có ảnh nền Đà Lạt, tiêu đề hai dòng, mô tả và liên kết.",
+        "src/components/landing/landingDemo.ts xác định ảnh cảm hứng Đà Lạt cùng nguồn và giấy phép."
+      ],
+      "copy": {
+        "eyebrow": "LÊN Ý TƯỞNG · LÊN ĐƯỜNG",
+        "heading": "Gom cảm hứng. Chọn từng chặng.",
+        "body": [
+          "VISTRA gợi ý điểm đến và phác thảo lịch trình từ ảnh hoặc ghi chú. Bạn tự chọn mỗi chặng."
+        ],
+        "callsToAction": [
+          {
+            "label": "Bắt đầu ý tưởng chuyến đi",
+            "target": "/create-trip"
+          },
+          {
+            "label": "Xem cách lên kế hoạch",
+            "target": "#tong-quan"
+          }
+        ]
+      },
+      "layout": "Bản đồ tham chiếu: desktop 1505×1045, một trường ảnh toàn khung; thanh điều hướng tham chiếu ở x30.5–69.7%, y4–9%; nhãn ở x8–20%, y36–42%; tiêu đề ở x18.5–97%, y70–91%, một dòng. Mobile 783×2009, ảnh trong khung x4–96%, y1–99%; điều hướng ở x8–92%, y2.5–7%; tiêu đề ở x8–92%, y87–97%, một dòng. Sai khác cần giữ theo brief: Hero VISTRA hiện có ảnh Đà Lạt phủ khung, lớp phủ tối, ba ảnh nhỏ chồng nhẹ phía trên, tiêu đề hai dòng ở cột trái và mô tả cùng CTA ở cột phải; giữ các hộp hiện tại, không thêm ảnh cưới hay chi tiết trang trí của mẫu.",
+      "motion": {
+        "purpose": "spatial_continuity",
+        "trigger": "load",
+        "behavior": "Trong khung ảnh hiện có, chuyển ảnh nền từ scale 1.02 về 1 trong 680ms. Cho nhóm tiêu đề, mô tả và hành động xuất hiện theo đúng thứ tự hiện tại, cách nhau 70ms; không đổi kích thước bố cục.",
+        "durationMs": 680,
+        "easing": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "reducedMotion": "Hiển thị ngay trạng thái cuối; không chạy entrance animation."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [
+        "dalat_hero_photo",
+        "destination_hal_long_photo",
+        "destination_golden_bridge_photo",
+        "destination_ninh_binh_photo"
+      ],
+      "transformation": {
+        "compact": "Dùng ảnh dọc hiện có; giữ tiêu đề hai dòng, mô tả và cả hai liên kết theo đúng thứ tự. Không cắt CTA khỏi khung nhìn ban đầu.",
+        "medium": "Giữ ảnh nền và nội dung hiện tại; thu gutter về 24px, chỉ xếp lại cột khi không còn đủ chiều rộng đọc.",
+        "expanded": "Giữ chiều cao Hero hiện có, ảnh phủ toàn khung, nhóm ảnh nhỏ và lưới tiêu đề/mô tả hiện tại."
+      }
+    },
+    {
+      "id": "destination_carousel",
+      "layoutFamily": "about",
+      "layoutCases": [
+        "waveyu-14-team"
+      ],
+      "referenceDirectionId": "waveyu-14-team",
+      "purpose": "Cho du khách xem và chọn ảnh điểm đến; đồng bộ ảnh, trạng thái chọn và vị trí cuộn.",
+      "userQuestion": "Tôi muốn khám phá điểm đến nào?",
+      "stage": "evaluate",
+      "dependencies": [
+        "hero_inspiration"
+      ],
+      "evidence": [
+        "src/components/landing/LandingPage.tsx có sáu điểm đến, nút trước/sau, lựa chọn từng thẻ, aria-pressed và đồng bộ trạng thái khi cuộn ngang.",
+        "LandingPage.tsx không có timer trong component đang render; chu kỳ 6 giây là mặc định được đề xuất cho yêu cầu autoplay này."
+      ],
+      "copy": {
+        "eyebrow": "Gợi ý điểm đến",
+        "heading": "Bắt đầu từ nơi bạn muốn đến.",
+        "body": [
+          "Chọn một điểm đến để xem ảnh và mở danh sách hành trình liên quan."
+        ],
+        "callsToAction": [
+          {
+            "label": "Xem tất cả điểm đến",
+            "target": "/destinations"
+          }
+        ]
+      },
+      "layout": "Bản đồ tham chiếu: desktop 1505×1045, tiêu đề ở x4.5%, y9.5%, một dòng; đoạn dẫn ở x35%, y10%; ba thẻ ảnh dọc chiếm x4.5–96%, y20–76%, mỗi thẻ khoảng 32% bề rộng với khe 1%; nút điều hướng ở góc trên phải. Mobile 783×2009, tiêu đề và đoạn dẫn ở x6.5%, y11–26%; một thẻ chính rộng khoảng 85% ở y27–71%, lộ một phần thẻ kế tiếp ở mép phải; dấu vị trí và nút điều hướng ở dưới thẻ. Giữ track cuộn ngang và ảnh điểm đến hiện có; ảnh và tên vẫn nằm cạnh nhau, trạng thái chọn không phụ thuộc hover.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Khi vùng còn hiển thị và không có tương tác, chờ 6000ms rồi chọn điểm đến kế tiếp. Chuyển ảnh trong khung 420ms, cuộn track đến thẻ đang chọn và cập nhật aria-pressed cùng viền selected; chỉ cuộn track ngang, không cuộn trang.",
+        "durationMs": 420,
+        "easing": "cubic-bezier(0.42, 0, 0.58, 1)",
+        "reducedMotion": "Tắt tự chuyển; giữ nút mũi tên, cuộn cảm ứng và chọn thẻ với cập nhật tức thì."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [
+        "destination_hal_long_photo",
+        "destination_golden_bridge_photo",
+        "destination_ninh_binh_photo",
+        "destination_hanoi_train_street_photo",
+        "destination_hoi_an_photo",
+        "destination_hanoi_railway_photo"
+      ],
+      "transformation": {
+        "compact": "Hiện thẻ đang chọn cùng một phần thẻ kế tiếp; giữ thao tác vuốt, nút điều hướng và chỉ báo lựa chọn. Tất cả sáu điểm đến vẫn có thể truy cập qua track.",
+        "medium": "Hiện hai thẻ cùng lúc khi đủ chỗ; giữ thứ tự, điều khiển và trạng thái selected.",
+        "expanded": "Giữ hàng ba thẻ ảnh dọc, phần giới thiệu bên trái và nút điều hướng bên phải như cấu trúc hiện tại."
+      }
+    },
+    {
+      "id": "explore_route_stages",
+      "layoutFamily": "feature",
+      "layoutCases": [
+        "nubo-05-benefits"
+      ],
+      "referenceDirectionId": "nubo-05-benefits",
+      "purpose": "Giải thích ba trạng thái hình thành tuyến điểm bằng bản đồ và nội dung tương ứng.",
+      "userQuestion": "Các điểm dừng được gom thành lộ trình như thế nào?",
+      "stage": "explain",
+      "dependencies": [
+        "destination_carousel"
+      ],
+      "evidence": [
+        "src/components/landing/sections/ExploreSection.tsx định nghĩa ba bước có nội dung, tâm bản đồ, mức zoom, marker và route riêng.",
+        "ExploreSection.tsx cập nhật bước qua nút chọn và truyền marker, route cùng điểm được chọn vào VistraMap."
+      ],
+      "copy": {
+        "eyebrow": "Định hình tuyến điểm",
+        "heading": "Gom điểm dừng thành lộ trình.",
+        "body": [
+          "Ý tưởng ban đầu: Gom các điểm đến tiềm năng từ nguồn cảm hứng của bạn.",
+          "Hội tụ về một vùng: Thu hẹp khoảng cách và giữ các điểm đến thuận tiện nhất.",
+          "Lộ trình thông suốt: Kết nối các chặng dừng thành lịch trình theo từng ngày."
+        ],
+        "callsToAction": []
+      },
+      "layout": "Bản đồ tham chiếu nubo-05-benefits: desktop 1505×1045, phần trên cao khoảng 56%, khối chữ ở x3.5–33%, ảnh ở x34–100%; phần dưới cao khoảng 39%, đoạn dẫn chiếm khoảng 25% bên trái và ba ô nội dung chia phần còn lại. Mobile 941×1672, media lớn x2–98%, y5–38%; ba hàng nội dung tiếp theo chiếm y40–94%, mỗi hàng giữ media và chữ cạnh nhau. Sai khác do nội dung địa lý tương tác: giữ VistraMap native và ba nút trạng thái hiện tại, không nhân bản bản đồ thành ảnh hay thay nội dung marker; map frame và bước đang chọn tiếp tục đi cùng nhau.",
+      "motion": {
+        "purpose": "explanation",
+        "trigger": "scroll_enter",
+        "behavior": "Khi nhóm bản đồ lần đầu vào gần viewport, hiện map frame và nội dung bước đang chọn trong khung hiện có bằng opacity và scale 1.015 về 1 trong 600ms. Quan sát từng nhóm, chạy một lần và giữ trạng thái cuối.",
+        "durationMs": 600,
+        "easing": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "reducedMotion": "Hiển thị bản đồ và nội dung ngay; các nút bước vẫn cập nhật đầy đủ."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Xếp ba nút bước theo thứ tự trước bản đồ đang chọn; giữ nội dung bước, marker và route đầy đủ.",
+        "medium": "Dùng hai cột cho danh sách bước và map frame; không thu nhỏ nút đến mức khó chạm.",
+        "expanded": "Giữ tiêu đề, ba bước điều khiển và một map frame tương tác trong bố cục hiện có."
+      }
+    },
+    {
+      "id": "pace_preview",
+      "layoutFamily": "feature",
+      "layoutCases": [
+        "meridian-05-playbook"
+      ],
+      "referenceDirectionId": "meridian-05-playbook",
+      "purpose": "Cho người xem đổi lựa chọn nhịp đi và thấy bản nháp minh họa thay đổi.",
+      "userQuestion": "Nếu tôi muốn đi ít hơn, bản nháp sẽ thay đổi ra sao?",
+      "stage": "evaluate",
+      "dependencies": [
+        "explore_route_stages"
+      ],
+      "evidence": [
+        "src/components/landing/LandingPage.tsx có hai lựa chọn với aria-pressed và gọi applyPreference.",
+        "Bản xem trước hiện nhãn “Lịch trình minh họa · Đà Lạt” cùng nội dung hoạt động; trạng thái không tự lưu chuyến đi."
+      ],
+      "copy": {
+        "eyebrow": "Cùng điều chỉnh",
+        "heading": "Chọn nhịp đi theo bạn.",
+        "body": [
+          "Thử một lựa chọn để xem bản nháp thay đổi. Bạn luôn có thể chọn lại."
+        ],
+        "callsToAction": []
+      },
+      "layout": "Bản đồ tham chiếu: desktop 1774×887, panel chiếm x2.7–97.3%, y17–83%; media x4.3–33%, copy x38–94%, tiêu đề hai dòng và đoạn dẫn ba dòng. Mobile 1070×1470, panel x6.7–93.3%, y5–97%; media x10.5–89.5%, y8–43%, nội dung bắt đầu khoảng y49%, tiêu đề hai dòng, phần dẫn khoảng bốn dòng và CTA ở cuối panel. Dùng vùng media làm giao diện bản xem trước HTML/React hiện có, không dùng screenshot. Sai khác cần giữ theo brief: phần chọn nhịp vẫn đứng trước preview theo source order hiện tại và giữ tỷ lệ cột đang có để điều khiển luôn gắn với trạng thái kết quả.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Khi người dùng chọn “Giữ bản nháp” hoặc “Ít di chuyển”, cập nhật trạng thái selected và nội dung preview trong cùng panel; chỉ dùng opacity và dịch chuyển tối đa 8px trong 180ms, không làm đổi chiều cao bất ngờ.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "reducedMotion": "Cập nhật nội dung tức thì; giữ aria-pressed, focus và trạng thái lựa chọn."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Xếp hai lựa chọn trước bản xem trước; giữ cả hai nút và toàn bộ nội dung hoạt động trong panel.",
+        "medium": "Giữ hai cột khi đủ chỗ, thu khoảng cách nhưng không ẩn hoạt động hoặc nhãn bản nháp.",
+        "expanded": "Giữ lưới hai cột hiện có, lựa chọn ở một phía và bản xem trước native ở phía còn lại."
+      }
+    },
+    {
+      "id": "itinerary_preview",
+      "layoutFamily": "feature",
+      "layoutCases": [
+        "nubo-07-benefits-detail"
+      ],
+      "referenceDirectionId": "nubo-07-benefits-detail",
+      "purpose": "Cho người xem chọn một ngày và đọc các điểm dừng, hoạt động cùng ghi chú di chuyển.",
+      "userQuestion": "Mỗi ngày trong bản nháp gồm những chặng nào?",
+      "stage": "de_risk",
+      "dependencies": [
+        "pace_preview"
+      ],
+      "evidence": [
+        "src/components/landing/LandingPage.tsx định nghĩa ba ảnh ngày Đà Lạt, thẻ ngày có aria-pressed và cập nhật activeDay khi người dùng chọn.",
+        "Panel lịch trình hiển thị hoạt động, nhịp đi và điểm nhấn của ngày đang chọn."
+      ],
+      "copy": {
+        "eyebrow": "Bản kế hoạch",
+        "heading": "Một lịch trình, ba ngày, từng chặng.",
+        "body": [
+          "Hành trình ví dụ tại Đà Lạt. Chọn ngày để xem điểm dừng, hoạt động và ghi chú di chuyển."
+        ],
+        "callsToAction": []
+      },
+      "layout": "Bản đồ tham chiếu: desktop 1505×1045, lưới ba cột và hai hàng; ba media frame chiếm x0–33%, y0–47%; x67–100%, y0–47%; và x33–67%, y47–100%, xen với ba ô nội dung. Mobile 783×2009, tiêu đề hai dòng ở khoảng y5–14%; một media lớn ở y18–36%; ba câu chuyện ảnh và nội dung x4–96% xếp dọc từ khoảng y38% đến cuối. Giữ ba ảnh ngày hiện có và trạng thái chọn cạnh phần tóm tắt; panel ticket native đứng sau nhóm thẻ, không thay bằng ảnh giao diện.",
+      "motion": {
+        "purpose": "spatial_continuity",
+        "trigger": "scroll_enter",
+        "behavior": "Khi thẻ ngày lần đầu vào viewport, hiện ba khung ảnh theo thứ tự source với độ trễ 70ms mỗi thẻ, tối đa 210ms; ảnh chuyển trong khung và panel chi tiết giữ nguyên vị trí. Reveal chỉ chạy một lần.",
+        "durationMs": 580,
+        "easing": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "reducedMotion": "Hiện tất cả thẻ và panel ngay; chọn ngày vẫn cập nhật tức thì."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [
+        "dalat_day_01_photo",
+        "dalat_day_02_photo",
+        "dalat_day_03_photo"
+      ],
+      "transformation": {
+        "compact": "Xếp ba thẻ ngày theo thứ tự, giữ ảnh, chú thích và trạng thái chọn; panel chi tiết nằm sau cả ba thẻ.",
+        "medium": "Dùng hai cột cho thẻ ngày, thẻ thứ ba theo sau; giữ panel chi tiết cạnh dưới nhóm thẻ.",
+        "expanded": "Giữ ba thẻ ảnh trên một hàng và panel lịch trình native phía dưới."
+      }
+    }
+  ],
+  "responsive": [
+    "Compact đến 760px: gutter 16–20px; giữ thứ tự nội dung, ưu tiên CTA chính, giữ đủ trạng thái và điều khiển; carousel vẫn vuốt được.",
+    "Medium 761–1100px: gutter 24px; giảm số cột đồng thời nhưng không bỏ nội dung, ảnh, lựa chọn hay điểm đến.",
+    "Expanded từ 1101px: chiều rộng nội dung tối đa 1320px, lưới 12 cột và gutter co giãn 32–56px; chỉ track carousel tiếp tục tràn khung theo thiết kế hiện tại."
+  ],
+  "interactions": [
+    "Dải điểm đến: mặc định chờ 6000ms giữa các lần tự chuyển khi đang trong viewport và không có tương tác. Tạm dừng khi ngoài viewport, tab nền, hover, focus trong vùng, chạm hoặc người dùng chọn bằng nút hay thẻ; chạy lại sau 6000ms không tương tác. Tắt timer với prefers-reduced-motion. Mọi lần đổi đều đồng bộ ảnh, aria-pressed và vị trí cuộn ngang.",
+    "Khám phá: ba nút bước chỉ đổi khi người dùng chọn; cập nhật aria-expanded, nội dung bước, marker, route và map center tương ứng. Không tự chạy qua các bước.",
+    "Nhịp đi: hai nút cập nhật aria-pressed và bản xem trước; không ghi, xác nhận hoặc lưu chuyến đi.",
+    "Lịch trình: chọn ngày bằng nút để cập nhật aria-pressed và panel ngày; không tự chuyển ngày.",
+    "Xác nhận trong section hiện có vẫn cần thao tác chủ động; không có timer nào được phép xác nhận hoặc lưu chuyến đi.",
+    "Nút, focus bàn phím, selected state và disclosure phản hồi trong 120–200ms; không để thông tin cần thiết chỉ xuất hiện khi hover."
+  ],
+  "acceptanceCriteria": [
+    "Giữ nguyên route /, nội dung và cấu trúc hiện có; các section không nằm trong phạm vi này, gồm #tong-quan, #xac-nhan, #bat-dau và LandingFooter, tiếp tục được giữ nguyên.",
+    "Chỉ dải điểm đến nhận mặc định autoplay 6000ms trong kế hoạch này. Đây là giả định được chọn theo yêu cầu autoplay; source đang render hiện không có timer. Không suy ra ý định từ timer ở component không thuộc cây render của /.",
+    "Không tự chạy Explore, lựa chọn nhịp đi, xác nhận hoặc lịch trình; toàn bộ điều khiển bàn phím, cảm ứng và con trỏ hiện có tiếp tục hoạt động.",
+    "Giữ nội dung bản nháp đọc được khi JavaScript không chạy; không tự xác nhận hoặc lưu dữ liệu.",
+    "Reveal dùng trạng thái CSS mặc định hiển thị, observer threshold 0 với rootMargin dương, quan sát từng nhóm, unobserve sau lần chạy đầu và không phát lại khi cuộn, resize hoặc render lại.",
+    "Khi triển khai, kiểm tra trên trình duyệt entrance của Hero, reveal sau khi cuộn, reduced motion, cuộn nhanh xuống/lên hai lần, tải lại tại vị trí cuộn giữa trang, resize và bật giảm chuyển động trong lúc chạy; xác nhận section đã thấy không bị ẩn hoặc phát lại.",
+    "Giữ attribution của ảnh hiện có và dùng VistraMap cùng preview lịch trình dưới dạng giao diện HTML/React native, không thay bằng screenshot."
+  ]
+}

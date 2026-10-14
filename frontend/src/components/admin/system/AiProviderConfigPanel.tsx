@@ -76,11 +76,11 @@ export default function AiProviderConfigPanel() {
     }
   };
 
-  const inputClass = 'w-full rounded-xl border border-[#0E1D4F]/20 bg-white px-3.5 py-3 text-sm text-[#0E1D4F] outline-none transition focus:border-[#205BD6] focus:ring-2 focus:ring-[#205BD6]/20 disabled:bg-slate-100';
+  const inputClass = 'w-full rounded-xl border border-[#0E1D4F]/20 bg-warm-surface px-3.5 py-3 text-sm text-[#0E1D4F] outline-none transition focus:border-[#205BD6] focus:ring-2 focus:ring-[#205BD6]/20 disabled:bg-warm-paper';
   const model = providerOptions.find(option => option.provider === provider)?.model;
 
   return (
-    <section className="space-y-5 rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="ai-provider-title">
+    <section className="space-y-5 rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm sm:p-8" aria-labelledby="ai-provider-title">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 id="ai-provider-title" className="text-xl font-bold text-[#0E1D4F]">Nhà cung cấp AI</h2>
@@ -95,7 +95,7 @@ export default function AiProviderConfigPanel() {
       </div>
 
       {!accountId ? (
-        <p className="rounded-xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/50 p-4 text-sm text-[#4B5875]">Cần phiên quản trị để xem hoặc cập nhật cấu hình.</p>
+        <p className="rounded-xl border border-[#0E1D4F]/10 bg-warm-paper p-4 text-sm text-[#4B5875]">Cần phiên quản trị để xem hoặc cập nhật cấu hình.</p>
       ) : (
         <>
           {loadError && <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"><p>{loadError}</p><button type="button" onClick={() => setReload(value => value + 1)} className="shrink-0 font-semibold underline">Thử lại</button></div>}
@@ -112,7 +112,7 @@ export default function AiProviderConfigPanel() {
                   <legend className="mb-3 text-sm font-semibold text-[#0E1D4F]">Chọn nhà cung cấp và model</legend>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {providerOptions.map(option => (
-                      <label key={option.provider} className={`flex min-h-20 cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${provider === option.provider ? 'border-[#205BD6] bg-[#205BD6]/5 ring-1 ring-[#205BD6]/30' : 'border-[#0E1D4F]/15 hover:bg-[#EBF1F0]/60'}`}>
+                      <label key={option.provider} className={`flex min-h-20 cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${provider === option.provider ? 'border-[#205BD6] bg-[#205BD6]/5 ring-1 ring-[#205BD6]/30' : 'border-[#0E1D4F]/15 hover:bg-warm-paper'}`}>
                         <input
                           type="radio"
                           name="ai-provider"
@@ -153,7 +153,7 @@ export default function AiProviderConfigPanel() {
                     {saving ? 'Đang lưu…' : 'Lưu cấu hình'}
                   </button>
                 </div>
-                <p className="text-xs text-[#4B5875]">Model sẽ dùng: <code className="rounded bg-[#EBF1F0] px-1.5 py-0.5">{model}</code></p>
+                <p className="text-xs text-[#4B5875]">Model sẽ dùng: <code className="rounded bg-warm-paper px-1.5 py-0.5">{model}</code></p>
               </form>
             </>
           )}

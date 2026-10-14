@@ -33,10 +33,10 @@ export default function ProfileActivityTab({
   const rangeEnd = Math.min(currentPage * pageSize, serverTotal ?? 0);
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm">
+    <section className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 sm:p-8" aria-labelledby="activity-title">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#0E1D4F]/10">
         <div>
-          <h2 className="font-headline-sm text-xl text-[#0E1D4F] font-bold">
+          <h2 id="activity-title" className="font-headline-sm text-xl text-[#0E1D4F] font-bold">
             Lịch sử hoạt động gần đây
           </h2>
           <p className="text-xs text-[#4B5875]">
@@ -47,7 +47,7 @@ export default function ProfileActivityTab({
         </div>
         <Link
           href="/my-trips"
-          className="px-5 py-2 rounded-full bg-[#0E1D4F] text-white text-xs font-bold hover:bg-[#205BD6] transition-all text-center shrink-0"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#0E1D4F] px-5 py-2 text-xs font-bold text-white transition-colors hover:bg-[#205BD6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] text-center shrink-0"
         >
           Xem tất cả tại Chuyến đi của tôi →
         </Link>
@@ -58,7 +58,7 @@ export default function ProfileActivityTab({
           {/* 1. Loading state */}
           {isLoadingServerTrips && (
             <div
-              className="p-8 rounded-2xl border border-[#0E1D4F]/10 text-center text-xs text-[#4B5875] flex items-center justify-center gap-3"
+              className="p-8 rounded-xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/35 text-center text-xs text-[#4B5875] flex items-center justify-center gap-3"
               role="status"
             >
               <span className="w-4 h-4 border-2 border-[#205BD6] border-t-transparent rounded-full animate-spin shrink-0"></span>
@@ -69,7 +69,7 @@ export default function ProfileActivityTab({
           {/* 2. Error state */}
           {!isLoadingServerTrips && serverTripsError && (
             <div
-              className="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className="p-5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               role="alert"
             >
               <div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ export default function ProfileActivityTab({
               <button
                 type="button"
                 onClick={onRetry}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold cursor-pointer shrink-0 transition-all"
+                className="min-h-11 rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] cursor-pointer shrink-0"
               >
                 Thử lại
               </button>
@@ -90,7 +90,7 @@ export default function ProfileActivityTab({
 
           {/* 3. Empty state */}
           {!isLoadingServerTrips && !serverTripsError && serverTrips.length === 0 && (
-            <div className="p-8 rounded-2xl border border-[#0E1D4F]/10 text-center text-xs text-[#4B5875]">
+            <div className="p-8 rounded-xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/35 text-center text-xs text-[#4B5875]">
               Chưa có hành trình nào được ghi nhận trên tài khoản của bạn.
             </div>
           )}
@@ -108,7 +108,7 @@ export default function ProfileActivityTab({
                   return (
                     <div
                       key={trip.id}
-                      className="p-4 rounded-2xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      className="p-4 rounded-xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/35 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -134,7 +134,7 @@ export default function ProfileActivityTab({
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <Link href={`/${isConfirmed ? 'trip-plan' : 'planner'}?id=${encodeURIComponent(trip.id)}`} className="px-4 py-3 rounded-xl bg-[#205BD6] text-white text-sm font-semibold">{isConfirmed ? 'Xem lịch trình' : 'Mở bàn làm việc'}</Link>
+                        <Link href={`/${isConfirmed ? 'trip-plan' : 'planner'}?id=${encodeURIComponent(trip.id)}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#205BD6] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]">{isConfirmed ? 'Xem lịch trình' : 'Mở bàn làm việc'}</Link>
                       </div>
                     </div>
                   );
@@ -155,7 +155,7 @@ export default function ProfileActivityTab({
                       type="button"
                       onClick={() => onPageChange(currentPage - 1)}
                       disabled={currentPage <= 1 || isLoadingServerTrips}
-                      className="px-3 py-1.5 rounded-lg border border-[#0E1D4F]/15 text-[#0E1D4F] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-all"
+                      className="min-h-11 rounded-lg border border-[#0E1D4F]/15 px-3 text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:opacity-40 disabled:cursor-not-allowed font-medium"
                     >
                       ← Trang trước
                     </button>
@@ -163,7 +163,7 @@ export default function ProfileActivityTab({
                       type="button"
                       onClick={() => onPageChange(currentPage + 1)}
                       disabled={currentPage >= serverTotalPages || isLoadingServerTrips}
-                      className="px-3 py-1.5 rounded-lg border border-[#0E1D4F]/15 text-[#0E1D4F] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-all"
+                      className="min-h-11 rounded-lg border border-[#0E1D4F]/15 px-3 text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:opacity-40 disabled:cursor-not-allowed font-medium"
                     >
                       Trang sau →
                     </button>
@@ -174,11 +174,11 @@ export default function ProfileActivityTab({
           )}
         </div>
       ) : (
-        <div className="p-8 rounded-2xl border border-[#0E1D4F]/10 text-center text-sm text-[#4B5875]">
+        <div className="p-8 rounded-xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/35 text-center text-sm text-[#4B5875]">
           <p>Đăng nhập để xem nhật ký hành trình của bạn.</p>
-          <Link href="/login" className="inline-block mt-3 text-[#205BD6] font-semibold underline">Đăng nhập</Link>
+          <Link href="/login" className="inline-flex min-h-11 items-center justify-center px-3 mt-3 text-[#205BD6] font-semibold underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]">Đăng nhập</Link>
         </div>
       )}
-    </div>
+    </section>
   );
 }

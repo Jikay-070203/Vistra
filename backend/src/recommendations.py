@@ -7,7 +7,13 @@ from backend.catalog import distance_km
 def candidates(db, destination_id, allow_unverified=False):
     statuses = ('verified', 'schedulable', 'discovered') if allow_unverified else ('verified', 'schedulable')
     placeholders = ','.join('?' for _ in statuses)
-    return details(db, rows(db, f"""SELECT p.* FROM places p
+    return details(db, rows(db, f"""SELECT p.*,
+        (SELECT COALESCE(NULLIF(pi.thumbnail_url, ''), pi.image_url)
+           FROM place_images pi
+          WHERE pi.place_id=p.id
+          ORDER BY pi.created_at ASC, pi.id ASC
+          LIMIT 1) AS image_url
+        FROM places p
         WHERE p.destination_id=? AND p.quality_status IN ({placeholders})
         AND EXISTS (SELECT 1 FROM place_sources s WHERE s.place_id=p.id)
         AND NOT EXISTS (SELECT 1 FROM dedupe_candidates d

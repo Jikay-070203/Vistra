@@ -17,7 +17,7 @@ export default async function AdminLayout({
   // If rendering the /admin/login page, do not render AdminNavigation
   if (isLoginPage) {
     return (
-      <div className="min-h-screen bg-[#EBF1F0] flex flex-col">
+      <div className="min-h-screen bg-warm-paper flex flex-col">
         <div className="flex-1 w-full">
           {children}
         </div>
@@ -39,7 +39,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#EBF1F0] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-warm-paper flex flex-col md:flex-row">
       <AdminNavigation />
       <div className="flex-1 min-w-0 flex flex-col">
         {children}

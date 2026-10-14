@@ -151,10 +151,10 @@ export default function AdminNavigation() {
           <Link
             key={item.id}
             href={item.href}
-            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex min-h-11 items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
               active
                 ? 'bg-[#205BD6] text-white shadow-xs'
-                : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/70'
+                : 'text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper'
             }`}
             aria-current={active ? 'page' : undefined}
           >
@@ -165,7 +165,7 @@ export default function AdminNavigation() {
             {item.badge !== undefined && (
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                  active ? 'bg-white text-[#205BD6]' : 'bg-[#E7AD2E] text-white'
+                active ? 'bg-warm-surface text-[#205BD6]' : 'bg-[#E7AD2E] text-[#0E1D4F]'
                 }`}
                 title={`${item.badge} phản hồi chưa phân loại`}
               >
@@ -181,7 +181,7 @@ export default function AdminNavigation() {
   return (
     <>
       {/* Mobile Top Header (print:hidden) */}
-      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#0E1D4F]/10 px-4 py-3 flex items-center justify-between print:hidden">
+      <header className="md:hidden sticky top-0 z-30 h-16 bg-warm-paper border-b border-[#0E1D4F]/10 px-4 flex items-center justify-between print:hidden">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#0E1D4F] text-white flex items-center justify-center shrink-0">
             <Icon name="admin_panel_settings" className="size-4" />
@@ -200,9 +200,10 @@ export default function AdminNavigation() {
           ref={toggleBtnRef}
           type="button"
           onClick={() => setIsMobileOpen(true)}
-          className="p-2 rounded-xl text-[#0E1D4F] hover:bg-[#EBF1F0] transition-colors cursor-pointer"
+          className="min-w-11 min-h-11 grid place-items-center rounded-lg text-[#0E1D4F] hover:bg-warm-surface transition-colors cursor-pointer"
           aria-label="Mở menu quản trị"
           aria-expanded={isMobileOpen}
+          aria-controls="admin-navigation-mobile"
         >
           <Icon name="menu" className="size-5" />
         </button>
@@ -220,12 +221,13 @@ export default function AdminNavigation() {
       {isMobileOpen && (
       <div
         ref={drawerRef}
+        id="admin-navigation-mobile"
         role="dialog"
         aria-modal="true"
         aria-label="Menu quản trị"
-        className="md:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white flex flex-col shadow-2xl"
+        className="md:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-warm-surface flex flex-col shadow-xl"
       >
-        <div className="p-4 border-b border-[#0E1D4F]/10 flex items-center justify-between">
+        <div className="min-h-16 p-4 border-b border-[#0E1D4F]/10 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[#0E1D4F] text-white flex items-center justify-center shrink-0">
               <Icon name="admin_panel_settings" className="size-4" />
@@ -245,7 +247,7 @@ export default function AdminNavigation() {
               setIsMobileOpen(false);
               toggleBtnRef.current?.focus();
             }}
-            className="p-1.5 rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0] cursor-pointer"
+            className="min-w-11 min-h-11 grid place-items-center rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper cursor-pointer"
             aria-label="Đóng menu quản trị"
           >
             <Icon name="close" className="size-5" />
@@ -259,7 +261,7 @@ export default function AdminNavigation() {
         <div className="p-4 border-t border-[#0E1D4F]/10 space-y-2">
           <Link
             href="/"
-            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/70 transition-all"
+            className="flex min-h-11 items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper transition-colors"
           >
             <Icon name="arrow_back" className="size-4" />
             <span>Về trang du khách</span>
@@ -268,7 +270,7 @@ export default function AdminNavigation() {
             type="button"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#ba1a1a] hover:bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full min-h-11 flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-medium text-[#ba1a1a] hover:bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 transition-colors cursor-pointer disabled:opacity-50"
           >
             {isLoggingOut ? (
               <Icon name="sync" className="size-4 animate-spin" />
@@ -283,7 +285,7 @@ export default function AdminNavigation() {
 
       {/* Desktop Sidebar (print:hidden) */}
       <aside
-        className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-white border-r border-[#0E1D4F]/10 flex-col sticky top-0 h-screen z-20 shadow-xs print:hidden"
+        className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-warm-surface border-r border-[#0E1D4F]/10 flex-col sticky top-0 h-dvh z-20 print:hidden"
         aria-label="Thanh bên Quản trị"
       >
         {/* Brand Header */}
@@ -312,7 +314,7 @@ export default function AdminNavigation() {
         <div className="p-4 border-t border-[#0E1D4F]/10 space-y-2">
           <Link
             href="/"
-            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-[#EBF1F0]/70 transition-all"
+            className="flex min-h-11 items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper transition-colors"
             title="Quay lại giao diện dành cho du khách"
           >
             <Icon name="arrow_back" className="size-4" />
@@ -322,7 +324,7 @@ export default function AdminNavigation() {
             type="button"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#ba1a1a] hover:bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full min-h-11 flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-semibold text-[#ba1a1a] hover:bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 transition-colors cursor-pointer disabled:opacity-50"
             title="Đăng xuất khỏi phiên Quản trị viên"
             aria-label="Đăng xuất"
           >

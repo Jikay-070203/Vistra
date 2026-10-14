@@ -1,17 +1,19 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import SiteChrome from '@/components/layout/SiteChrome';
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const plusJakartaSans = localFont({
+  src: '../../public/fonts/plus-jakarta-sans/PlusJakartaSans-variable.ttf',
   variable: '--font-body',
-  subsets: ['latin', 'vietnamese'],
+  weight: '400 800',
   display: 'swap',
 });
 
-const inter = Inter({
+const inter = localFont({
+  src: '../../public/fonts/inter/Inter-variable.ttf',
   variable: '--font-label',
-  subsets: ['latin', 'vietnamese'],
+  weight: '400 900',
   display: 'swap',
 });
 
@@ -27,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={`${plusJakartaSans.variable} ${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#EBF1F0] text-[#0E1D4F]">
+      <body className="min-h-full flex flex-col bg-warm-paper text-[#0E1D4F]">
         <SiteChrome>
           {children}
         </SiteChrome>

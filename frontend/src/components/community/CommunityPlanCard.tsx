@@ -36,11 +36,11 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
 
   return (
     <article
-      className="bg-white/90 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 shadow-xs hover:border-[#0E1D4F]/25 transition-all flex flex-col justify-between overflow-hidden group select-none"
+      className="group flex select-none flex-col justify-between overflow-hidden rounded-xl border border-[#0E1D4F]/12 bg-warm-surface shadow-sm transition-shadow hover:shadow-md"
     >
       {/* Photo Container */}
-      <div className="relative h-40 w-full overflow-hidden bg-[#EBF1F0]">
-        <Link href={`/trip-plan?id=${encodeURIComponent(plan.id)}`} className="absolute inset-0" aria-label={`Xem lịch trình ${plan.title}`}>
+      <div className="relative h-44 w-full overflow-hidden bg-[#EBF1F0]">
+        <Link href={`/trip-plan?id=${encodeURIComponent(plan.id)}`} className="absolute inset-0 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#205BD6]" aria-label={`Xem lịch trình ${plan.title}`}>
         {plan.coverImageUrl ? (
           <Image
             src={plan.coverImageUrl}
@@ -60,10 +60,10 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
         </Link>
 
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-          <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-xs text-white text-[10px] font-label-caps font-semibold">
+          <span className="rounded bg-[#0E1D4F]/85 px-2.5 py-1 text-[11px] font-label-caps font-semibold text-white">
             {plan.durationDays} ngày
           </span>
-          <span className="px-2 py-0.5 rounded bg-blue-600/90 backdrop-blur-xs text-white text-[10px] font-label-caps font-semibold shadow-xs">
+          <span className="rounded bg-[#205BD6] px-2.5 py-1 text-[11px] font-label-caps font-semibold text-white">
             MÁY CHỦ
           </span>
         </div>
@@ -74,10 +74,10 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
           onClick={(e) => onToggleLike(e, plan.id)}
           disabled={likePending}
           aria-busy={likePending}
-          className={`absolute top-2.5 right-2.5 w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed z-10 ${
+          className={`absolute right-2.5 top-2.5 z-10 flex size-11 items-center justify-center rounded-full border border-white/70 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50 ${
             isLiked
               ? 'bg-rose-500 text-white shadow-xs'
-              : 'bg-white/80 hover:bg-white text-[#4B5875]'
+              : 'bg-warm-surface text-[#4B5875] hover:bg-white'
           }`}
           title={isLiked ? 'Bỏ thích hành trình này' : 'Thích hành trình này'}
           aria-label={isLiked ? 'Bỏ thích hành trình' : 'Thích hành trình'}
@@ -86,21 +86,21 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
           <Icon name={isLiked ? 'favorite' : 'favorite_border'} className="size-3.5" />
         </button>
 
-        <div className="absolute bottom-2 left-2.5 text-white drop-shadow-md text-[11px] font-medium bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs z-10">
+        <div className="absolute bottom-2 left-2.5 z-10 rounded bg-[#0E1D4F]/85 px-2.5 py-1 text-xs font-medium text-white">
           {datesText}
         </div>
       </div>
 
       {/* Card Content Body */}
-      <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
+      <div className="flex flex-1 flex-col justify-between space-y-3 p-4">
         <div>
           {/* Destination and Likes Count */}
           <div className="flex items-center justify-between text-[11px] text-[#4B5875] mb-1">
-            <span className="text-[#205BD6] font-semibold truncate max-w-[130px] flex items-center gap-1">
+            <span className="flex max-w-[150px] items-center gap-1 truncate font-semibold text-[#0E1D4F]">
               <Icon name="location_on" className="size-3 text-[#08B3C6] shrink-0" />
               <span className="truncate">{plan.destination}</span>
             </span>
-            <span className="flex items-center gap-1 text-[10px]">
+            <span className="flex items-center gap-1 text-xs">
               <Icon
                 name={isLiked ? 'favorite' : 'favorite_border'}
                 className={`size-3 ${isLiked ? 'text-rose-500' : 'text-[#4B5875]'}`}
@@ -109,18 +109,18 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
             </span>
           </div>
 
-          <Link href={`/trip-plan?id=${encodeURIComponent(plan.id)}`} className="font-headline-sm text-xs sm:text-sm font-bold text-[#0E1D4F] line-clamp-2 leading-snug hover:text-[#205BD6]">
+          <Link href={`/trip-plan?id=${encodeURIComponent(plan.id)}`} className="font-headline-sm text-sm font-bold leading-snug text-[#0E1D4F] line-clamp-2 hover:text-[#205BD6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] sm:text-base">
             {plan.title}
           </Link>
 
-          <div className="text-[11px] text-[#4B5875] mt-1.5 flex items-center justify-between">
+          <div className="mt-2 flex items-center justify-between border-t border-[#0E1D4F]/10 pt-2 text-xs text-[#4B5875]">
             <span>Ngân sách:</span>
             <span className="font-semibold text-[#0E1D4F]">{budgetText}</span>
           </div>
         </div>
 
         {/* Copy uses the published server plan. */}
-        <div className="pt-2 border-t border-[#0E1D4F]/10 flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 border-t border-[#0E1D4F]/10 pt-3">
           <span className="text-[10px] text-[#4B5875]/80 truncate">
             Chưa có thông tin tác giả
           </span>
@@ -129,7 +129,7 @@ export const CommunityPlanCard = React.memo(function CommunityPlanCard({
             type="button"
             disabled={clonePending}
             onClick={() => onClone(plan.id)}
-            className="min-h-11 px-3 py-2 rounded-lg bg-slate-100 text-[#4B5875] text-[10px] font-semibold border border-slate-200/80 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 shrink-0"
+            className="min-h-11 shrink-0 rounded-lg border border-[#0E1D4F]/20 bg-[#EBF1F0] px-3 py-2 text-xs font-semibold text-[#0E1D4F] transition-colors hover:bg-[#E1E9E6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-60"
             title="Tạo bản sao hành trình vào chuyến đi của tôi"
             aria-busy={clonePending}
           >

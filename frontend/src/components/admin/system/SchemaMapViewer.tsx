@@ -68,13 +68,13 @@ export default function SchemaMapViewer() {
   const activeRecords = records?.key === recordsKey ? records.data : null;
   const recordsError = records?.key === recordsKey ? records.error : null;
   const totalPages = activeRecords ? Math.ceil(activeRecords.total / activeRecords.pageSize) : 0;
-  const button = 'inline-flex items-center gap-2 rounded-xl border border-[#0E1D4F]/15 px-3.5 py-2 text-xs font-semibold text-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50';
+  const button = 'inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#0E1D4F]/15 px-3.5 py-2 text-xs font-semibold text-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]';
   const metadataError = metadata?.accountId === accountId ? metadata.error : null;
   const tables = metadata?.accountId === accountId ? metadata.data.tables : [];
 
   return <div className="space-y-6">
     {accountId && <AdminDataImporter key={accountId} onProcessed={() => setReload(value => value + 1)} />}
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm">
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm">
       <div>
         <h2 className="text-xl font-bold text-[#0E1D4F]">Dữ liệu thực thể</h2>
         <p className="mt-1 text-sm text-[#4B5875]">Viewer thực thể chỉ hỗ trợ đọc. Nhập địa điểm và ảnh dùng importer chuyên biệt phía trên.</p>
@@ -82,39 +82,39 @@ export default function SchemaMapViewer() {
       <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">Viewer chỉ đọc · Chưa có CRUD thực thể tổng quát</span>
     </div>
 
-    {!accountId ? <p className="rounded-2xl border border-[#0E1D4F]/10 bg-white p-5 text-sm text-[#4B5875]">Cần phiên quản trị để xem dữ liệu.</p> : <>
+    {!accountId ? <p className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 text-sm text-[#4B5875]">Cần phiên quản trị để xem dữ liệu.</p> : <>
       {metadataError && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{metadataError}</p>}
       {!metadata && <p role="status" className="text-sm text-[#4B5875]">Đang tải metadata bảng…</p>}
-      {metadata && !metadataError && tables.length === 0 && <p className="rounded-2xl border border-[#0E1D4F]/10 bg-white p-5 text-sm text-[#4B5875]">Backend chưa trả metadata bảng.</p>}
-      {tables.length > 0 && <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
-        <aside className="space-y-2 rounded-3xl border border-[#0E1D4F]/10 bg-white p-4 shadow-sm">
-          <h3 className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500">Bảng trong backend</h3>
+      {metadata && !metadataError && tables.length === 0 && <p className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 text-sm text-[#4B5875]">Backend chưa trả metadata bảng.</p>}
+      {tables.length > 0 && <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-4">
+        <aside className="space-y-2 rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-4 shadow-sm">
+          <h3 className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#4B5875]">Bảng trong backend</h3>
           {tables.map(item => <button
             key={item.tableName}
             type="button"
             onClick={() => { setSelectedTableId(item.tableName); setPage(1); setQuery(''); setQueryDraft(''); }}
             className={`flex w-full items-center justify-between gap-2 rounded-2xl p-3 text-left text-xs font-semibold transition-colors ${
-              item.tableName === selectedTableId ? 'bg-[#205BD6] text-white' : 'text-slate-700 hover:bg-slate-100'
+              item.tableName === selectedTableId ? 'bg-[#205BD6] text-white' : 'text-[#4B5875] hover:bg-warm-paper'
             }`}
           >
-            <span className="min-w-0"><span className="block truncate font-bold">{item.name}</span><span className={`block truncate font-mono text-[11px] ${item.tableName === selectedTableId ? 'text-blue-100' : 'text-slate-400'}`}>{item.tableName}</span></span>
+            <span className="min-w-0"><span className="block truncate font-bold">{item.name}</span><span className={`block truncate font-mono text-[11px] ${item.tableName === selectedTableId ? 'text-blue-100' : 'text-[#4B5875]'}`}>{item.tableName}</span></span>
             <span className="shrink-0 rounded-full bg-black/5 px-2 py-0.5 text-[10px]">{item.recordCount.toLocaleString('vi-VN')}</span>
           </button>)}
         </aside>
 
-        {table && <section className="min-w-0 space-y-6 lg:col-span-3">
-          <div className="overflow-hidden rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm">
+        {table && <section className="min-w-0 space-y-6 xl:col-span-3">
+          <div className="overflow-hidden rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm">
             <div className="mb-4">
               <h3 className="text-base font-bold text-[#0E1D4F]">{table.name}</h3>
               <p className="mt-1 text-xs text-[#4B5875]">{table.description}</p>
             </div>
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+            <div className="overflow-x-auto rounded-2xl border border-[#0E1D4F]/10">
               <table className="w-full min-w-[560px] text-left text-xs">
-                <thead className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase text-slate-700">
+                <thead className="border-b border-[#0E1D4F]/10 bg-warm-paper text-[11px] uppercase text-[#4B5875]">
                   <tr><th className="px-4 py-3">Tên trường</th><th className="px-4 py-3">Kiểu dữ liệu</th><th className="px-4 py-3">Bắt buộc</th></tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {table.fields.map(field => <tr key={field.name} className="hover:bg-slate-50">
+                <tbody className="divide-y divide-[#0E1D4F]/10">
+                  {table.fields.map(field => <tr key={field.name} className="hover:bg-warm-paper">
                     <td className="px-4 py-3 font-mono font-semibold text-[#0E1D4F]">{field.name}</td>
                     <td className="px-4 py-3 font-mono text-blue-700">{field.type}</td>
                     <td className="px-4 py-3">{field.required ? 'Có' : 'Không'}</td>
@@ -124,7 +124,7 @@ export default function SchemaMapViewer() {
             </div>
           </div>
 
-          <div className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm">
+          <div className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div><h3 className="text-base font-bold text-[#0E1D4F]">Bản ghi</h3><p className="mt-1 text-xs text-[#4B5875]">Mỗi trang tối đa {PAGE_SIZE} bản ghi.</p></div>
               <button type="button" onClick={() => setReload(value => value + 1)} className={button}><Icon name="sync" size={14} />Tải lại</button>
@@ -136,14 +136,14 @@ export default function SchemaMapViewer() {
             </form>
             {recordsError && <p role="alert" className="text-sm text-rose-700">{recordsError}</p>}
             {!recordsError && !activeRecords && <p role="status" className="text-sm text-[#4B5875]">Đang tải bản ghi…</p>}
-            {activeRecords && (activeRecords.items.length === 0 ? <p className="text-sm text-[#4B5875]">Không có bản ghi phù hợp.</p> : <div className="overflow-x-auto rounded-2xl border border-slate-200">
+            {activeRecords && (activeRecords.items.length === 0 ? <p className="text-sm text-[#4B5875]">Không có bản ghi phù hợp.</p> : <div className="overflow-x-auto rounded-2xl border border-[#0E1D4F]/10">
               <table className="w-full min-w-[700px] text-left text-xs">
-                <thead className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase text-slate-700">
+                <thead className="border-b border-[#0E1D4F]/10 bg-warm-paper text-[11px] uppercase text-[#4B5875]">
                   <tr>{table.fields.map(field => <th key={field.name} className="px-4 py-3">{field.name}</th>)}</tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {activeRecords.items.map((row, index) => <tr key={String(row.id ?? index)} className="hover:bg-slate-50">
-                    {table.fields.map(field => <td key={field.name} className="max-w-64 px-4 py-3 text-slate-700" title={displayValue(row[field.name])}><span className="block truncate">{displayValue(row[field.name])}</span></td>)}
+                <tbody className="divide-y divide-[#0E1D4F]/10">
+                  {activeRecords.items.map((row, index) => <tr key={String(row.id ?? index)} className="hover:bg-warm-paper">
+                    {table.fields.map(field => <td key={field.name} className="max-w-64 px-4 py-3 text-[#4B5875]" title={displayValue(row[field.name])}><span className="block truncate">{displayValue(row[field.name])}</span></td>)}
                   </tr>)}
                 </tbody>
               </table>

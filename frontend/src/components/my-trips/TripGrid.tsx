@@ -30,7 +30,7 @@ export default function TripGrid({
 
   if (plans.length === 0) {
     return (
-      <div className="bg-white/60 backdrop-blur-md rounded-2xl border border-[#0E1D4F]/10 p-12 text-center flex flex-col items-center justify-center my-6">
+      <div className="bg-warm-surface rounded-2xl border border-[#0E1D4F]/10 p-8 sm:p-12 text-center flex flex-col items-center justify-center my-6">
         <div className="w-12 h-12 rounded-2xl bg-[#EBF1F0] flex items-center justify-center text-[#4B5875] mb-3">
           <Icon name="search_off" className="size-6" />
         </div>
@@ -43,7 +43,7 @@ export default function TripGrid({
         <button
           type="button"
           onClick={onClearFilters}
-          className="mt-4 px-4 py-2 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors cursor-pointer"
+          className="mt-4 min-h-11 px-4 py-2 bg-[#205BD6] text-white text-xs font-semibold rounded-xl hover:bg-[#1847a8] transition-colors cursor-pointer"
         >
           Xóa bộ lọc tìm kiếm
         </button>
@@ -74,7 +74,7 @@ export default function TripGrid({
               type="button"
               disabled={currentPage === 1}
               onClick={() => changePage(Math.max(1, currentPage - 1))}
-              className="p-2 rounded-xl bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-warm-surface border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-warm-paper transition-colors cursor-pointer"
               aria-label="Trang trước"
             >
               <Icon name="chevron_left" className="size-4" />
@@ -90,10 +90,10 @@ export default function TripGrid({
                   onClick={() => changePage(pageNum)}
                   aria-current={isSelected ? 'page' : undefined}
                   aria-label={`Trang ${pageNum}`}
-                  className={`w-9 h-9 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[#205BD6] text-white shadow-xs'
-                      : 'bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] hover:bg-[#EBF1F0]'
+                      : 'bg-warm-surface border border-[#0E1D4F]/10 text-[#0E1D4F] hover:bg-warm-paper'
                   }`}
                 >
                   {pageNum}
@@ -105,7 +105,7 @@ export default function TripGrid({
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => changePage(Math.min(totalPages, currentPage + 1))}
-              className="p-2 rounded-xl bg-white border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#EBF1F0] transition-colors cursor-pointer"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-warm-surface border border-[#0E1D4F]/10 text-[#0E1D4F] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-warm-paper transition-colors cursor-pointer"
               aria-label="Trang sau"
             >
               <Icon name="chevron_right" className="size-4" />

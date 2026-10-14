@@ -39,6 +39,7 @@ function place(value: unknown): PlaceDto {
     destination_id: number(item.destination_id, 'place.destination_id'),
     ...(item.destination === undefined ? {} : { destination: string(item.destination, 'place.destination') }),
     display_name: string(item.display_name, 'place.display_name'),
+    ...(item.image_url === undefined ? {} : { image_url: nullable(item.image_url, string, 'place.image_url') }),
     normalized_name: string(item.normalized_name, 'place.normalized_name'),
     address: nullable(item.address, string, 'place.address'),
     latitude: number(item.latitude, 'place.latitude'),

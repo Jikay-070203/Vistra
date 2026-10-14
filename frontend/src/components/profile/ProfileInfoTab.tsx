@@ -32,7 +32,7 @@ export default function ProfileInfoTab({
   onRetry,
 }: ProfileInfoTabProps) {
   if (!isLoggedIn) return (
-    <div className="bg-white rounded-3xl p-8 border border-[#0E1D4F]/10 text-center text-sm text-[#4B5875]">
+    <div className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-8 text-center text-sm text-[#4B5875]">
       <p>Đăng nhập để xem và cập nhật hồ sơ của bạn.</p>
       <Link href="/login" className="inline-block mt-3 font-semibold text-[#205BD6] underline">Đăng nhập</Link>
     </div>
@@ -85,8 +85,8 @@ export default function ProfileInfoTab({
       )}
 
       {/* Main Info Form & Preferences */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-7">
+        <div className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 sm:p-7 lg:col-span-2">
           <h2 className="font-headline-sm text-xl text-[#0E1D4F] font-bold mb-1">
             Thông tin liên hệ & Điểm xuất phát
           </h2>
@@ -97,10 +97,11 @@ export default function ProfileInfoTab({
           <form onSubmit={handleSave} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                <label htmlFor="profile-full-name" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#0E1D4F]">
                   Họ và tên
                 </label>
                 <input
+                  id="profile-full-name"
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -110,10 +111,11 @@ export default function ProfileInfoTab({
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                <label htmlFor="profile-email" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#0E1D4F]">
                   Địa chỉ email
                 </label>
                 <input
+                  id="profile-email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -126,10 +128,11 @@ export default function ProfileInfoTab({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                <label htmlFor="profile-phone" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#0E1D4F]">
                   Số điện thoại
                 </label>
                 <input
+                  id="profile-phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -138,10 +141,11 @@ export default function ProfileInfoTab({
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+                <label htmlFor="profile-origin" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#0E1D4F]">
                   Điểm xuất phát mặc định
                 </label>
                 <input
+                  id="profile-origin"
                   type="text"
                   value={formData.defaultOrigin}
                   onChange={(e) => setFormData({ ...formData, defaultOrigin: e.target.value })}
@@ -153,10 +157,11 @@ export default function ProfileInfoTab({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#0E1D4F] uppercase tracking-wider mb-2">
+              <label htmlFor="profile-bio" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#0E1D4F]">
                 Tiểu sử & Phong cách di chuyển cá nhân
               </label>
               <textarea
+                id="profile-bio"
                 rows={3}
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
@@ -172,7 +177,7 @@ export default function ProfileInfoTab({
               <button
                 type="submit"
                 disabled={isSaving || isLoading || !hasLoadedProfile}
-                className="px-6 py-3 rounded-full bg-[#205BD6] text-white text-sm font-bold shadow-md hover:bg-[#205BD6]/90 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#205BD6] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSaving && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -184,7 +189,7 @@ export default function ProfileInfoTab({
         </div>
 
         {/* Side Preference Card */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col justify-between">
+        <div className="flex flex-col justify-between rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 sm:p-7">
           <div>
             <h3 className="font-headline-sm text-lg text-[#0E1D4F] font-bold mb-2">
               Tùy chọn trải nghiệm mặc định
@@ -194,17 +199,17 @@ export default function ProfileInfoTab({
             </p>
 
             <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
+              <div className="rounded-lg border border-[#0E1D4F]/10 bg-[#EBF1F0]/50 p-3.5">
                 <div className="text-xs font-bold text-[#0E1D4F] mb-1">Nhịp độ hành trình:</div>
                 <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredPace || 'Chưa thiết lập'}</div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
+              <div className="rounded-lg border border-[#0E1D4F]/10 bg-[#EBF1F0]/50 p-3.5">
                 <div className="text-xs font-bold text-[#0E1D4F] mb-1">Gu lưu trú:</div>
                 <div className="text-xs text-[#205BD6] font-semibold">{formData.preferredStay || 'Chưa thiết lập'}</div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-[#EBF1F0]/40 border border-[#0E1D4F]/5">
+              <div className="rounded-lg border border-[#0E1D4F]/10 bg-[#EBF1F0]/50 p-3.5">
                 <div className="text-xs font-bold text-[#0E1D4F] mb-1">Khẩu vị trải nghiệm:</div>
                 <div className="text-xs text-[#205BD6] font-semibold">{formData.dietaryPreference || 'Chưa thiết lập'}</div>
               </div>

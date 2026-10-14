@@ -42,10 +42,10 @@ export default function SafetyGuardrailPanel() {
     }
   };
 
-  const input = 'w-full rounded-xl border border-[#0E1D4F]/20 bg-white px-3 py-2.5 text-sm text-[#0E1D4F]';
-  const button = 'rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50';
+  const input = 'w-full rounded-xl border border-[#0E1D4F]/20 bg-warm-surface px-3 py-2.5 text-sm text-[#0E1D4F]';
+  const button = 'min-h-11 rounded-xl border border-[#0E1D4F]/15 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]';
 
-  return <section className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm">
+  return <section className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm">
     <div>
       <h2 className="text-lg font-bold text-[#0E1D4F]">Kiểm thử Prompt Injection &amp; Safety Guardrails</h2>
       <p className="mt-1 text-sm text-[#4B5875]">API hiện ở chế độ tham chiếu; phản hồi không đo lường guardrail hoặc đánh giá model thật.</p>
@@ -81,7 +81,7 @@ export default function SafetyGuardrailPanel() {
         <p><strong>Thời gian:</strong> {result.latencyMs == null ? 'Chưa có dữ liệu' : `${result.latencyMs} ms`}</p>
         <details>
           <summary className="cursor-pointer font-semibold">Xem phản hồi từ API</summary>
-          <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-white/70 p-3 text-xs">{JSON.stringify(result, null, 2)}</pre>
+          <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-warm-surface p-3 text-xs">{JSON.stringify(result, null, 2)}</pre>
         </details>
       </div>}
     </>}

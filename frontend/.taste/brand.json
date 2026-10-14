@@ -1,0 +1,286 @@
+{
+  "version": 1,
+  "foundation": {
+    "strategy": "preserve",
+    "existingAssets": [
+      ".taste/brand.json and src/app/globals.css: existing VISTRA palette, layout, and motion tokens.",
+      "src/app/layout.tsx and public/fonts/: locally loaded Plus Jakarta Sans and Inter; Vietnamese interface.",
+      "src/components/layout/Navbar.tsx and src/components/landing/LandingHeader.tsx: VISTRA text wordmark and existing navigation icon.",
+      "src/components/ui/Icon.tsx: shared functional icons.",
+      "src/components/landing/LandingPage.tsx, public/landing/hero-inspiration.jpg, and existing destination photos: current photo-led travel landing page.",
+      "src/components/shared/VistraMap.tsx and existing route/stop visuals: geographic context for real itinerary information.",
+      "Supplied desktop and mobile references, including Waveyu team carousel controls and image-led layouts; other references show unrelated brands and subjects."
+    ],
+    "assetActions": [
+      {
+        "asset": "VISTRA palette and tokens in .taste/brand.json and src/app/globals.css",
+        "action": "preserve",
+        "reason": "Keep the defined colors and their current light and dark roles."
+      },
+      {
+        "asset": "Plus Jakarta Sans and Inter in src/app/layout.tsx",
+        "action": "protect",
+        "reason": "They are the existing locally loaded type system."
+      },
+      {
+        "asset": "VISTRA text wordmark and src/components/ui/Icon.tsx",
+        "action": "preserve",
+        "reason": "Keep the existing identity and functional icon set; no separate logo file is established."
+      },
+      {
+        "asset": "Existing hero, destination photos, and VistraMap",
+        "action": "preserve",
+        "reason": "Keep imagery and geographic visuals that already support the travel content; retain available attribution and verify any unresolved photo provenance before reuse elsewhere."
+      },
+      {
+        "asset": "Supplied reference images",
+        "action": "preserve",
+        "reason": "Use only relevant composition and carousel-control cues; do not import unrelated logos, colors, copy, people, or artwork."
+      }
+    ],
+    "lockedDecisions": [
+      "Keep the current VISTRA identity, wordmark, palette, Vietnamese interface, and Plus Jakarta Sans and Inter roles.",
+      "Keep the current Landing Page structure and routes; this brief concerns autoplay behavior, not a redesign.",
+      "Retain manual, keyboard, and touch controls and visible selected states wherever autoplay is intended.",
+      "Pause autoplay during user interaction and when reduced motion is requested; never auto-confirm or save a trip."
+    ],
+    "assumptions": [
+      "Apply autoplay only to intended interactive regions that are actually rendered on route /; do not animate static content just to create motion.",
+      "Use existing configured intervals where available; pause a sequence while it is offscreen, focused, hovered, or being touched, then resume only when appropriate.",
+      "The selected references are visually diverse, so VISTRA’s existing system takes priority over their unrelated visual identities.",
+      "This phase records brand direction only; autoplay timing and behavior have not been verified in a browser."
+    ]
+  },
+  "creativeDirection": {
+    "summary": "Giữ chất du lịch ảnh thật và sắc thái biên tập ấm của VISTRA. Chuyển động làm rõ thứ tự điểm đến và trạng thái được chọn, nhưng luôn để người dùng chủ động điều khiển.",
+    "traits": [
+      {
+        "quality": "Ảnh địa điểm rõ ràng, có khung hình và điểm nhìn dễ nhận biết.",
+        "boundary": "not ảnh ghép du lịch chung chung hoặc bản đồ trang trí"
+      },
+      {
+        "quality": "Tiêu đề và nội dung giữ phân cấp hiện có; điều khiển tự chạy có trạng thái chọn dễ thấy.",
+        "boundary": "not chữ nhãn dày đặc hoặc hiệu ứng khiến nội dung khó đọc"
+      },
+      {
+        "quality": "Tự chạy chuyển từng trạng thái ngắn, theo nhịp nội dung và dừng được.",
+        "boundary": "not chuyển động lặp vô hạn khi người dùng đang tương tác"
+      }
+    ],
+    "productiveTension": "Ảnh du lịch tạo cảm hứng, còn bản đồ và bản xem trước giữ cảm giác thực tế, rõ ràng và do người dùng kiểm soát.",
+    "signatureDevice": {
+      "description": "Đường tuyến và điểm dừng hiện có nối các địa điểm thật theo thứ tự hành trình.",
+      "status": "existing",
+      "invariants": [
+        "Chỉ vẽ tuyến khi thể hiện điểm dừng hoặc địa lý thật.",
+        "Giữ thứ tự tuyến khớp với hành trình.",
+        "Kèm tên địa điểm hoặc ngữ cảnh dễ đọc.",
+        "Không lặp đường tuyến như họa tiết trang trí."
+      ]
+    },
+    "restraint": "Giữ chuyển động bên trong khung ảnh hoặc nhóm nội dung hiện có; không thêm hiệu ứng trang trí để mô phỏng autoplay.",
+    "avoid": [
+      "Đổi màu, font hoặc logo VISTRA theo các thương hiệu trong ảnh tham chiếu.",
+      "Tự chạy nội dung tĩnh hoặc tự xác nhận, lưu lựa chọn chuyến đi.",
+      "Bản đồ trang trí, ảnh ghép chung chung, hoặc hộp bao quanh đoạn văn thường.",
+      "transition: all, hiệu ứng phóng từ kích thước 0, thông tin chỉ hiện khi hover.",
+      "Chuyển động liên tục, cuộn cưỡng bức, hoặc trạng thái ẩn khi JavaScript không chạy."
+    ]
+  },
+  "colorPalette": [
+    {
+      "name": "Light Canvas",
+      "value": "#F5F2E9",
+      "usage": "Dominant. canvas token in the light theme."
+    },
+    {
+      "name": "Light Surface",
+      "value": "#FFFEFA",
+      "usage": "Dominant. surface token in the light theme."
+    },
+    {
+      "name": "Light Surface alt",
+      "value": "#EBF1F0",
+      "usage": "Supporting. surface alt token in the light theme."
+    },
+    {
+      "name": "Light Text",
+      "value": "#0E1D4F",
+      "usage": "Semantic. text token in the light theme."
+    },
+    {
+      "name": "Light Text muted",
+      "value": "#4B5875",
+      "usage": "Semantic. text muted token in the light theme."
+    },
+    {
+      "name": "Light Divider",
+      "value": "#C4D3D1",
+      "usage": "Semantic. divider token in the light theme."
+    },
+    {
+      "name": "Light Control border",
+      "value": "#4B5875",
+      "usage": "Semantic. control border token in the light theme."
+    },
+    {
+      "name": "Light Accent",
+      "value": "#205BD6",
+      "usage": "Sparse accent. accent token in the light theme."
+    },
+    {
+      "name": "Light Accent hover",
+      "value": "#0739A8",
+      "usage": "Semantic. accent hover token in the light theme."
+    },
+    {
+      "name": "Light On accent",
+      "value": "#FFFFFF",
+      "usage": "Semantic. on accent token in the light theme."
+    },
+    {
+      "name": "Light Accent text",
+      "value": "#0739A8",
+      "usage": "Sparse accent. accent text token in the light theme."
+    },
+    {
+      "name": "Light Focus ring",
+      "value": "#205BD6",
+      "usage": "Semantic. focus ring token in the light theme."
+    },
+    {
+      "name": "Dark Canvas",
+      "value": "#0E1D4F",
+      "usage": "Dominant. canvas token in the dark theme."
+    },
+    {
+      "name": "Dark Surface",
+      "value": "#0E1D4F",
+      "usage": "Dominant. surface token in the dark theme."
+    },
+    {
+      "name": "Dark Surface alt",
+      "value": "#0739A8",
+      "usage": "Supporting. surface alt token in the dark theme."
+    },
+    {
+      "name": "Dark Text",
+      "value": "#FFFFFF",
+      "usage": "Semantic. text token in the dark theme."
+    },
+    {
+      "name": "Dark Text muted",
+      "value": "#9DD8E2",
+      "usage": "Semantic. text muted token in the dark theme."
+    },
+    {
+      "name": "Dark Divider",
+      "value": "#4B5875",
+      "usage": "Semantic. divider token in the dark theme."
+    },
+    {
+      "name": "Dark Control border",
+      "value": "#08B3C6",
+      "usage": "Semantic. control border token in the dark theme."
+    },
+    {
+      "name": "Dark Accent",
+      "value": "#08B3C6",
+      "usage": "Sparse accent. accent token in the dark theme."
+    },
+    {
+      "name": "Dark Accent hover",
+      "value": "#15A6B4",
+      "usage": "Semantic. accent hover token in the dark theme."
+    },
+    {
+      "name": "Dark On accent",
+      "value": "#0E1D4F",
+      "usage": "Semantic. on accent token in the dark theme."
+    },
+    {
+      "name": "Dark Accent text",
+      "value": "#E7AD2E",
+      "usage": "Sparse accent. accent text token in the dark theme."
+    },
+    {
+      "name": "Dark Focus ring",
+      "value": "#F4DB38",
+      "usage": "Semantic. focus ring token in the dark theme."
+    }
+  ],
+  "typefaces": [
+    {
+      "family": "Plus Jakarta Sans",
+      "source": "src/app/layout.tsx, loaded locally from public/fonts/plus-jakarta-sans/PlusJakartaSans-variable.ttf",
+      "roles": [
+        "Headlines",
+        "body copy",
+        "navigation"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700,
+        800
+      ]
+    },
+    {
+      "family": "Inter",
+      "source": "src/app/layout.tsx, loaded locally from public/fonts/inter/Inter-variable.ttf",
+      "roles": [
+        "Compact labels",
+        "dense metadata",
+        "control labels"
+      ],
+      "weights": [
+        400,
+        500,
+        600,
+        700,
+        800,
+        900
+      ]
+    }
+  ],
+  "interfaceDirection": "Giữ chiều rộng tối đa 1320px và lưới 12 cột. Gutter co giãn khoảng 32–56px ở desktop, 24px ở tablet, 16–20px ở mobile. Theo nhịp 8px, dùng khoảng cách 16, 24, 32, 48, 64 và 80px theo quan hệ nội dung; không tạo khoảng trắng dư. Giữ nền giấy ấm, bề mặt sáng và vùng navy hiện có cho ảnh hero tối. Chỉ dùng card cho nhóm tương tác, so sánh hoặc ảnh có nội dung; không đóng khung đoạn văn. Bán kính ảnh và card 14–20px, điều khiển 12–14px; viền nhẹ, bóng dành cho lớp nổi. Dùng xanh #205BD6 cho hành động chính và focus trên nền sáng, turquoise #08B3C6 cho trạng thái chọn trên nền tối. Giữ trạng thái hover, focus, selected, disabled, loading và error rõ ràng, có chỉ báo hoạt động không dựa riêng vào màu; mọi thao tác vẫn dùng được bằng bàn phím và cảm ứng.",
+  "imageDirection": {
+    "summary": "Giữ ảnh thật về địa điểm và khung ảnh hiện tại của VISTRA. Khi tự chuyển, thay một ảnh hoặc trạng thái trong đúng khung hiện có để chủ thể và điểm nhìn vẫn rõ.",
+    "subjects": [
+      "Phong cảnh, điểm đến và tuyến hành trình Việt Nam đã có trong tài sản dự án.",
+      "Bản đồ và điểm dừng thực khi giúp giải thích tuyến đường.",
+      "Ảnh người chỉ khi mối liên hệ với nội dung VISTRA được xác nhận."
+    ],
+    "treatment": "Giữ tỷ lệ và vị trí chủ thể nhất quán giữa các trạng thái; chuyển trạng thái ảnh cùng điểm chọn hoặc tiến trình tương ứng. Giữ thông tin nguồn ảnh hiện có.",
+    "avoid": [
+      "Tái sử dụng ảnh cưới, người mẫu, ảnh nội thất hoặc ảnh an ninh từ tham chiếu làm nội dung VISTRA.",
+      "Cắt mất địa danh hoặc chủ thể chính khi ảnh đổi trạng thái.",
+      "Ảnh giả lập giao diện, sơ đồ SVG trang trí, hoặc ảnh không có quan hệ với điểm đến."
+    ]
+  },
+  "motionDirection": {
+    "summary": "Autoplay giúp người xem nhận ra các trạng thái của nội dung du lịch, không thay quyền lựa chọn. Mọi chuyển động chạy một lần khi vào vùng nhìn thấy hoặc theo chu kỳ đã định, dừng khi người dùng tương tác và kết thúc ngay ở chế độ giảm chuyển động.",
+    "principles": [
+      "Mục đích: tạo thứ tự đọc cho hero; kích hoạt: tải trang; tiêu đề và phần dẫn vào vị trí sẵn có trước khi ảnh nền hiện trong khung; 520–640ms, ease-out mềm, cách nhau 70–90ms; reduced motion hiển thị ngay.",
+      "Mục đích: nối ảnh với lựa chọn điểm đến; kích hoạt: từng nhóm ảnh tiến vào viewport; ảnh chuyển trong khung trước khi chỉ báo lựa chọn cập nhật; 500–600ms, ease-out nhẹ, cách nhau 60–80ms và tổng dãn không quá 240ms; chạy một lần, reduced motion hiển thị ngay.",
+      "Mục đích: giải thích tuyến điểm thật; kích hoạt: nhóm bản đồ lần đầu tiến vào viewport; khung bản đồ hiện trước các điểm dừng theo thứ tự hành trình; 500–650ms, ease-out ổn định, cách nhau 70–90ms và tổng dãn không quá 240ms; chạy một lần, reduced motion hiển thị ngay.",
+      "Mục đích: làm autoplay dễ theo dõi; kích hoạt: chu kỳ hiện có khi carousel đang hiển thị và không có tương tác; chuyển một ảnh cùng điểm chọn hoặc chỉ báo tiến trình trong khung; giữ trạng thái theo khoảng hiện có, mặc định 5–7 giây cho carousel ảnh, chuyển 350–500ms với ease-in-out êm; tạm dừng khi hover, focus, chạm, ngoài viewport hoặc reduced motion; giữ điều khiển thủ công.",
+      "Mục đích: xác nhận thao tác; kích hoạt: nhấn, focus bàn phím, chọn mục hoặc mở disclosure; nút, biểu tượng và trạng thái chọn phản hồi đồng thời mà không làm đổi bố cục; 120–200ms, ease-out rõ; reduced motion đổi trạng thái tức thì nhưng vẫn giữ focus và trạng thái truy cập."
+    ],
+    "avoid": [
+      "transition: all.",
+      "Hiệu ứng phóng từ kích thước 0 hoặc lặp lại reveal theo từng lần cuộn.",
+      "Ẩn nội dung mặc định, trì hoãn nội dung ngoài viewport quá lâu, hoặc tích lũy hoạt ảnh khi cuộn nhanh.",
+      "Tự cuộn trang hoặc đặt transform lên tổ tiên của điều khiển sticky/fixed."
+    ]
+  },
+  "voice": {
+    "summary": "Dùng tiếng Việt rõ ràng, gần gũi và cụ thể. Gọi đúng tên điểm đến và trạng thái bản nháp; diễn đạt autoplay như phần xem trước để người dùng luôn biết họ vẫn có quyền chọn.",
+    "avoid": [
+      "Hứa hẹn kết quả chuyến đi hoặc chất lượng gợi ý chưa được xác minh.",
+      "Ngôn ngữ quảng cáo phóng đại, nhãn kỹ thuật không cần thiết, hoặc lời nhắc nhở lặp lại.",
+      "Mô tả trạng thái minh họa như chuyến đi đã được lưu."
+    ]
+  }
+}

@@ -13,9 +13,9 @@ import type {
 import { weatherIcon } from "./weatherIcons";
 
 export const tripButtonClass =
-  "inline-flex min-h-11 items-center justify-center rounded-xl border border-[#0E1D4F]/15 px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-[#EBF1F0] disabled:opacity-50 disabled:cursor-not-allowed";
+  "inline-flex min-h-11 items-center justify-center rounded-xl border border-[#0E1D4F]/15 px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-warm-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:opacity-50 disabled:cursor-not-allowed";
 export const tripPanelClass =
-  "min-w-0 rounded-2xl border border-[#0E1D4F]/10 bg-white/85 p-4 sm:p-5 text-[#0E1D4F]";
+  "min-w-0 rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-4 sm:p-5 text-[#0E1D4F]";
 export const money = (value: number) => `${value.toLocaleString("vi-VN")} đ`;
 
 const WEATHER_WINDOWS = [
@@ -538,13 +538,54 @@ export default function ItineraryView({
                 }}
                 className={`rounded-xl border p-3 ${selectedPlace === item.place_id ? "border-[#205BD6] bg-[#205BD6]/5" : "border-[#0E1D4F]/10"}`}
               >
-                <button
-                  type="button"
-                  onClick={() => onPlace(item.place_id)}
-                  className="min-h-11 text-left w-full cursor-pointer font-semibold text-[#0E1D4F]"
-                >
-                  {index + 1}. {item.name}
-                </button>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onPlace(item.place_id)}
+                    aria-pressed={selectedPlace === item.place_id}
+                    className="min-h-11 min-w-0 flex-1 rounded-lg text-left font-semibold text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
+                  >
+                    {index + 1}. {item.name}
+                  </button>
+                  {(onMove || onRemove) && (
+                    <div className="no-print flex shrink-0 gap-1">
+                      {onMove && (
+                        <>
+                          <button
+                            type="button"
+                            disabled={busy || index === 0}
+                            onClick={() => onMove(item.place_id, activities[index - 1].place_id)}
+                            aria-label={`Đưa ${item.name} lên trước`}
+                            className="inline-flex size-11 items-center justify-center rounded-lg border border-[#0E1D4F]/15 text-sm hover:bg-warm-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy || index === activities.length - 1}
+                            onClick={() => onMove(item.place_id, activities[index + 1].place_id)}
+                            aria-label={`Đưa ${item.name} xuống sau`}
+                            className="inline-flex size-11 items-center justify-center rounded-lg border border-[#0E1D4F]/15 text-sm hover:bg-warm-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            ↓
+                          </button>
+                        </>
+                      )}
+                      {onRemove && (
+                        <button
+                          type="button"
+                          disabled={busy || itinerary.activities.length <= 1}
+                          onClick={() => onRemove(item.place_id)}
+                          aria-label={`Xóa ${item.name} khỏi lịch trình`}
+                          title={`Xóa ${item.name} khỏi lịch trình`}
+                          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Xóa
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <p className="text-sm text-[#4B5875]">
                   {time(item.start_at, itinerary.timezone)} –{" "}
                   {time(item.end_at, itinerary.timezone)}
@@ -559,53 +600,6 @@ export default function ItineraryView({
                 </p>
                 {item.reason && (
                   <p className="text-sm text-[#4B5875] mt-2">{item.reason}</p>
-                )}
-                {(onMove || onRemove) && (
-                  <div className="flex flex-wrap gap-2 mt-2 no-print">
-                    {onMove && (
-                      <>
-                        <button
-                          type="button"
-                          disabled={busy || index === 0}
-                          onClick={() =>
-                            onMove(
-                              item.place_id,
-                              activities[index - 1].place_id,
-                            )
-                          }
-                          aria-label={`Đưa ${item.name} lên trước`}
-                          className={tripButtonClass}
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy || index === activities.length - 1}
-                          onClick={() =>
-                            onMove(
-                              item.place_id,
-                              activities[index + 1].place_id,
-                            )
-                          }
-                          aria-label={`Đưa ${item.name} xuống sau`}
-                          className={tripButtonClass}
-                        >
-                          ↓
-                        </button>
-                      </>
-                    )}
-                    {onRemove && (
-                      <button
-                        type="button"
-                        disabled={busy || itinerary.activities.length <= 1}
-                        onClick={() => onRemove(item.place_id)}
-                        aria-label={`Xóa ${item.name} khỏi lịch trình`}
-                        className={`${tripButtonClass} text-rose-700 hover:bg-rose-50`}
-                      >
-                        Xóa khỏi lịch trình
-                      </button>
-                    )}
-                  </div>
                 )}
                 {onRemove && itinerary.activities.length <= 1 && (
                   <p className="mt-2 text-xs text-[#4B5875]">

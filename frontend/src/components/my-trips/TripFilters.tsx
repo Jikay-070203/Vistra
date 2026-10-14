@@ -68,7 +68,7 @@ export default function TripFilters({
 
   return (
     <div className="my-8">
-      <div className="bg-white/85 backdrop-blur-md rounded-2xl p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border border-[#0E1D4F]/10 shadow-xs">
+      <div className="bg-warm-surface rounded-2xl p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border border-[#0E1D4F]/10 shadow-xs">
         <div className="flex items-center gap-1.5 overflow-x-auto" role="group" aria-label="Trạng thái chuyến đi">
           {(['all', 'draft', 'confirmed'] as TripFilterType[]).map((filter) => {
             const labels = { all: 'Tất cả', draft: 'Bản nháp', confirmed: 'Đã xác nhận' };
@@ -79,7 +79,7 @@ export default function TripFilters({
                 type="button"
                 aria-pressed={activeFilter === filter}
                 onClick={() => onFilterChange(filter)}
-                className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap cursor-pointer focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-45 disabled:cursor-not-allowed ${
+                className={`shrink-0 min-h-11 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap cursor-pointer focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-45 disabled:cursor-not-allowed ${
                   activeFilter === filter ? 'bg-[#205BD6] text-white' : 'text-[#4B5875] hover:bg-[#EBF1F0]'
                 }`}
               >
@@ -97,7 +97,7 @@ export default function TripFilters({
               value={searchQuery}
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Tìm chuyến đi, điểm đến..."
-              className="w-full pl-9 pr-4 py-2.5 bg-[#EBF1F0] text-sm text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6]"
+              className="w-full min-h-11 pl-9 pr-4 py-2.5 bg-warm-paper text-sm text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6]"
             />
           </label>
           <button
@@ -107,7 +107,7 @@ export default function TripFilters({
             aria-expanded={sidebarOpen}
             aria-controls="trip-filter-sidebar"
             className={`min-h-11 px-3 rounded-xl text-sm font-semibold flex items-center gap-2 border cursor-pointer focus-visible:outline-2 focus-visible:outline-[#205BD6] ${
-              sidebarOpen || isAnyFilterActive ? 'bg-[#205BD6]/10 border-[#205BD6]/30 text-[#205BD6]' : 'bg-white border-[#0E1D4F]/10 text-[#0E1D4F] hover:bg-[#EBF1F0]'
+              sidebarOpen || isAnyFilterActive ? 'bg-[#205BD6]/10 border-[#205BD6]/30 text-[#205BD6]' : 'bg-warm-surface border-[#0E1D4F]/10 text-[#0E1D4F] hover:bg-warm-paper'
             }`}
           >
             <Icon name="tune" className="size-4" />
@@ -121,7 +121,7 @@ export default function TripFilters({
         <div className="fixed inset-0 z-50">
           <button type="button" tabIndex={-1} onClick={onToggleSidebar} aria-label="Đóng bộ lọc" className="absolute inset-0 w-full h-full bg-[#0E1D4F]/45 cursor-default" />
           <aside ref={sidebarRef} id="trip-filter-sidebar" role="dialog" aria-modal="true" aria-labelledby="trip-filter-title"
-            className="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-white p-5 sm:p-7 shadow-2xl space-y-7">
+            className="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-warm-surface p-5 sm:p-7 shadow-2xl space-y-7">
             <div className="flex items-center justify-between gap-4 border-b border-[#0E1D4F]/10 pb-4">
               <h2 id="trip-filter-title" className="text-lg font-bold text-[#0E1D4F]">Lọc chi tiết</h2>
               <button ref={closeRef} type="button" onClick={onToggleSidebar} aria-label="Đóng bộ lọc" className="size-11 rounded-xl flex items-center justify-center hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-[#205BD6] cursor-pointer">
@@ -133,11 +133,11 @@ export default function TripFilters({
               <legend className="text-sm font-semibold text-[#0E1D4F] mb-3">Khoảng ngày du lịch</legend>
               <label className="block space-y-1.5 text-sm text-[#4B5875]">Ngày đi từ
                 <input type="date" value={startDate} onChange={(event) => onDateChange(event.target.value, endDate)} aria-invalid={Boolean(dateValidationWarning)}
-                  className="block w-full min-h-11 px-3 bg-[#EBF1F0] text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6]" />
+                  className="block w-full min-h-11 px-3 bg-warm-paper text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6]" />
               </label>
               <label className="block space-y-1.5 text-sm text-[#4B5875]">Ngày về đến
                 <input type="date" value={endDate} onChange={(event) => onDateChange(startDate, event.target.value)} aria-invalid={Boolean(dateValidationWarning)}
-                  className="block w-full min-h-11 px-3 bg-[#EBF1F0] text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6]" />
+                  className="block w-full min-h-11 px-3 bg-warm-paper text-[#0E1D4F] rounded-xl border border-[#0E1D4F]/10 focus-visible:outline-2 focus-visible:outline-[#205BD6]" />
               </label>
               {dateValidationWarning && <p role="alert" className="text-sm text-[#BA1A1A]">{dateValidationWarning}</p>}
             </fieldset>

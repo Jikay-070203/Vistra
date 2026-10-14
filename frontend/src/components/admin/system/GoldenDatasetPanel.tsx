@@ -8,7 +8,7 @@ import type { EvaluationRun } from '@/types/adminEvaluationApi';
 export default function GoldenDatasetPanel() {
   const { user, isLoggedIn } = useUserAuth();
   const accountId = isLoggedIn && user?.role === 'admin' ? user.id : null;
-  return accountId ? <DatasetPanel key={accountId} /> : <section className="bg-white rounded-3xl p-6 border border-[#0E1D4F]/10 text-sm text-[#4B5875]">Cần phiên quản trị để quản lý bộ dữ liệu.</section>;
+  return accountId ? <DatasetPanel key={accountId} /> : <section className="bg-warm-surface rounded-3xl p-6 border border-[#0E1D4F]/10 text-sm text-[#4B5875]">Cần phiên quản trị để quản lý bộ dữ liệu.</section>;
 }
 
 function DatasetPanel() {
@@ -98,15 +98,15 @@ function DatasetPanel() {
   };
 
   const button = 'px-4 py-2.5 rounded-xl text-sm font-semibold border border-[#0E1D4F]/15 disabled:opacity-50 disabled:cursor-not-allowed';
-  const input = 'w-full px-3 py-2.5 rounded-xl border border-[#0E1D4F]/20 bg-white text-sm text-[#0E1D4F]';
-  return <section className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-5">
+  const input = 'w-full px-3 py-2.5 rounded-xl border border-[#0E1D4F]/20 bg-warm-surface text-sm text-[#0E1D4F]';
+  return <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-5">
     <div className="flex flex-wrap justify-between items-start gap-3">
       <div><h2 className="text-xl font-bold text-[#0E1D4F]">Golden Datasets & Đánh giá AI</h2><p className="mt-2 text-sm text-[#4B5875]">Bộ dữ liệu được lưu trên máy chủ. Backend hiện chỉ xếp hàng đánh giá; chưa có worker xử lý và kết quả.</p></div>
       <button type="button" disabled={saving} onClick={() => { setShowImport(value => !value); setActionError(null); }} className={button + ' text-[#205BD6]'}>{showImport ? 'Đóng form nhập' : 'Nhập JSON lên máy chủ'}</button>
     </div>
     {notice && <p role="status" className="text-sm text-emerald-700">{notice}</p>}
     {actionError && <p role="alert" className="text-sm text-rose-700">{actionError}</p>}
-    {showImport && <form onSubmit={submitImport} className="rounded-2xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/30 p-4 space-y-3">
+    {showImport && <form onSubmit={submitImport} className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-paper p-4 space-y-3">
       <label className="block text-sm text-[#0E1D4F]">Tên bộ dữ liệu<input required maxLength={200} value={name} onChange={event => setName(event.target.value)} className={input} disabled={saving} /></label>
       <label className="block text-sm text-[#0E1D4F]">Mô tả<textarea maxLength={2000} value={description} onChange={event => setDescription(event.target.value)} className={input} disabled={saving} /></label>
       <label className="block text-sm text-[#0E1D4F]">Mảng JSON test cases<textarea required rows={7} value={json} onChange={event => setJson(event.target.value)} placeholder="Mỗi object cần name; input và expected là dữ liệu JSON." className={input + ' font-mono'} disabled={saving} /></label>
@@ -115,7 +115,7 @@ function DatasetPanel() {
     </form>}
     {error ? <p role="alert" className="text-sm text-rose-700">{error}</p> : !data ? <p role="status" className="text-sm text-[#4B5875]">Đang tải bộ dữ liệu…</p> : !data.items.length ? <p className="text-sm text-[#4B5875]">Máy chủ chưa có bộ dữ liệu trong trang này.</p> : <>
       <label className="block text-sm font-semibold text-[#0E1D4F]">Bộ dữ liệu<select value={selectedId} onChange={event => setSelectedId(event.target.value)} className={input}>{data.items.map(item => <option key={item.id} value={item.id}>{item.name} ({item.testCasesCount} case)</option>)}</select></label>
-      {selected && <div className="rounded-2xl bg-[#EBF1F0]/40 p-4 text-sm text-[#4B5875] space-y-2"><p className="font-bold text-[#0E1D4F]">{selected.name}</p><p>{selected.description || 'Chưa có mô tả.'}</p><p>{selected.testCasesCount} case · {selected.isBuiltin ? 'Có sẵn trên máy chủ' : 'Được tạo trên máy chủ'}</p><p>API danh sách chỉ trả metadata; chưa hỗ trợ xem từng test case.</p></div>}
+      {selected && <div className="rounded-2xl bg-warm-paper p-4 text-sm text-[#4B5875] space-y-2"><p className="font-bold text-[#0E1D4F]">{selected.name}</p><p>{selected.description || 'Chưa có mô tả.'}</p><p>{selected.testCasesCount} case · {selected.isBuiltin ? 'Có sẵn trên máy chủ' : 'Được tạo trên máy chủ'}</p><p>API danh sách chỉ trả metadata; chưa hỗ trợ xem từng test case.</p></div>}
     </>}
     <div className="flex flex-wrap gap-3 items-center">
       <button type="button" onClick={refresh} disabled={saving} className={button + ' text-[#205BD6]'}>Tải lại danh sách</button>

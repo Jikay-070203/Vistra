@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { getProvinceCatalog } from "@/services/catalogService";
 import type { TripDetailDto } from "@/types/tripApi";
@@ -14,6 +15,8 @@ interface PlannerHeaderProps {
   onDocument?: () => void;
   onConfirm?: () => void;
   onPublish?: () => void;
+  returnUrl?: string;
+  returnTitle?: string;
 }
 
 let cachedProvinces: ProvinceCatalogItem[] | null = null;
@@ -85,6 +88,42 @@ export function useProvinceName(
   return match ? match.name : fallbackSlug || idOrSlug;
 }
 
+interface ReturnInfo {
+  url: string;
+  title: string;
+  hasInternalHistory: boolean;
+}
+
+function getRouteDescription(url: string): { label: string; title: string } {
+  const cleanPath = url.split("?")[0].toLowerCase();
+  if (cleanPath.startsWith("/create-trip")) {
+    return { label: "Tạo chuyến đi", title: "Quay lại trang tạo chuyến đi" };
+  }
+  if (cleanPath.startsWith("/my-trips")) {
+    return { label: "Chuyến đi của tôi", title: "Quay lại Chuyến đi của tôi" };
+  }
+  if (cleanPath.startsWith("/trip-plan")) {
+    return { label: "Xem lịch trình", title: "Quay lại xem lịch trình" };
+  }
+  if (cleanPath.startsWith("/community")) {
+    return { label: "Cộng đồng", title: "Quay lại khám phá cộng đồng" };
+  }
+  if (cleanPath.startsWith("/destinations")) {
+    return { label: "Điểm đến", title: "Quay lại danh sách điểm đến" };
+  }
+  if (cleanPath === "/" || cleanPath === "") {
+    return { label: "Trang chủ", title: "Quay lại Trang chủ" };
+  }
+  return { label: "Quay lại", title: "Quay lại trang trước" };
+}
+
+function getDefaultFallbackUrl(trip?: TripDetailDto | null): string {
+  if (trip?.status === "confirmed" && trip?.id) {
+    return `/trip-plan?id=${encodeURIComponent(trip.id)}`;
+  }
+  return "/my-trips";
+}
+
 export default function PlannerHeader({
   trip,
   hasPreview = false,
@@ -92,23 +131,139 @@ export default function PlannerHeader({
   onDocument,
   onConfirm,
   onPublish,
+  returnUrl: propReturnUrl,
+  returnTitle: propReturnTitle,
 }: PlannerHeaderProps) {
+  const router = useRouter();
   const editable = trip?.status === "draft";
   const destinationName = useProvinceName(
     trip?.destination_id,
     trip?.request?.destination,
   );
 
+  const [returnInfo, setReturnInfo] = useState<ReturnInfo>(() => {
+    const fallback = propReturnUrl || getDefaultFallbackUrl(trip);
+    const desc = getRouteDescription(fallback);
+    return {
+      url: fallback,
+      title: propReturnTitle || desc.title,
+      hasInternalHistory: false,
+    };
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (propReturnUrl) {
+      const desc = getRouteDescription(propReturnUrl);
+      setReturnInfo({
+        url: propReturnUrl,
+        title: propReturnTitle || desc.title,
+        hasInternalHistory: true,
+      });
+      return;
+    }
+
+    // 1. Check query param `from` or `returnUrl` (e.g. /planner?id=...&from=/my-trips)
+    const params = new URLSearchParams(window.location.search);
+    const queryReturn = params.get("from") || params.get("returnUrl");
+    if (queryReturn && queryReturn.startsWith("/")) {
+      const desc = getRouteDescription(queryReturn);
+      setReturnInfo({
+        url: queryReturn,
+        title: desc.title,
+        hasInternalHistory: true,
+      });
+      return;
+    }
+
+    // 2. Check sessionStorage recorded by SiteChrome on preceding non-planner page
+    let storedUrl: string | null = null;
+    let hasInternal = false;
+    try {
+      storedUrl = sessionStorage.getItem("vistra_planner_return_url");
+      hasInternal = sessionStorage.getItem("vistra_internal_visited") === "true";
+    } catch {
+      // Storage unavailable
+    }
+
+    if (storedUrl && storedUrl.startsWith("/")) {
+      const desc = getRouteDescription(storedUrl);
+      setReturnInfo({
+        url: storedUrl,
+        title: desc.title,
+        hasInternalHistory: hasInternal,
+      });
+      return;
+    }
+
+    // 3. Check document.referrer if it belongs to the same origin
+    if (document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin === window.location.origin) {
+          const refPath = refUrl.pathname + refUrl.search;
+          if (
+            !refPath.startsWith("/planner") &&
+            !refPath.startsWith("/login") &&
+            !refPath.startsWith("/register") &&
+            !refPath.startsWith("/auth")
+          ) {
+            const desc = getRouteDescription(refPath);
+            setReturnInfo({
+              url: refPath,
+              title: desc.title,
+              hasInternalHistory: true,
+            });
+            return;
+          }
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+
+    // 4. Default fallback
+    const fallback = getDefaultFallbackUrl(trip);
+    const desc = getRouteDescription(fallback);
+    setReturnInfo({
+      url: fallback,
+      title: desc.title,
+      hasInternalHistory: false,
+    });
+  }, [trip?.status, trip?.id, propReturnUrl, propReturnTitle]);
+
+  const handleBack = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Preserve standard browser behaviors for modified clicks (Ctrl, Cmd, Shift, middle-click)
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
+
+    e.preventDefault();
+
+    if (
+      typeof window !== "undefined" &&
+      window.history.length > 1 &&
+      returnInfo.hasInternalHistory
+    ) {
+      router.back();
+    } else {
+      router.push(returnInfo.url);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full bg-[#EBF1F0]/95 backdrop-blur-md border-b border-[#0E1D4F]/10 shadow-[0_2px_12px_rgba(14,29,79,0.04)] transition-all">
       <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
         {/* Left:Back + Trip Title & Metadata */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          {/* Return to the submitted trip form */}
+          {/* Dynamic Return to the previous page */}
           <Link
-            href="/create-trip"
+            href={returnInfo.url}
+            onClick={handleBack}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#4B5875] hover:text-[#0E1D4F] hover:bg-white/80 transition-colors shrink-0"
-            title="Quay lại trang tạo chuyến đi"
+            title={returnInfo.title}
+            aria-label={returnInfo.title}
           >
             <Icon name="arrow_back" className="size-4 text-[#205BD6]" />
             <span className="hidden md:inline">Quay lại</span>

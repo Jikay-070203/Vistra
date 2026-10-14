@@ -80,7 +80,7 @@ export default function ConfirmModal({
         if (e.target === e.currentTarget) onCancel();
       }}
     >
-      <div className="bg-white max-w-md w-full rounded-2xl shadow-2xl border border-[#0E1D4F]/10 overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+      <div className="bg-warm-surface max-w-md w-full rounded-2xl shadow-2xl border border-[#0E1D4F]/10 overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
         <div className="p-5 border-b border-[#0E1D4F]/10 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div
@@ -103,7 +103,7 @@ export default function ConfirmModal({
             type="button"
             onClick={onCancel}
             aria-label="Đóng hộp thoại"
-            className="w-8 h-8 rounded-full hover:bg-[#EBF1F0] flex items-center justify-center text-[#4B5875] cursor-pointer"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-warm-paper text-[#4B5875] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
           >
             <Icon name="close" className="size-4" />
           </button>
@@ -113,7 +113,7 @@ export default function ConfirmModal({
           <p className="leading-relaxed">{message}</p>
 
           {target && (
-            <div className="p-3 bg-[#EBF1F0]/50 rounded-xl border border-[#0E1D4F]/10">
+            <div className="p-3 bg-warm-paper rounded-xl border border-[#0E1D4F]/10">
               <span className="text-[#4B5875] block text-[11px]">Đối tượng áp dụng:</span>
               <strong className="text-[#0E1D4F] text-sm font-semibold">{target}</strong>
             </div>
@@ -127,19 +127,19 @@ export default function ConfirmModal({
           )}
         </div>
 
-        <div className="p-4 bg-[#EBF1F0]/30 border-t border-[#0E1D4F]/10 flex items-center justify-end gap-2.5">
+        <div className="p-4 bg-warm-paper border-t border-[#0E1D4F]/10 flex items-center justify-end gap-2.5">
           <button
             ref={cancelBtnRef}
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-xl bg-white hover:bg-gray-100 border border-[#0E1D4F]/15 font-semibold text-xs text-[#0E1D4F] cursor-pointer transition-colors"
+            className="min-h-11 px-4 py-2 rounded-xl bg-warm-surface hover:bg-warm-paper border border-[#0E1D4F]/15 font-semibold text-sm text-[#0E1D4F] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
           >
             {cancelBtnText}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`px-4 py-2 rounded-xl font-semibold text-xs text-white cursor-pointer transition-colors shadow-xs ${
+            className={`min-h-11 px-4 py-2 rounded-xl font-semibold text-sm text-white cursor-pointer transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#205BD6] ${
               isDanger
                 ? 'bg-red-600 hover:bg-red-700'
                 : 'bg-[#205BD6] hover:bg-[#1847a8]'

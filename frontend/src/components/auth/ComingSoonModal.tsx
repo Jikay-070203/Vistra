@@ -48,7 +48,7 @@ export default function ComingSoonModal({ isOpen, onClose, title = 'Tính năng 
       role="dialog"
       aria-modal="true"
       aria-labelledby="coming-soon-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0E1D4F]/55 p-4 animate-in fade-in duration-200"
       onClick={(e) => {
         if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
           onClose();
@@ -57,9 +57,9 @@ export default function ComingSoonModal({ isOpen, onClose, title = 'Tính năng 
     >
       <div
         ref={dialogRef}
-        className="w-full max-w-sm bg-white rounded-2xl border border-[#0E1D4F]/10 p-6 shadow-2xl space-y-4 text-center transform animate-in zoom-in-95 duration-200"
+        className="w-full max-w-sm space-y-4 rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-6 text-center shadow-xl transform animate-in zoom-in-95 duration-200"
       >
-        <div className="inline-flex items-center justify-center size-12 rounded-full bg-[#08B3C6]/15 text-[#08B3C6] mx-auto">
+        <div className="mx-auto inline-flex size-12 items-center justify-center rounded-full border border-[#08B3C6]/30 bg-[#EBF1F0] text-[#0E1D4F]">
           <Icon name="schedule" className="size-6" />
         </div>
 
@@ -67,8 +67,8 @@ export default function ComingSoonModal({ isOpen, onClose, title = 'Tính năng 
           <h3 id="coming-soon-title" className="font-headline-sm text-lg font-bold text-[#0E1D4F]">
             {title}
           </h3>
-          <p className="text-base font-semibold text-[#205BD6]">
-            Comming soon
+          <p className="text-sm font-semibold text-[#205BD6]">
+            Sắp ra mắt
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export default function ComingSoonModal({ isOpen, onClose, title = 'Tính năng 
             type="button"
             onClick={onClose}
             ref={closeButtonRef}
-            className="w-full py-2.5 px-4 bg-[#205BD6] hover:bg-[#1847a8] text-white font-semibold text-xs rounded-xl transition-all cursor-pointer"
+            className="min-h-11 w-full rounded-lg bg-[#205BD6] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
           >
             Đã hiểu
           </button>

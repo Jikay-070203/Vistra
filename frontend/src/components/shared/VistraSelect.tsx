@@ -161,12 +161,13 @@ export default function VistraSelect<T extends string | number = string>({
           aria-label={ariaLabel || label}
           onClick={handleToggle}
           onKeyDown={handleKeyDown}
-          className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-medium text-left transition-all ${triggerClassName} ${
+          aria-controls={isOpen ? `${selectId}-menu` : undefined}
+          className={`w-full min-h-11 flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg border text-sm font-medium text-left transition-colors ${triggerClassName} ${
             disabled
-              ? 'bg-[#EBF1F0]/50 border-[#0E1D4F]/5 text-[#4B5875]/60 cursor-not-allowed'
+              ? 'bg-warm-paper border-[#0E1D4F]/10 text-[#4B5875]/60 cursor-not-allowed'
               : isOpen
-              ? 'bg-[#EBF1F0] border-[#205BD6] ring-1 ring-[#205BD6]/20 text-[#0E1D4F] shadow-2xs'
-              : 'bg-[#EBF1F0] hover:bg-[#E4ECEB] border-[#0E1D4F]/10 text-[#0E1D4F] cursor-pointer'
+              ? 'bg-warm-surface border-[#205BD6] ring-1 ring-[#205BD6]/20 text-[#0E1D4F]'
+              : 'bg-warm-surface hover:bg-warm-paper border-[#0E1D4F]/15 text-[#0E1D4F] cursor-pointer'
           } ${error ? 'border-red-400' : ''} focus-visible:outline-2 focus-visible:outline-[#205BD6]`}
         >
           <span className={`truncate flex-1 ${selectedOption ? 'text-[#0E1D4F] font-semibold' : 'text-[#4B5875]/70'}`}>
@@ -187,7 +188,7 @@ export default function VistraSelect<T extends string | number = string>({
             id={`${selectId}-menu`}
             tabIndex={-1}
             aria-label={ariaLabel || label || 'Danh sách lựa chọn'}
-            className="absolute left-0 top-full mt-1.5 w-full min-w-[200px] max-h-60 overflow-y-auto bg-white/95 backdrop-blur-md rounded-xl border border-[#0E1D4F]/15 shadow-lg p-1 z-50 animate-in fade-in-0 zoom-in-95 duration-100"
+            className="absolute left-0 top-full mt-1.5 w-full min-w-[200px] max-h-60 overflow-y-auto bg-warm-surface rounded-xl border border-[#0E1D4F]/15 shadow-lg p-1 z-50 animate-in fade-in-0 zoom-in-95 duration-100"
           >
             {options.map((option, idx) => {
               const isSelected = option.value === value;
@@ -207,14 +208,14 @@ export default function VistraSelect<T extends string | number = string>({
                   onMouseEnter={() => {
                     if (!option.disabled) setHighlightedIndex(idx);
                   }}
-                  className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs transition-colors select-none ${
+                  className={`flex min-h-11 items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors select-none ${
                     option.disabled
                       ? 'opacity-40 cursor-not-allowed text-[#4B5875]'
                       : isSelected
                       ? 'bg-[#205BD6]/10 text-[#205BD6] font-bold cursor-pointer'
                       : isHighlighted
-                      ? 'bg-[#EBF1F0] text-[#0E1D4F] cursor-pointer'
-                      : 'text-[#0E1D4F] hover:bg-[#EBF1F0] cursor-pointer'
+                      ? 'bg-warm-paper text-[#0E1D4F] cursor-pointer'
+                      : 'text-[#0E1D4F] hover:bg-warm-paper cursor-pointer'
                   }`}
                 >
                   <div className="flex flex-col flex-1 min-w-0">

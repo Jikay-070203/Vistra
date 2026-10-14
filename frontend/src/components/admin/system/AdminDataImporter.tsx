@@ -61,7 +61,7 @@ export default function AdminDataImporter({ onProcessed }: { onProcessed: () => 
   }
 
   const button = 'min-h-11 rounded-xl border border-[#0E1D4F]/20 px-4 py-2 text-sm font-semibold text-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50';
-  return <section className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm" aria-labelledby="data-import-title">
+  return <section className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm" aria-labelledby="data-import-title">
     <div>
       <h2 id="data-import-title" className="text-xl font-bold text-[#0E1D4F]">Nhập địa điểm và ảnh vào DB</h2>
       <p className="mt-1 text-sm text-[#4B5875]">Importer chuyên biệt của backend. Dữ liệu gửi tại đây được ghi thật; đây không phải thao tác CRUD cho mọi bảng.</p>
@@ -72,7 +72,7 @@ export default function AdminDataImporter({ onProcessed }: { onProcessed: () => 
           <label htmlFor="admin-import-kind" className="block text-sm font-semibold text-[#0E1D4F]">Loại dữ liệu</label>
           <select id="admin-import-kind" value={kind} disabled={busy} onChange={event => {
           setKind(event.target.value as AdminImportKind); setJsonText(''); setReviewPayload(null); setReviewValidationError(null); setResult(null); setError(null);
-          }} className="min-h-11 w-full rounded-xl border border-[#0E1D4F]/20 bg-white px-3 py-2 text-sm">
+          }} className="min-h-11 w-full rounded-xl border border-[#0E1D4F]/20 bg-warm-surface px-3 py-2 text-sm">
             <option value="places">Địa điểm · tối đa 100 mục / 2 MB</option>
             <option value="images">Ảnh địa điểm · tối đa 50 mục / 1 MB</option>
           </select>
@@ -107,7 +107,7 @@ export default function AdminDataImporter({ onProcessed }: { onProcessed: () => 
         <h3 id="admin-import-review-title" className="font-bold text-[#0E1D4F]">Review &amp; Confirm</h3>
         <p className="mt-1 text-sm text-[#4B5875]">Kiểm tra payload đã xác thực. Chỉ chọn “Confirm import” mới gửi dữ liệu và ghi vào database.</p>
       </div>
-      <pre aria-label="Parsed payload" className="max-h-80 overflow-auto rounded-xl bg-white p-3 text-xs text-[#0E1D4F]"><code>{JSON.stringify(reviewPayload, null, 2)}</code></pre>
+      <pre aria-label="Parsed payload" className="max-h-80 overflow-auto rounded-xl bg-warm-surface p-3 text-xs text-[#0E1D4F]"><code>{JSON.stringify(reviewPayload, null, 2)}</code></pre>
       <div className="flex flex-wrap gap-3">
         <button type="button" disabled={busy} className={button} onClick={() => setReviewPayload(null)}>Sửa JSON</button>
         <button type="button" disabled={busy} onClick={confirmImport} className="min-h-11 rounded-xl bg-[#205BD6] px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">

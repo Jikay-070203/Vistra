@@ -249,9 +249,9 @@ function AllergyOptionModalInner({
         if (e.target === e.currentTarget && !isSubmitting) onClose();
       }}
     >
-      <div className="bg-white max-w-xl w-full rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-warm-surface max-w-xl w-full rounded-3xl shadow-2xl border border-[#0E1D4F]/10 overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]">
         {/* Header */}
-        <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-5 bg-warm-paper border-b border-[#0E1D4F]/10 flex items-center justify-between">
           <div>
             <h3 id="allergy-modal-title" className="font-bold text-base text-[#0E1D4F]">
               {isExisting
@@ -267,7 +267,7 @@ function AllergyOptionModalInner({
             disabled={isSubmitting}
             onClick={onClose}
             aria-label="Đóng cửa sổ"
-            className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-50"
+            className="size-11 shrink-0 rounded-full hover:bg-warm-paper flex items-center justify-center text-[#4B5875] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
           >
             <Icon name="close" size={16} />
           </button>
@@ -275,16 +275,16 @@ function AllergyOptionModalInner({
 
         {/* Mode Selector (Only when creating new item, or allow view toggle) */}
         {!isExisting && (
-          <div className="px-6 pt-4 pb-2 border-b border-slate-100 flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-600 mr-2">Phương thức:</span>
+          <div className="px-6 pt-4 pb-2 border-b border-[#0E1D4F]/10 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-[#4B5875] mr-2">Phương thức:</span>
             <button
               type="button"
               disabled={isSubmitting}
               onClick={() => handleSwitchMode('single')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`min-h-11 px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
                 mode === 'single'
                   ? 'bg-[#205BD6] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-warm-paper text-[#4B5875] hover:bg-warm-paper'
               }`}
             >
               Thêm một mục
@@ -293,10 +293,10 @@ function AllergyOptionModalInner({
               type="button"
               disabled={isSubmitting}
               onClick={() => handleSwitchMode('bulk')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`min-h-11 px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
                 mode === 'bulk'
                   ? 'bg-[#205BD6] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-warm-paper text-[#4B5875] hover:bg-warm-paper'
               }`}
             >
               Nhập nhiều mục (Bulk)
@@ -327,14 +327,14 @@ function AllergyOptionModalInner({
         )}
 
         {/* Form Body */}
-        <div className="p-6 overflow-y-auto flex-1 text-xs space-y-4">
+        <div className="min-h-0 p-6 overflow-y-auto flex-1 text-xs space-y-4">
           {mode === 'single' ? (
             /* SINGLE MODE */
             <form id="single-allergy-form" onSubmit={handleSingleSubmit} className="space-y-4">
               <div>
                 <label
                   htmlFor="allergy-label-input"
-                  className="block font-semibold text-slate-700 mb-1"
+                  className="block font-semibold text-[#4B5875] mb-1"
                 >
                   Tên mục kiêng cử / dị ứng <span className="text-red-500">*</span>
                 </label>
@@ -346,10 +346,10 @@ function AllergyOptionModalInner({
                     setSingleLabel(e.target.value);
                     setSaveError(null);
                   }}
-                  className={`w-full px-3 py-2 rounded-xl border text-slate-800 ${
+                  className={`w-full px-3 py-2 rounded-xl border text-[#0E1D4F] ${
                     singleValidationError && singleLabel.trim()
                       ? 'border-red-400 bg-red-50/30'
-                      : 'border-slate-300 focus:border-[#205BD6]'
+                      : 'border-[#0E1D4F]/10 focus:border-[#205BD6]'
                   }`}
                   placeholder="Ví dụ: Hải sản & Tôm cua"
                   autoFocus
@@ -372,11 +372,11 @@ function AllergyOptionModalInner({
                   id="single-active-toggle"
                   checked={singleActive}
                   onChange={(e) => setSingleActive(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#205BD6] focus:ring-[#205BD6]"
+                  className="w-4 h-4 rounded border-[#0E1D4F]/10 text-[#205BD6] focus:ring-[#205BD6]"
                 />
                 <label
                   htmlFor="single-active-toggle"
-                  className="text-xs font-semibold text-slate-700 cursor-pointer"
+                  className="text-xs font-semibold text-[#4B5875] cursor-pointer"
                 >
                   Kích hoạt ngay trong danh mục
                 </label>
@@ -390,11 +390,11 @@ function AllergyOptionModalInner({
                 <div className="flex items-center justify-between mb-1">
                   <label
                     htmlFor="bulk-allergy-textarea"
-                    className="block font-semibold text-slate-700"
+                    className="block font-semibold text-[#4B5875]"
                   >
                     Danh sách mục dị ứng (Mỗi dòng một mục)
                   </label>
-                  <span className="text-[11px] text-slate-500 font-medium">
+                  <span className="text-[11px] text-[#4B5875] font-medium">
                     {validBulkItems.length} mục hợp lệ
                   </span>
                 </div>
@@ -409,7 +409,7 @@ function AllergyOptionModalInner({
                   placeholder={
                     'Hải sản & Giáp xác\nĐậu phộng & Hạt cây\nSữa & Sản phẩm từ sữa\nĂn chay thuần (Vegan)'
                   }
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800 font-mono text-xs focus:border-[#205BD6]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] font-mono text-xs focus:border-[#205BD6]"
                 />
                 <p className="text-[11px] text-[#4B5875] mt-1">
                   Mỗi dòng sẽ trở thành một mục riêng. Các dòng trống, khoảng trắng thừa hoặc
@@ -436,7 +436,7 @@ function AllergyOptionModalInner({
                     </div>
                   </div>
 
-                  <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 divide-y divide-slate-100">
+                  <div className="max-h-48 overflow-y-auto rounded-xl border border-[#0E1D4F]/10 bg-warm-paper divide-y divide-[#0E1D4F]/10">
                     {bulkItems
                       .filter((b) => b.status !== 'empty')
                       .map((item) => (
@@ -463,7 +463,7 @@ function AllergyOptionModalInner({
                                   type="text"
                                   value={editingItemText}
                                   onChange={(e) => setEditingItemText(e.target.value)}
-                                  className="px-2 py-0.5 text-xs rounded border border-slate-300 w-full"
+                                  className="px-2 py-0.5 text-xs rounded border border-[#0E1D4F]/10 w-full"
                                   autoFocus
                                 />
                                 <button
@@ -480,8 +480,8 @@ function AllergyOptionModalInner({
                                 <span
                                   className={`font-semibold ${
                                     item.status === 'valid'
-                                      ? 'text-slate-800'
-                                      : 'text-slate-400 line-through'
+                                      ? 'text-[#0E1D4F]'
+                                      : 'text-[#4B5875] line-through'
                                   }`}
                                 >
                                   {item.cleaned}
@@ -500,7 +500,7 @@ function AllergyOptionModalInner({
                               <button
                                 type="button"
                                 onClick={() => handleStartEditItem(item)}
-                                className="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-200"
+                                className="p-1 text-[#4B5875] hover:text-[#0E1D4F] rounded hover:bg-warm-paper"
                                 title="Chỉnh sửa dòng này"
                               >
                                 <Icon name="edit" size={12} />
@@ -537,7 +537,7 @@ function AllergyOptionModalInner({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <div className="p-5 bg-warm-paper border-t border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-[11px] text-[#205BD6] font-semibold flex items-center gap-1">
             <Icon name="cloud_upload" size={14} />
             <span>
@@ -549,12 +549,12 @@ function AllergyOptionModalInner({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
               disabled={isSubmitting}
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-50"
+              className="min-h-11 px-4 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#4B5875] font-semibold hover:bg-warm-paper disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
             >
               Hủy
             </button>
@@ -564,7 +564,7 @@ function AllergyOptionModalInner({
                 type="submit"
                 form="single-allergy-form"
                 disabled={isSubmitting || Boolean(singleValidationError)}
-                className="px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50 transition-colors shadow-xs"
+                className="min-h-11 px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50 transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] focus-visible:ring-offset-2"
               >
                 {isSubmitting
                   ? 'Đang lưu...'
@@ -577,7 +577,7 @@ function AllergyOptionModalInner({
                 type="submit"
                 form="bulk-allergy-form"
                 disabled={isSubmitting || validBulkItems.length === 0}
-                className="px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50 transition-colors shadow-xs"
+                className="min-h-11 px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50 transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] focus-visible:ring-offset-2"
               >
                 {isSubmitting
                   ? 'Đang lưu hàng loạt...'

@@ -2,6 +2,7 @@ export interface DestinationDto {
   id: number;
   slug: string;
   display_name: string;
+  image_url?: string | null;
   admin_name: string | null;
   center_lat: number | null;
   center_lon: number | null;

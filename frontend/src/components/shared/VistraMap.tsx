@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import Icon from '@/components/ui/Icon';
 import styles from './VistraMap.module.css';
 
@@ -87,7 +87,7 @@ export default function VistraMap({
   const [zoom, setZoom] = useState(initialZoom);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [tileError, setTileError] = useState(false);
-  const [containerSize, setContainerSize] = useState({ width: 600, height: 400 });
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
   const [isIntersecting, setIsIntersecting] = useState(!deferTiles);
 
@@ -146,15 +146,12 @@ export default function VistraMap({
   }, [initialZoom]);
 
   // Update container size on resize
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!containerRef.current) return;
     const updateSize = () => {
       if (containerRef.current) {
-        const { clientWidth, clientHeight } = containerRef.current;
-        setContainerSize({
-          width: clientWidth || 600,
-          height: clientHeight || 400,
-        });
+        const { clientWidth: width, clientHeight: height } = containerRef.current;
+        if (width > 0 && height > 0) setContainerSize({ width, height });
       }
     };
 
@@ -179,6 +176,7 @@ export default function VistraMap({
     };
   }, [normalizedCenter.lat, normalizedCenter.lng, zoom, panOffset]);
 
+  const hasMeasuredSize = containerSize.width > 0 && containerSize.height > 0;
   const viewWidth = containerSize.width || 600;
   const viewHeight = containerSize.height || 400;
 
@@ -226,21 +224,31 @@ export default function VistraMap({
     prevSelectedIdRef.current = effectiveSelectedId;
   }, [effectiveSelectedId]);
 
-  // Route points
-  const routePoints = useMemo(() => {
+  // Route segments
+  const routeSegments = useMemo(() => {
     const pts = route ?? [];
-    if (pts.length < 2) return '';
-    return pts
+    if (pts.length < 2) return [];
+    const projectedPoints = pts
       .map((p) => {
         const coord = parseCoord(p);
         const pt = project(coord.lat, coord.lng, zoom);
         const px = pt.x - (centerPx.x - viewWidth / 2);
         const py = pt.y - (centerPx.y - viewHeight / 2);
-        if (isNaN(px) || isNaN(py)) return '';
-        return `${px},${py}`;
+        return { x: px, y: py };
       })
-      .filter(Boolean)
-      .join(' ');
+      .filter(({ x, y }) => !isNaN(x) && !isNaN(y));
+    return projectedPoints.slice(1).map((point, index) => {
+      const previous = projectedPoints[index];
+      const deltaX = point.x - previous.x;
+      const deltaY = point.y - previous.y;
+      return {
+        key: index,
+        x: previous.x,
+        y: previous.y,
+        length: Math.hypot(deltaX, deltaY),
+        angle: Math.atan2(deltaY, deltaX),
+      };
+    });
   }, [route, zoom, centerPx.x, centerPx.y, viewWidth, viewHeight]);
 
   // Global mouseup/touchend listener to ensure drag state never gets stuck
@@ -264,7 +272,7 @@ export default function VistraMap({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!interactive || e.button !== 0) return;
     const target = e.target as Element;
-    if (target.closest?.('button, [role="button"], a, input, select, g, [class*="cursor-pointer"], text, circle')) return;
+    if (target.closest?.('button, [role="button"], a, input, select, [class*="cursor-pointer"]')) return;
 
     isPointerDownRef.current = true;
     isDraggingRef.current = false;
@@ -366,6 +374,7 @@ export default function VistraMap({
       {/* Interactive Drag Viewport */}
       <div
         className={styles.mapViewport}
+        style={{ visibility: hasMeasuredSize ? 'visible' : 'hidden' }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
@@ -374,7 +383,7 @@ export default function VistraMap({
         {/* Slippy Tiles Layer */}
         {!tileError ? (
           <div className={styles.tilesLayer}>
-            {isIntersecting && tiles.map((t) => (
+            {isIntersecting && hasMeasuredSize && tiles.map((t) => (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 key={t.key}
@@ -386,7 +395,7 @@ export default function VistraMap({
                   left: `${t.left}px`,
                   top: `${t.top}px`,
                 }}
-                loading="lazy"
+                loading={deferTiles ? 'lazy' : 'eager'}
                 decoding="async"
               />
             ))}
@@ -403,46 +412,33 @@ export default function VistraMap({
           </div>
         )}
 
-        {/* SVG Route & Markers Layer */}
-        <svg
-          className={styles.svgLayer}
-          viewBox={`0 0 ${viewWidth} ${viewHeight}`}
-          preserveAspectRatio="none"
-        >
-          {/* Connecting Polyline Route */}
-          {routePoints && (
-            <polyline
-              points={routePoints}
-              fill="none"
-              stroke={
+        {/* Map data layer */}
+        <div className={styles.dataLayer}>
+          {routeSegments.map((segment) => (
+            <span
+              key={segment.key}
+              aria-hidden="true"
+              className={`${styles.routeSegment} ${
                 transportMode === 'walk'
-                  ? '#08B3C6'
+                  ? styles.routeWalk
                   : transportMode === 'motorbike'
-                  ? '#D97706'
-                  : '#205BD6'
-              }
-              strokeWidth="3"
-              strokeDasharray={
-                transportMode === 'walk'
-                  ? '4,4'
-                  : transportMode === 'motorbike'
-                  ? '8,4'
-                  : transportMode === 'car'
-                  ? 'none'
-                  : '6,4'
-              }
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="drop-shadow-sm transition-all"
+                  ? styles.routeMotorbike
+                  : ''
+              }`}
+              style={{
+                left: segment.x,
+                top: segment.y - 1.5,
+                width: segment.length,
+                transform: `rotate(${segment.angle}rad)`,
+              }}
             />
-          )}
+          ))}
 
-          {/* Markers */}
           {markerPoints.map((m, idx) => {
             const isSelected = effectiveSelectedId === m.id;
             const stopLabel = m.stopNumber ?? m.order ?? idx + 1;
 
-            const handleMarkerClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+            const handleMarkerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               // Prevent marker click if gesture was an intentional map pan
               if (isDraggingRef.current || hasMovedPastThresholdRef.current) {
@@ -466,10 +462,11 @@ export default function VistraMap({
             };
 
             return (
-              <g
+              <button
                 key={m.id}
-                transform={`translate(${m.pixelX}, ${m.pixelY})`}
-                className="cursor-pointer pointer-events-auto"
+                type="button"
+                className={styles.markerButton}
+                style={{ left: m.pixelX, top: m.pixelY }}
                 onClick={handleMarkerClick}
                 onMouseDown={(e) => {
                   e.stopPropagation();
@@ -500,50 +497,21 @@ export default function VistraMap({
                   isDraggingRef.current = false;
                   hasMovedPastThresholdRef.current = false;
                 }}
-                role="button"
-                tabIndex={0}
                 aria-label={m.title || m.name || `Điểm dừng ${stopLabel}`}
-                onKeyDown={(e) => {
-                  if (!e.repeat && (e.key === 'Enter' || e.key === ' ')) {
-                    e.preventDefault();
-                    handleMarkerClick(e);
-                  }
-                }}
+                aria-pressed={isSelected}
               >
-                <circle r="22" fill="transparent" />
-                {/* Ping ring if selected */}
-                {isSelected && !suppressSelectionShadow && (
-                  <circle
-                    r="20"
-                    fill="#205BD6"
-                    opacity="0.25"
-                    className="animate-ping origin-center"
-                  />
-                )}
-
-                {/* Marker Pin Base */}
-                <circle
-                  r={isSelected ? '14' : '11'}
-                  fill={isSelected ? '#0E1D4F' : '#205BD6'}
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
-                  className={`transition-all ${suppressSelectionShadow ? '' : 'drop-shadow-md'}`}
-                />
-
-                {/* Marker Number Text */}
-                <text
-                  textAnchor="middle"
-                  dy="4"
-                  fill="#ffffff"
-                  fontSize={isSelected ? '11' : '10'}
-                  fontWeight="bold"
+                <span
+                  className={`${styles.markerPin} ${isSelected ? styles.markerPinSelected : ''} ${
+                    suppressSelectionShadow ? '' : styles.markerPinShadow
+                  }`}
                 >
-                  {stopLabel}
-                </text>
-              </g>
+                  {isSelected && !suppressSelectionShadow && <span className={styles.markerPing} />}
+                  <span className={styles.markerNumber}>{stopLabel}</span>
+                </span>
+              </button>
             );
           })}
-        </svg>
+        </div>
 
         {/* Selected Marker Detail Card Popover */}
         {!hideSelectedCard && effectiveSelectedId && (() => {
@@ -551,7 +519,7 @@ export default function VistraMap({
           if (!m) return null;
           const stopLabel = m.stopNumber ?? m.order;
           return (
-            <div className="absolute top-3 left-3 right-14 z-30 p-3 bg-white/95 backdrop-blur-md rounded-xl border border-[#205BD6]/30 shadow-lg text-xs animate-in fade-in duration-150">
+            <div className="absolute top-3 left-3 right-14 z-30 p-3 bg-warm-surface rounded-xl border border-[#0E1D4F]/15 shadow-md text-xs animate-in fade-in duration-150">
               <div className="flex items-center justify-between mb-1">
                 <span className="font-bold text-[#205BD6] flex items-center gap-1">
                   <Icon name="place" className="size-3.5 text-[#08B3C6]" />
@@ -564,7 +532,7 @@ export default function VistraMap({
                     onSelectMarker?.(null);
                     onMarkerSelect?.(null);
                   }}
-                  className="text-[#4B5875] hover:text-[#0E1D4F] p-0.5 cursor-pointer"
+                  className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper cursor-pointer"
                   aria-label="Đóng chi tiết điểm dừng"
                 >
                   <Icon name="close" className="size-3.5" />

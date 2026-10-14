@@ -218,7 +218,7 @@ export default function ProfileDnaTab() {
 
   if (!currentUserId) {
     return (
-      <div className="bg-white rounded-3xl p-8 border border-[#0E1D4F]/10 text-center text-sm text-[#4B5875]">
+      <div className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-8 text-center text-sm text-[#4B5875]">
         <p>Đăng nhập để xem và cập nhật Travel DNA của bạn.</p>
         <Link href="/login" className="inline-block mt-3 text-[#205BD6] font-semibold underline">
           Đăng nhập
@@ -233,7 +233,7 @@ export default function ProfileDnaTab() {
       {saveToast && (
         <div
           role={toastMessage.success ? 'status' : 'alert'}
-          className="fixed top-20 right-6 z-50 p-4 rounded-2xl bg-[#0E1D4F] text-white shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 max-w-md"
+          className="fixed right-4 top-20 z-50 flex max-w-md items-center gap-3 rounded-xl bg-[#0E1D4F] p-4 text-white shadow-lg animate-in fade-in slide-in-from-top-4 sm:right-6"
         >
           <Icon name={toastMessage.success ? 'check_circle' : 'warning'} className="size-5 text-[#08B3C6] shrink-0" />
           <div className="text-xs leading-relaxed">
@@ -244,7 +244,7 @@ export default function ProfileDnaTab() {
       )}
 
       {/* 1. Main DNA Overview Card at TOP (VST-PROFILE-01) */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm">
+      <div className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-5 sm:p-7">
         {/* Header with Save button */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[#0E1D4F]/10 mb-6">
           <div className="max-w-2xl">
@@ -269,7 +269,7 @@ export default function ProfileDnaTab() {
               type="button"
               onClick={handleSavePreferences}
               disabled={isSaving || !currentUserId || !hasLoadedDnaSuccessfully}
-              className="px-5 py-2.5 bg-[#205BD6] hover:bg-[#1847a8] text-white text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-2 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#205BD6] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving ? (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -307,7 +307,7 @@ export default function ProfileDnaTab() {
                   setDnaError(null);
                   setReloadTrigger((value) => value + 1);
                 }}
-                className="ml-auto px-4 py-2 font-semibold underline"
+                className="ml-auto inline-flex min-h-11 shrink-0 items-center px-4 py-2 font-semibold underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
               >
                 Thử lại
               </button>
@@ -321,7 +321,7 @@ export default function ProfileDnaTab() {
               {dnaMetrics.map((metric, idx) => (
                 <div
                   key={metric.key || idx}
-                  className="p-5 rounded-2xl border border-[#0E1D4F]/10 bg-white hover:border-[#205BD6]/40 transition-all shadow-2xs space-y-3"
+                  className="space-y-3 rounded-xl border border-[#0E1D4F]/10 bg-[#EBF1F0]/35 p-4 transition-colors hover:border-[#205BD6]/40 sm:p-5"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-[#0E1D4F]">{metric.label}</span>
@@ -345,7 +345,7 @@ export default function ProfileDnaTab() {
                       value={metric.score ?? 50}
                       onChange={(e) => handleUpdatePreference(idx, parseInt(e.target.value, 10))}
                       disabled={isSaving || !hasLoadedDnaSuccessfully}
-                      className="w-full h-2 rounded-lg bg-[#EBF1F0] accent-[#205BD6] cursor-pointer disabled:opacity-60"
+                      className="min-h-11 w-full rounded-lg bg-[#EBF1F0] accent-[#205BD6] cursor-pointer disabled:opacity-60"
                       aria-label={`Chỉnh sửa mức độ ${metric.label}`}
                     />
                   </div>
@@ -368,7 +368,7 @@ export default function ProfileDnaTab() {
               </h3>
               <p className="text-xs text-[#4B5875] mt-1">Các lựa chọn này được lưu cùng Travel DNA của bạn.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <label className="space-y-1.5">
                 <span className="block text-xs font-semibold text-[#0E1D4F]">Nhịp độ</span>
                 <input

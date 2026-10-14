@@ -18,7 +18,7 @@ export default function AdminSystemScreen() {
 
   return (
     <main className="mx-auto w-full max-w-[1720px] space-y-8 px-4 py-8 sm:px-6 lg:px-12">
-      <header className="rounded-3xl border border-[#0E1D4F]/10 bg-white p-6 shadow-sm sm:p-8">
+      <header className="rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm sm:p-8">
         <h1 className="font-headline-lg text-2xl font-bold text-[#0E1D4F] sm:text-3xl">Hạ tầng hệ thống</h1>
       </header>
 
@@ -27,8 +27,8 @@ export default function AdminSystemScreen() {
           type="button"
           onClick={() => setView('health')}
           aria-pressed={view === 'health'}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
-            view === 'health' ? 'bg-[#0E1D4F] text-white' : 'border border-[#0E1D4F]/10 bg-white text-[#4B5875] hover:bg-[#EBF1F0]'
+          className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
+            view === 'health' ? 'bg-[#0E1D4F] text-white' : 'border border-[#0E1D4F]/10 bg-warm-surface text-[#4B5875] hover:bg-warm-paper'
           }`}
         >
           <Icon name="monitoring" className="size-4" />
@@ -38,8 +38,8 @@ export default function AdminSystemScreen() {
           type="button"
           onClick={() => setView('configuration')}
           aria-pressed={view === 'configuration'}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
-            view === 'configuration' ? 'bg-[#0E1D4F] text-white' : 'border border-[#0E1D4F]/10 bg-white text-[#4B5875] hover:bg-[#EBF1F0]'
+          className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
+            view === 'configuration' ? 'bg-[#0E1D4F] text-white' : 'border border-[#0E1D4F]/10 bg-warm-surface text-[#4B5875] hover:bg-warm-paper'
           }`}
         >
           <Icon name="tune" className="size-4" />

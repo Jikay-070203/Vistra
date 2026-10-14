@@ -21,8 +21,8 @@ export default function TripCard({ plan }: { plan: UnifiedTripCard }) {
   const status = plan.status === 'draft' ? 'BẢN NHÁP' : plan.status === 'confirmed' ? 'ĐÃ XÁC NHẬN' : plan.status;
   const destinationName = useProvinceName(plan.destination);
   return (
-    <article className="bg-white/85 rounded-2xl border border-[#0E1D4F]/10 overflow-hidden shadow-xs flex flex-col min-h-[350px] h-full w-full">
-      <div className="relative h-44 bg-[#EBF1F0]">
+    <article className="flex h-full min-h-[350px] w-full flex-col overflow-hidden rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface shadow-sm">
+      <div className="relative h-44 bg-warm-paper">
         {plan.coverImage ? <Image src={plan.coverImage} alt={plan.title} fill sizes="(max-width: 640px) 100vw, 25vw" className="object-cover" />
           : <div className="h-full flex flex-col items-center justify-center gap-2 text-[#4B5875]"><Icon name="landscape" className="size-8" /><span className="text-xs">Chưa có ảnh bìa</span></div>}
         <div className="absolute top-3 left-3 flex gap-2 text-xs"><span className="rounded-lg bg-[#0E1D4F] text-white px-2 py-1">{status}</span>{plan.isPublished && <span className="rounded-lg bg-[#205BD6] text-white px-2 py-1">Đã xuất bản</span>}</div>
@@ -33,7 +33,7 @@ export default function TripCard({ plan }: { plan: UnifiedTripCard }) {
         <h3 className="font-bold text-[#0E1D4F]">{plan.title}</h3>
         <p className="text-xs text-[#4B5875]">{plan.dates}</p>
         <p className="text-xs text-[#4B5875]">Ngân sách: <strong>{plan.budget}</strong></p>
-        <Link href={`/${plan.status === 'confirmed' ? 'trip-plan' : 'planner'}?id=${encodeURIComponent(plan.id)}`} className="inline-flex min-h-11 items-center rounded-xl bg-[#205BD6] text-white text-sm px-4 py-3 font-semibold">{plan.status === 'confirmed' ? 'Xem lịch trình' : 'Mở bàn làm việc'}</Link>
+        <Link href={`/${plan.status === 'confirmed' ? 'trip-plan' : 'planner'}?id=${encodeURIComponent(plan.id)}`} className="inline-flex min-h-11 items-center rounded-xl bg-[#205BD6] px-4 py-3 text-sm font-semibold text-white">{plan.status === 'confirmed' ? 'Xem lịch trình' : 'Mở bàn làm việc'}</Link>
       </div>
     </article>
   );

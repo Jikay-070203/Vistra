@@ -123,8 +123,8 @@ export default function BudgetRangeField({
       )}
 
       {/* Row 1: Full-width two-thumb range slider */}
-      <div className="bg-[#EBF1F0]/40 p-3.5 rounded-xl border border-[#0E1D4F]/10 space-y-2.5">
-        <div className="relative w-full h-6 flex items-center select-none">
+      <div className="bg-warm-surface p-3.5 rounded-xl border border-[#0E1D4F]/10 space-y-2.5">
+        <div className="relative w-full h-11 flex items-center select-none">
           {/* Base Track */}
           <div className="absolute w-full h-2 rounded-full bg-[#0E1D4F]/10" />
           {/* Active Fill Track */}
@@ -146,7 +146,7 @@ export default function BudgetRangeField({
             aria-valuenow={currentMin}
             aria-valuetext={formatVnd(currentMin)}
             onChange={handleSliderMinChange}
-            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none cursor-pointer z-20 focus-visible:outline-2 focus-visible:outline-[#205BD6] [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4.5 [&::-webkit-slider-thumb]:h-4.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#205BD6] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4.5 [&::-moz-range-thumb]:h-4.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#205BD6] [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+            className="absolute left-0 top-0 w-full h-11 appearance-none bg-transparent pointer-events-none cursor-pointer z-20 focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-60 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5.5 [&::-webkit-slider-thumb]:h-5.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#205BD6] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5.5 [&::-moz-range-thumb]:h-5.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#205BD6] [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm"
           />
           {/* Max Slider Thumb */}
           <input
@@ -162,7 +162,7 @@ export default function BudgetRangeField({
             aria-valuenow={currentMax}
             aria-valuetext={formatVnd(currentMax)}
             onChange={handleSliderMaxChange}
-            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none cursor-pointer z-30 focus-visible:outline-2 focus-visible:outline-[#205BD6] [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4.5 [&::-webkit-slider-thumb]:h-4.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#205BD6] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4.5 [&::-moz-range-thumb]:h-4.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#205BD6] [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+            className="absolute left-0 top-0 w-full h-11 appearance-none bg-transparent pointer-events-none cursor-pointer z-30 focus-visible:outline-2 focus-visible:outline-[#205BD6] disabled:opacity-60 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5.5 [&::-webkit-slider-thumb]:h-5.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#205BD6] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5.5 [&::-moz-range-thumb]:h-5.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#205BD6] [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm"
           />
         </div>
 
@@ -192,7 +192,7 @@ export default function BudgetRangeField({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleMinInputBlur();
                 }}
-                className="w-full px-3 py-1.5 bg-white rounded-lg border border-[#0E1D4F]/15 text-xs font-semibold text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-[#205BD6]"
+                className="w-full min-h-11 px-3 py-2 bg-warm-surface rounded-lg border border-[#0E1D4F]/15 text-sm font-semibold text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-[#205BD6]"
                 placeholder="1.000.000"
               />
               <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-[#4B5875] pointer-events-none font-medium">
@@ -217,7 +217,7 @@ export default function BudgetRangeField({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleMaxInputBlur();
                 }}
-                className="w-full px-3 py-1.5 bg-white rounded-lg border border-[#0E1D4F]/15 text-xs font-semibold text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-[#205BD6]"
+                className="w-full min-h-11 px-3 py-2 bg-warm-surface rounded-lg border border-[#0E1D4F]/15 text-sm font-semibold text-[#0E1D4F] focus-visible:outline-2 focus-visible:outline-[#205BD6]"
                 placeholder="500.000.000"
               />
               <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-[#4B5875] pointer-events-none font-medium">
@@ -236,7 +236,7 @@ export default function BudgetRangeField({
                 readOnly
                 aria-label="Ngân sách ước tính mỗi người"
                 value={`~${perPersonEstimate.toLocaleString("vi-VN")} đ/người`}
-                className="w-full px-3 py-1.5 bg-[#EBF1F0] rounded-lg border border-[#0E1D4F]/10 text-xs font-semibold text-[#205BD6] select-all cursor-default"
+                className="w-full min-h-11 px-3 py-2 bg-warm-paper rounded-lg border border-[#0E1D4F]/10 text-sm font-semibold text-[#205BD6] select-all cursor-default"
                 title="Công thức: Ngân sách tối đa chia cho số người tham gia (Max / số người)"
               />
             </div>

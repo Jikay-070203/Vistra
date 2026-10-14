@@ -1,24 +1,139 @@
-'use client';
-import { useDestinationsController } from './useDestinationsController';
-import DestinationCard from './DestinationCard';
-import DestinationDetailPanel from './DestinationDetailPanel';
-import ComparisonDialog from './ComparisonDialog';
+"use client";
+
+import Icon from "@/components/ui/Icon";
+import { useDestinationsController } from "./useDestinationsController";
+import DestinationCard from "./DestinationCard";
+import DestinationDetailPanel from "./DestinationDetailPanel";
+import ComparisonDialog from "./ComparisonDialog";
+
 export default function DestinationsScreen() {
   const {
-    destinations, isLoadingRecommendations, recommendationsError, retryRecommendations,
-    selectedForCompare, expandedDetails, showComparisonModal, setShowComparisonModal,
-    comparedDestinations, toggleCompare, toggleDetails, handleSelectDestination,
+    destinations,
+    isLoadingRecommendations,
+    recommendationsError,
+    retryRecommendations,
+    selectedForCompare,
+    expandedDetails,
+    showComparisonModal,
+    setShowComparisonModal,
+    comparedDestinations,
+    toggleCompare,
+    toggleDetails,
+    handleSelectDestination,
   } = useDestinationsController();
-  const expanded = destinations.find(item => item.id === expandedDetails);
-  return <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 sm:py-12 pb-28">
-    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-[#0E1D4F]/10">
-      <div><h1 className="font-headline-lg text-2xl sm:text-4xl font-bold text-[#0E1D4F]">Khám phá điểm đến</h1><p className="text-sm text-[#4B5875] mt-3 max-w-2xl">Gợi ý từ danh mục điểm đến đang hoạt động. Dữ liệu cá nhân hóa, dự báo thời tiết và chi phí chưa khả dụng.</p></div>
-      <button type="button" disabled={selectedForCompare.length < 2} onClick={() => setShowComparisonModal(true)} className="border border-[#0E1D4F]/15 rounded-xl p-3 text-sm text-[#0E1D4F] bg-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">So sánh ({selectedForCompare.length}/3)</button>
+  const expanded = destinations.find((item) => item.id === expandedDetails);
+
+  return (
+    <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 sm:py-10 lg:px-12">
+      <header className="flex flex-col gap-5 border-b border-[#0E1D4F]/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-3xl">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rounded-full bg-[#08B3C6]"></span>
+            <span className="font-label-caps text-xs text-[#08B3C6] uppercase tracking-widest font-bold">
+              KHÁM PHÁ ĐIỂM ĐẾN
+            </span>
+          </div>
+          <h1
+            id="destinations-title"
+            className="mt-2 font-headline-lg text-3xl font-bold tracking-tight text-[#0E1D4F] sm:text-4xl"
+          >
+            Khám phá điểm đến
+          </h1>
+          <p className="mt-3 w-full text-sm leading-relaxed text-[#4B5875]">
+            Gợi ý từ danh mục điểm đến đang hoạt động. Dữ liệu cá nhân hóa, dự
+            báo thời tiết và chi phí chưa khả dụng.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-xs text-[#4B5875]"
+          >
+            Đã chọn {selectedForCompare.length}/3 điểm đến
+          </p>
+          <button
+            type="button"
+            disabled={selectedForCompare.length < 2}
+            onClick={() => setShowComparisonModal(true)}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#0E1D4F]/20 bg-warm-surface px-4 py-2.5 text-sm font-semibold text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Icon name="compare_arrows" className="size-4" />
+            <span>So sánh điểm đến</span>
+          </button>
+        </div>
+      </header>
+
+      {isLoadingRecommendations ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mt-8 flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-8 text-center"
+        >
+          <span className="size-8 animate-spin rounded-full border-4 border-[#205BD6]/25 border-t-[#205BD6]" />
+          <p className="text-sm font-semibold text-[#0E1D4F]">
+            Đang tải điểm đến...
+          </p>
+        </div>
+      ) : recommendationsError ? (
+        <div
+          role="alert"
+          className="mt-8 flex min-h-56 flex-col items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center text-rose-900"
+        >
+          <Icon name="error" className="mb-3 size-8 text-rose-700" />
+          <p className="max-w-lg text-sm">{recommendationsError}</p>
+          <button
+            type="button"
+            onClick={retryRecommendations}
+            className="mt-4 min-h-11 rounded-lg bg-[#205BD6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1847a8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
+          >
+            Thử lại
+          </button>
+        </div>
+      ) : destinations.length === 0 ? (
+        <div
+          role="status"
+          className="mt-8 rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-8 text-center text-sm text-[#4B5875]"
+        >
+          Danh mục chưa có điểm đến.
+        </div>
+      ) : (
+        <div className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          {destinations.map((dest) => (
+            <DestinationCard
+              key={dest.id}
+              dest={dest}
+              isSelected={selectedForCompare.includes(dest.id)}
+              compareDisabled={
+                selectedForCompare.length >= 3 &&
+                !selectedForCompare.includes(dest.id)
+              }
+              isExpanded={expandedDetails === dest.id}
+              onToggleCompare={toggleCompare}
+              onToggleDetails={toggleDetails}
+              onSelectDestination={handleSelectDestination}
+            />
+          ))}
+        </div>
+      )}
+
+      {expanded && (
+        <DestinationDetailPanel
+          key={expanded.id}
+          dest={expanded}
+          onClose={() => toggleDetails(expanded.id)}
+          onSelectDestination={handleSelectDestination}
+        />
+      )}
+      {showComparisonModal && (
+        <ComparisonDialog
+          isOpen={showComparisonModal}
+          comparedDestinations={comparedDestinations}
+          onRemoveDestination={toggleCompare}
+          onClose={() => setShowComparisonModal(false)}
+          onSelectDestination={handleSelectDestination}
+        />
+      )}
     </div>
-    {isLoadingRecommendations ? <p role="status" className="p-8 bg-white border rounded-2xl mt-8">Đang tải điểm đến...</p> : recommendationsError ? <div role="alert" className="p-8 bg-rose-50 text-rose-900 border border-rose-200 rounded-2xl mt-8"><p>{recommendationsError}</p><button type="button" onClick={retryRecommendations} className="p-3 mt-4 bg-[#205BD6] text-white rounded-xl">Thử lại</button></div> : destinations.length === 0 ? <p className="p-8 bg-white border rounded-2xl mt-8">Danh mục chưa có điểm đến.</p> : <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mt-8 items-stretch">
-      {destinations.map(dest => <DestinationCard key={dest.id} dest={dest} isSelected={selectedForCompare.includes(dest.id)} compareDisabled={selectedForCompare.length >= 3 && !selectedForCompare.includes(dest.id)} isExpanded={expandedDetails === dest.id} onToggleCompare={toggleCompare} onToggleDetails={toggleDetails} onSelectDestination={handleSelectDestination} />)}
-    </div>}
-    {expanded && <DestinationDetailPanel key={expanded.id} dest={expanded} onClose={() => toggleDetails(expanded.id)} onSelectDestination={handleSelectDestination} />}
-    {showComparisonModal && <ComparisonDialog isOpen={showComparisonModal} comparedDestinations={comparedDestinations} onRemoveDestination={toggleCompare} onClose={() => setShowComparisonModal(false)} onSelectDestination={handleSelectDestination} />}
-  </div>;
+  );
 }

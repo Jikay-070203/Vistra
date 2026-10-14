@@ -527,7 +527,7 @@ function AdminContentPanel() {
   };
 
   if (isLoading || contentError) return <div className="max-w-[1720px] mx-auto w-full p-6 sm:p-8">
-    <section className="bg-white rounded-3xl border border-[#0E1D4F]/10 p-6 space-y-4">
+    <section className="bg-warm-surface rounded-3xl border border-[#0E1D4F]/10 p-6 space-y-4">
       <h1 className="text-2xl font-bold text-[#0E1D4F]">Quản trị Nội dung Landing & Danh mục Dịch vụ</h1>
       <p role={contentError ? 'alert' : 'status'} className="text-sm text-[#4B5875]">{contentError || 'Đang tải nội dung CMS…'}</p>
       {contentError && <button type="button" onClick={() => { setContentError(null); setIsLoading(true); setContentReload(value => value + 1); }} className="px-4 py-2.5 rounded-xl bg-[#205BD6] text-white font-semibold">Thử tải lại</button>}
@@ -536,7 +536,7 @@ function AdminContentPanel() {
   return (
     <div className="max-w-[1720px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 space-y-8">
       {/* Top Banner (ADMINUI-01: No subtitle paragraph, only Title) */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="font-headline-lg text-2xl sm:text-3xl text-[#0E1D4F] font-bold">
             Quản trị Nội dung Landing &amp; Danh mục Dịch vụ
@@ -567,7 +567,7 @@ function AdminContentPanel() {
           <button
             type="button"
             onClick={() => setSaveStatus(null)}
-            className="text-slate-400 hover:text-slate-600"
+            className="text-[#4B5875] hover:text-[#4B5875]"
           >
             <Icon name="close" size={14} />
           </button>
@@ -575,14 +575,14 @@ function AdminContentPanel() {
       )}
 
       {/* Content Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#0E1D4F]/10 pb-3">
         <button
           type="button"
           onClick={() => { setActiveTab('intro'); setCurrentPage(1); }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex min-h-11 items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
             activeTab === 'intro'
               ? 'bg-[#205BD6] text-white shadow-sm'
-              : 'bg-white text-[#4B5875] hover:bg-slate-100 border border-slate-200'
+              : 'bg-warm-surface text-[#4B5875] hover:bg-warm-paper border border-[#0E1D4F]/10'
           }`}
         >
           <Icon name="explore" size={16} />
@@ -592,10 +592,10 @@ function AdminContentPanel() {
         <button
           type="button"
           onClick={() => { setActiveTab('hero'); setCurrentPage(1); }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex min-h-11 items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
             activeTab === 'hero'
               ? 'bg-[#205BD6] text-white shadow-sm'
-              : 'bg-white text-[#4B5875] hover:bg-slate-100 border border-slate-200'
+              : 'bg-warm-surface text-[#4B5875] hover:bg-warm-paper border border-[#0E1D4F]/10'
           }`}
         >
           <Icon name="view_carousel" size={16} />
@@ -605,10 +605,10 @@ function AdminContentPanel() {
         <button
           type="button"
           onClick={() => { setActiveTab('allergies'); setCurrentPage(1); }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex min-h-11 items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] ${
             activeTab === 'allergies'
               ? 'bg-[#205BD6] text-white shadow-sm'
-              : 'bg-white text-[#4B5875] hover:bg-slate-100 border border-slate-200'
+              : 'bg-warm-surface text-[#4B5875] hover:bg-warm-paper border border-[#0E1D4F]/10'
           }`}
         >
           <Icon name="restaurant" size={16} />
@@ -619,7 +619,7 @@ function AdminContentPanel() {
       {/* TAB 1: INTRO DESTINATIONS */}
       {activeTab === 'intro' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-warm-surface rounded-3xl p-6 border border-[#0E1D4F]/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-[#0E1D4F]">
                 Điểm đến Khởi nguồn Trang chủ
@@ -628,12 +628,12 @@ function AdminContentPanel() {
                 Nội dung này được API Landing công khai sử dụng; nếu CMS chưa có mục intro, backend trả catalog điểm đến.
               </p>
             </div>
-            <div className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
+            <div className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-warm-paper text-[#4B5875]">
               Đang chọn: <strong className="text-[#205BD6]">{activeIntroCount}</strong> hiển thị
             </div>
           </div>
 
-          {introList.length === 0 && <p className="rounded-2xl bg-white p-6 text-sm text-[#4B5875]">Máy chủ chưa có điểm đến intro.</p>}
+          {introList.length === 0 && <p className="rounded-2xl bg-warm-surface p-6 text-sm text-[#4B5875]">Máy chủ chưa có điểm đến intro.</p>}
           {(introList.some((dest) => !isCmsManagedContentId(dest.id)) || introList.some((dest) => dest.active && isCmsManagedContentId(dest.id))) && (
             <p role="note" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               {introList.some((dest) => !isCmsManagedContentId(dest.id)) && 'ID không phải UUID được xem là dữ liệu fallback (suy luận vì API chưa trả nguồn dữ liệu); các mục này chỉ xem được. '}
@@ -641,7 +641,7 @@ function AdminContentPanel() {
             </p>
           )}
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {visibleIntro.map((dest) => {
               const destName = dest.label || 'Điểm đến';
               const destImage = dest.image;
@@ -650,12 +650,12 @@ function AdminContentPanel() {
               return (
                 <div
                   key={dest.id}
-                  className={`bg-white rounded-2xl border overflow-hidden shadow-xs transition-all flex flex-col justify-between ${
-                    dest.active ? 'border-[#08B3C6]/60 ring-1 ring-[#08B3C6]/30' : 'border-slate-200 opacity-60'
+                  className={`bg-warm-surface rounded-2xl border overflow-hidden shadow-xs transition-all flex flex-col justify-between ${
+                    dest.active ? 'border-[#08B3C6]/60 ring-1 ring-[#08B3C6]/30' : 'border-[#0E1D4F]/10 opacity-60'
                   }`}
                 >
                   <div>
-                    <div className="relative h-44 w-full bg-slate-100">
+                    <div className="relative h-44 w-full bg-warm-paper">
                       {destImage ? (
                         <Image
                           src={destImage}
@@ -665,7 +665,7 @@ function AdminContentPanel() {
                           sizes="(max-width: 768px) 100vw, 33vw"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <div className="w-full h-full flex items-center justify-center text-[#4B5875]">
                           <Icon name="image" size={32} />
                         </div>
                       )}
@@ -679,7 +679,7 @@ function AdminContentPanel() {
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             dest.active
                               ? 'bg-emerald-500 text-white shadow-xs'
-                              : 'bg-slate-500 text-white'
+                              : 'bg-warm-paper0 text-white'
                           }`}
                         >
                           {dest.active ? 'Hiển thị' : 'Đang ẩn'}
@@ -703,7 +703,7 @@ function AdminContentPanel() {
                     </div>
                   </div>
 
-                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="p-4 bg-warm-paper border-t border-[#0E1D4F]/10 flex items-center justify-between gap-2">
                   <button
                     type="button"
                     disabled={isSubmitting || !isCmsManagedContentId(dest.id) || dest.active}
@@ -711,7 +711,7 @@ function AdminContentPanel() {
                     onClick={() => handleToggleIntroActive(dest)}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold border disabled:cursor-not-allowed disabled:opacity-50 ${
                       dest.active
-                        ? 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+                        ? 'bg-warm-surface text-[#4B5875] border-[#0E1D4F]/10 hover:bg-warm-paper'
                         : 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100'
                     }`}
                   >
@@ -740,7 +740,7 @@ function AdminContentPanel() {
       {/* TAB 2: HERO CAROUSEL PLANS */}
       {activeTab === 'hero' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-warm-surface rounded-3xl p-6 border border-[#0E1D4F]/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-[#0E1D4F]">
                 Kế hoạch Gợi ý Hero Carousel
@@ -774,25 +774,25 @@ function AdminContentPanel() {
           </div>
 
           {heroList.length === 0 ? (
-            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200">
-              <Icon name="view_carousel" size={40} className="mx-auto text-slate-400 mb-3" />
+            <div className="p-12 text-center bg-warm-surface rounded-3xl border border-[#0E1D4F]/10">
+              <Icon name="view_carousel" size={40} className="mx-auto text-[#4B5875] mb-3" />
               <h3 className="text-base font-bold text-[#0E1D4F]">Chưa có kế hoạch nào trong Carousel</h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              <p className="text-xs text-[#4B5875] mt-1 max-w-md mx-auto">
               Bấm &quot;Thêm Kế hoạch Mới&quot; để lưu bản ghi trong CMS. Carousel Landing hiện dùng ảnh local và chưa lấy dữ liệu từ đây.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {visibleHero.map((plan) => {
                 const planImage = plan.image;
 
                 return (
                   <div
                     key={plan.id}
-                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between"
+                    className="bg-warm-surface rounded-2xl border border-[#0E1D4F]/10 overflow-hidden shadow-xs flex flex-col justify-between"
                   >
                     <div>
-                      <div className="relative h-44 w-full bg-slate-100">
+                      <div className="relative h-44 w-full bg-warm-paper">
                         {planImage ? (
                           <Image
                             src={planImage}
@@ -802,14 +802,14 @@ function AdminContentPanel() {
                             sizes="(max-width: 768px) 100vw, 33vw"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <div className="w-full h-full flex items-center justify-center text-[#4B5875]">
                             <Icon name="image" size={32} />
                           </div>
                         )}
                       <div className="absolute top-3 left-3 bg-[#0E1D4F]/80 backdrop-blur-xs text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
                         {plan.destination}
                       </div>
-                      <div className="absolute bottom-3 right-3 bg-white/95 text-[#0E1D4F] text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                      <div className="absolute bottom-3 right-3 bg-warm-surface text-[#0E1D4F] text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
                         {plan.budget}
                       </div>
                     </div>
@@ -828,7 +828,7 @@ function AdminContentPanel() {
                         {plan.highlights.map((h, i) => (
                           <span
                             key={i}
-                            className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600"
+                            className="text-[10px] px-2 py-0.5 rounded-md bg-warm-paper text-[#4B5875]"
                           >
                             {h}
                           </span>
@@ -837,7 +837,7 @@ function AdminContentPanel() {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                  <div className="p-4 bg-warm-paper border-t border-[#0E1D4F]/10 flex items-center justify-between">
                     <button
                       type="button"
                       disabled={isSubmitting || plan.active}
@@ -845,7 +845,7 @@ function AdminContentPanel() {
                       onClick={() => handleToggleHeroActive(plan)}
                       className={`text-xs font-semibold px-3 py-1 rounded-lg border disabled:cursor-not-allowed disabled:opacity-50 ${
                         plan.active
-                          ? 'bg-white text-slate-600 border-slate-300'
+                          ? 'bg-warm-surface text-[#4B5875] border-[#0E1D4F]/10'
                           : 'bg-emerald-50 text-emerald-700 border-emerald-300'
                       }`}
                     >
@@ -881,7 +881,7 @@ function AdminContentPanel() {
       {/* TAB 3: ALLERGIES CATALOG */}
       {activeTab === 'allergies' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-warm-surface rounded-3xl p-6 border border-[#0E1D4F]/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-[#0E1D4F]">
                 Danh mục Dị ứng &amp; Chế độ Ăn kiêng
@@ -916,24 +916,24 @@ function AdminContentPanel() {
             </p>
           )}
 
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-100 text-[#0E1D4F] border-b border-slate-200 font-bold uppercase tracking-wider text-[11px]">
+          <div className="overflow-x-auto rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface shadow-xs">
+            <table className="w-full min-w-[620px] text-left text-xs">
+              <thead className="bg-warm-paper text-[#0E1D4F] border-b border-[#0E1D4F]/10 font-bold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-3.5 px-4">Tên dị ứng / Kiêng cử</th>
                   <th className="py-3.5 px-4">Trạng thái</th>
                   <th className="py-3.5 px-4 text-right">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#0E1D4F]/10">
                 {visibleAllergies.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-[#4B5875]">Chưa có mục dị ứng nào trong danh mục.</td></tr>}
                 {visibleAllergies.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={item.id} className="hover:bg-warm-paper transition-colors">
                     <td className="py-3.5 px-4 font-bold text-[#0E1D4F]">
                       {item.label}
                       {!isCmsManagedContentId(item.id) && <span title="Nguồn fallback được suy luận từ ID; API chưa trả source discriminator" className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">Fallback · chỉ xem</span>}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500">{item.active ? 'Đang dùng' : 'Đã ẩn'}</td>
+                    <td className="py-3.5 px-4 text-[#4B5875]">{item.active ? 'Đang dùng' : 'Đã ẩn'}</td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -941,7 +941,7 @@ function AdminContentPanel() {
                           disabled={isSubmitting || !isCmsManagedContentId(item.id) || item.active}
                           title={!isCmsManagedContentId(item.id) ? 'Mục fallback chỉ xem được.' : item.active ? 'Không thể ẩn vì API không trả lại mục đã ẩn để bật lại.' : undefined}
                           onClick={() => handleToggleAllergyActive(item)}
-                          className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 font-semibold text-[#0E1D4F] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="min-h-11 min-w-11 px-3 py-2 rounded bg-warm-surface border border-[#0E1D4F]/10 hover:bg-warm-paper font-semibold text-[#0E1D4F] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                         >
                           {item.active ? 'Ẩn' : 'Kích hoạt'}
                         </button>
@@ -950,7 +950,7 @@ function AdminContentPanel() {
                           disabled={!isCmsManagedContentId(item.id)}
                           title={!isCmsManagedContentId(item.id) ? 'Mục fallback chỉ xem được.' : undefined}
                           onClick={() => setEditingAllergy(item)}
-                          className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 font-semibold text-[#0E1D4F] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="min-h-11 min-w-11 px-3 py-2 rounded bg-warm-paper hover:bg-warm-paper font-semibold text-[#0E1D4F] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                         >
                           Sửa
                         </button>
@@ -959,7 +959,7 @@ function AdminContentPanel() {
                           disabled={isSubmitting || !isCmsManagedContentId(item.id)}
                           title={!isCmsManagedContentId(item.id) ? 'Mục fallback chỉ xem được.' : undefined}
                           onClick={() => handleDeleteAllergy(item.id)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded disabled:cursor-not-allowed disabled:opacity-50"
+                          className="min-h-11 min-w-11 p-2 text-red-500 hover:bg-red-50 rounded disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                           aria-label="Xóa dị ứng"
                         >
                           <Icon name="delete" size={16} />
@@ -977,9 +977,9 @@ function AdminContentPanel() {
       <nav aria-label="Phân trang nội dung" className="flex items-center justify-between gap-3 text-xs text-[#4B5875]">
         <span>{currentItems.length === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, currentItems.length)} / {currentItems.length} mục</span>
         <div className="flex items-center gap-2">
-          <button type="button" disabled={page === 1} onClick={() => setCurrentPage(page - 1)} className="rounded-lg border border-[#0E1D4F]/15 bg-white px-3 py-2 disabled:opacity-40">Trước</button>
+          <button type="button" disabled={page === 1} onClick={() => setCurrentPage(page - 1)} className="min-h-11 rounded-lg border border-[#0E1D4F]/15 bg-warm-surface px-3 py-2 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]">Trước</button>
           <span>Trang {page}/{totalPages}</span>
-          <button type="button" disabled={page === totalPages} onClick={() => setCurrentPage(page + 1)} className="rounded-lg border border-[#0E1D4F]/15 bg-white px-3 py-2 disabled:opacity-40">Sau</button>
+          <button type="button" disabled={page === totalPages} onClick={() => setCurrentPage(page + 1)} className="min-h-11 rounded-lg border border-[#0E1D4F]/15 bg-warm-surface px-3 py-2 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]">Sau</button>
         </div>
       </nav>
 
@@ -993,21 +993,22 @@ function AdminContentPanel() {
             if (e.target === e.currentTarget) setEditingIntro(null);
           }}
         >
-          <div className="bg-white max-w-lg w-full rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-5 bg-slate-100 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-warm-surface max-w-lg w-full rounded-3xl shadow-2xl border border-[#0E1D4F]/10 overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]">
+            <div className="p-5 bg-warm-paper border-b border-[#0E1D4F]/10 flex items-center justify-between">
               <h3 className="font-bold text-base text-[#0E1D4F]">
                 Chỉnh sửa Điểm đến Intro: {editingIntro.label || 'Mới'}
               </h3>
               <button
                 type="button"
                 onClick={() => setEditingIntro(null)}
-                className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-600"
+                aria-label="Đóng hộp thoại chỉnh sửa"
+                className="size-11 shrink-0 rounded-full hover:bg-warm-paper flex items-center justify-center text-[#4B5875] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
               >
                 <Icon name="close" size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveIntro} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleSaveIntro} className="min-h-0 flex-1 p-6 space-y-4 text-xs overflow-y-auto">
               {introFormError && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-semibold">
                   {introFormError}
@@ -1015,58 +1016,58 @@ function AdminContentPanel() {
               )}
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Tên địa danh</label>
+                <label className="block font-semibold text-[#4B5875] mb-1">Tên địa danh</label>
                 <input
                   type="text"
                   value={editingIntro.label}
                   onChange={(e) => setEditingIntro({ ...editingIntro, label: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                  className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                   placeholder="Ví dụ: Quảng Bình"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Mô tả ngắn</label>
+                <label className="block font-semibold text-[#4B5875] mb-1">Mô tả ngắn</label>
                 <input
                   type="text"
                   value={editingIntro.tagline || ''}
                   onChange={(e) => setEditingIntro({ ...editingIntro, tagline: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                  className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                   placeholder="Ví dụ: Vương quốc hang động kỳ vĩ"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Mã tỉnh đã lưu</label>
-                  <input readOnly disabled value={editingIntro.rawProvinceCode == null ? '' : String(editingIntro.rawProvinceCode)} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800 bg-slate-100" />
-                  <p className="mt-1 text-xs text-slate-600">Backend trả mã tỉnh dưới dạng số hoặc slug; trường này hiện chỉ đọc.</p>
+                  <label className="block font-semibold text-[#4B5875] mb-1">Mã tỉnh đã lưu</label>
+                  <input readOnly disabled value={editingIntro.rawProvinceCode == null ? '' : String(editingIntro.rawProvinceCode)} className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] bg-warm-paper" />
+                  <p className="mt-1 text-xs text-[#4B5875]">Backend trả mã tỉnh dưới dạng số hoặc slug; trường này hiện chỉ đọc.</p>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Thứ tự hiển thị (#)</label>
+                  <label className="block font-semibold text-[#4B5875] mb-1">Thứ tự hiển thị (#)</label>
                   <input
                     type="number"
                     value={editingIntro.order}
                     onChange={(e) => setEditingIntro({ ...editingIntro, order: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                    className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">URL Hình ảnh</label>
+                <label className="block font-semibold text-[#4B5875] mb-1">URL Hình ảnh</label>
                 <input
                   type="url"
                   value={editingIntro.image}
                   onChange={(e) => setEditingIntro({ ...editingIntro, image: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                  className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                   placeholder="https://images.unsplash.com/..."
                 />
               </div>
 
               {/* Image Preview Box */}
               {editingIntro.image && (
-                <div className="relative h-32 w-full rounded-xl overflow-hidden border border-slate-200">
+                <div className="relative h-32 w-full rounded-xl overflow-hidden border border-[#0E1D4F]/10">
                   <Image
                     src={editingIntro.image}
                     alt="Preview"
@@ -1077,7 +1078,7 @@ function AdminContentPanel() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+              <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 p-4 bg-warm-surface border-t border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-[11px] text-[#205BD6] font-semibold flex items-center gap-1">
                   <Icon name="cloud_upload" size={14} />
                   <span>Lưu vào Admin CMS</span>
@@ -1086,14 +1087,14 @@ function AdminContentPanel() {
                   <button
                     type="button"
                     onClick={() => setEditingIntro(null)}
-                    className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold"
+                    className="min-h-11 px-4 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#4B5875] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                   >
                     Hủy
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50"
+                    className="min-h-11 px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] focus-visible:ring-offset-2"
                   >
                     {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
                   </button>
@@ -1114,21 +1115,22 @@ function AdminContentPanel() {
             if (e.target === e.currentTarget) setEditingHero(null);
           }}
         >
-          <div className="bg-white max-w-lg w-full rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-5 bg-slate-100 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-warm-surface max-w-lg w-full rounded-3xl shadow-2xl border border-[#0E1D4F]/10 overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]">
+            <div className="p-5 bg-warm-paper border-b border-[#0E1D4F]/10 flex items-center justify-between">
               <h3 className="font-bold text-base text-[#0E1D4F]">
                 Kế hoạch Carousel: {editingHero.title || 'Mới'}
               </h3>
               <button
                 type="button"
                 onClick={() => setEditingHero(null)}
-                className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-600"
+                aria-label="Đóng hộp thoại chỉnh sửa"
+                className="size-11 shrink-0 rounded-full hover:bg-warm-paper flex items-center justify-center text-[#4B5875] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
               >
                 <Icon name="close" size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveHero} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleSaveHero} className="min-h-0 flex-1 p-6 space-y-4 text-xs overflow-y-auto">
               {heroFormError && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-semibold">
                   {heroFormError}
@@ -1136,74 +1138,74 @@ function AdminContentPanel() {
               )}
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Tiêu đề kế hoạch</label>
+                <label className="block font-semibold text-[#4B5875] mb-1">Tiêu đề kế hoạch</label>
                 <input
                   type="text"
                   value={editingHero.title}
                   onChange={(e) => setEditingHero({ ...editingHero, title: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                  className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                   placeholder="Ví dụ: Chinh phục Sơn Đoòng &amp; Di sản Phong Nha"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Địa danh</label>
+                  <label className="block font-semibold text-[#4B5875] mb-1">Địa danh</label>
                   <input
                     type="text"
                     value={editingHero.destination}
                     onChange={(e) => setEditingHero({ ...editingHero, destination: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                    className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                     placeholder="Quảng Bình"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Ngân sách ước tính</label>
+                  <label className="block font-semibold text-[#4B5875] mb-1">Ngân sách ước tính</label>
                   <input
                     type="text"
                     value={editingHero.budget}
                     onChange={(e) => setEditingHero({ ...editingHero, budget: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                    className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                     placeholder="4.500.000 ₫"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Thời lượng</label>
+                  <label className="block font-semibold text-[#4B5875] mb-1">Thời lượng</label>
                   <input
                     type="text"
                     value={editingHero.duration}
                     onChange={(e) => setEditingHero({ ...editingHero, duration: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                    className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                     placeholder="3 ngày 2 đêm"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Mô tả ngắn</label>
+                  <label className="block font-semibold text-[#4B5875] mb-1">Mô tả ngắn</label>
                   <input
                     type="text"
                     value={editingHero.summary}
                     onChange={(e) => setEditingHero({ ...editingHero, summary: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                    className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                     placeholder="Nêu điểm nhấn của hành trình"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">URL Hình ảnh</label>
+                <label className="block font-semibold text-[#4B5875] mb-1">URL Hình ảnh</label>
                 <input
                   type="url"
                   value={editingHero.image}
                   onChange={(e) => setEditingHero({ ...editingHero, image: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-800"
+                  className="min-h-11 w-full px-3 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#0E1D4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                 />
               </div>
 
               {editingHero.image && (
-                <div className="relative h-32 w-full rounded-xl overflow-hidden border border-slate-200">
+                <div className="relative h-32 w-full rounded-xl overflow-hidden border border-[#0E1D4F]/10">
                   <Image
                     src={editingHero.image}
                     alt="Preview"
@@ -1214,7 +1216,7 @@ function AdminContentPanel() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+              <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 p-4 bg-warm-surface border-t border-[#0E1D4F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-[11px] text-[#205BD6] font-semibold flex items-center gap-1">
                   <Icon name="cloud_upload" size={14} />
                   <span>Lưu vào Admin CMS</span>
@@ -1223,14 +1225,14 @@ function AdminContentPanel() {
                   <button
                     type="button"
                     onClick={() => setEditingHero(null)}
-                    className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold"
+                    className="min-h-11 px-4 py-2 rounded-xl border border-[#0E1D4F]/10 text-[#4B5875] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]"
                   >
                     Hủy
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50"
+                    className="min-h-11 px-4 py-2 rounded-xl bg-[#205BD6] text-white font-semibold hover:bg-[#1847a8] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6] focus-visible:ring-offset-2"
                   >
                     {isSubmitting ? 'Đang lưu...' : 'Lưu kế hoạch'}
                   </button>
