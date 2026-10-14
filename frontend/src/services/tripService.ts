@@ -75,6 +75,11 @@ export async function sendTripMessage(id: string, text: string, baseVersion: num
   return { ...result, data: tripChatSchema.parse(result.data) };
 }
 
+export async function getTripChatHistory(id: string) {
+  const result = await apiRequest(API_ENDPOINTS.TRIPS.CHAT_HISTORY(id), getSessionProxyBaseUrl());
+  return result as ApiRequestResult<{ trip_id: string; items: Array<{ id: string; role: 'user' | 'assistant'; content: string; created_at: string }> }>;
+}
+
 export async function generateTrip(
   id: string,
   selectedIds: number[],

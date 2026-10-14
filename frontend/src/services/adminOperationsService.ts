@@ -28,6 +28,22 @@ export async function updateAdminUserStatus(id: string, status: AdminUserView['s
   return { ...result, data: adminUserStatusSchema.parse(result.data) };
 }
 
+export async function createAdminUser(payload: { full_name: string; email: string; password: string; role: 'staff' | 'admin' }) {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.USERS, getSessionProxyBaseUrl(), { method: 'POST', credentials: 'include', jsonBody: payload });
+}
+
+export async function updateAdminUserRole(id: string, role: AdminUserView['role']) {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.USER_ROLE(id), getSessionProxyBaseUrl(), { method: 'PATCH', credentials: 'include', jsonBody: { role } });
+}
+
+export async function revokeAdminUser(id: string) {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.USER_REVOKE(id), getSessionProxyBaseUrl(), { method: 'POST', credentials: 'include' });
+}
+
+export async function getAdminPermissions(signal?: AbortSignal) {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.PERMISSIONS, getSessionProxyBaseUrl(), { credentials: 'include', signal });
+}
+
 export async function getAdminRevenue(query: { dateFrom?: string; dateTo?: string; status?: string } = {}, signal?: AbortSignal): Promise<ApiRequestResult<AdminRevenueView>> {
   const params = new URLSearchParams();
   if (query.dateFrom) params.set('date_from', query.dateFrom);

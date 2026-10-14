@@ -5,12 +5,12 @@ const B1_ROUTES: Readonly<Record<string, readonly string[]>> = {
     '/api/v1/trips/me', '/community/plans', '/api/v1/destinations/recommendations',
     '/api/v1/admin/traces', '/admin/evaluation/datasets',
     '/destinations', '/trips', '/places', '/admin/system/summary', '/api/v1/admin/system/metrics',
-    '/api/v1/admin/overview', '/api/v1/admin/revenue', '/api/v1/admin/users',
+    '/api/v1/admin/overview', '/api/v1/admin/revenue', '/api/v1/admin/users', '/api/v1/admin/permissions',
     '/api/v1/admin/feedback', '/api/v1/admin/content', '/api/v1/admin/entities/metadata',
     '/api/v1/admin/golden-datasets', '/api/v1/admin/safety-presets', '/api/v1/admin/benchmarks'],
   POST: ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/logout', '/api/v1/auth/refresh', '/api/v1/feedback', '/api/v1/dna/analyze',
     '/api/v1/trips', '/admin/evaluation/datasets', '/admin/evaluation/runs',
-    '/api/v1/admin/import/places', '/api/v1/admin/import/place-images'],
+    '/api/v1/admin/import/places', '/api/v1/admin/import/place-images', '/api/v1/admin/users'],
   PATCH: ['/api/v1/users/me'],
   PUT: ['/api/v1/users/me/dna', '/api/v1/admin/ai/provider'],
 };
@@ -44,6 +44,7 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;
   if (method === 'GET' && /^\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;
   if (method === 'POST' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/chat$/.test(path)) return path;
+  if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/chat\/history$/.test(path)) return path;
   if (method === 'POST' && /^\/trips\/[A-Za-z0-9_-]+\/(generate|confirm|revisions\/(preview|commit))$/.test(path)) return path;
   if (method === 'PATCH' && /^\/trips\/[A-Za-z0-9_-]+\/publication$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/traces\/[A-Za-z0-9_-]+$/.test(path)) return path;
@@ -51,6 +52,8 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'GET' && /^\/api\/v1\/admin\/golden-datasets\/[A-Za-z0-9_-]+\/runs$/.test(path)) return path;
   if (method === 'GET' && path === '/api/v1/admin/revenue/export') return path;
   if (method === 'PATCH' && /^\/api\/v1\/admin\/users\/[A-Za-z0-9_-]+\/status$/.test(path)) return path;
+  if (method === 'PATCH' && /^\/api\/v1\/admin\/users\/[A-Za-z0-9_-]+\/role$/.test(path)) return path;
+  if (method === 'POST' && /^\/api\/v1\/admin\/users\/[A-Za-z0-9_-]+\/revoke$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/entities\/(destinations|plans|itinerary_days|activities|feedback_tickets)\/records$/.test(path)) return path;
   if (method === 'POST' && /^\/api\/v1\/admin\/entities\/(destinations|plans|itinerary_days|activities)\/records$/.test(path)) return path;
   if (method === 'POST' && /^\/api\/v1\/admin\/import\/(destinations|itinerary_days|activities|users|content)$/.test(path)) return path;

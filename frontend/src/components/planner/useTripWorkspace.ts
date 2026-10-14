@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useUserAuth } from '@/lib/userAuth';
 import { ApiClientError } from '@/services/apiClient';
 import { commitTripRevision, confirmTrip, generateTrip, getTrip, getTripBudget, previewTripRevision,
-  sendTripMessage, setTripPublication } from '@/services/tripService';
+  sendTripMessage, getTripChatHistory, setTripPublication } from '@/services/tripService';
 import type { RevisionPreviewDto } from '@/types/planApi';
 import type { TripBudgetResponse, TripDetailDto } from '@/types/tripApi';
 
@@ -79,6 +79,9 @@ export function useTripWorkspace(loadBudget = false) {
       getTrip(id).then(({ data }) => {
         if (!valid()) return;
         setResource({ key, trip: data });
+        getTripChatHistory(id).then(({ data: history }) => {
+          if (valid()) setMessages(history.items.map(item => ({ role: item.role, text: item.content })));
+        }).catch(() => { /* Chat history is optional; the planner remains usable. */ });
         if (loadBudget && isLoggedIn && userId && data.owner_user_id === userId) {
           getTripBudget(id).then(({ data: budgetData }) => {
             if (valid()) setBudget(budgetData);
