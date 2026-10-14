@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
   ADMIN_V1: {
     OVERVIEW: '/api/v1/admin/overview',
     REVENUE: '/api/v1/admin/revenue',
+    REVENUE_EXPORT: '/api/v1/admin/revenue/export',
     USERS: '/api/v1/admin/users',
     USER_STATUS: (id: string) => '/api/v1/admin/users/' + encodeURIComponent(id) + '/status',
     FEEDBACK: '/api/v1/admin/feedback',

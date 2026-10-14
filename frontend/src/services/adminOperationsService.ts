@@ -28,8 +28,12 @@ export async function updateAdminUserStatus(id: string, status: AdminUserView['s
   return { ...result, data: adminUserStatusSchema.parse(result.data) };
 }
 
-export async function getAdminRevenue(signal?: AbortSignal): Promise<ApiRequestResult<AdminRevenueView>> {
-  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.REVENUE, getSessionProxyBaseUrl(), {
+export async function getAdminRevenue(query: { dateFrom?: string; dateTo?: string; status?: string } = {}, signal?: AbortSignal): Promise<ApiRequestResult<AdminRevenueView>> {
+  const params = new URLSearchParams();
+  if (query.dateFrom) params.set('date_from', query.dateFrom);
+  if (query.dateTo) params.set('date_to', query.dateTo);
+  if (query.status) params.set('status', query.status);
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.REVENUE + (params.size ? `?${params}` : ''), getSessionProxyBaseUrl(), {
     credentials: 'include', signal,
   });
   return { ...result, data: adminRevenueSchema.parse(result.data) };

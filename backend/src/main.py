@@ -6,6 +6,8 @@ import hmac
 import secrets
 import sqlite3
 import unicodedata
+import csv
+import io
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -18,7 +20,7 @@ from cryptography.fernet import Fernet, InvalidToken
 
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from backend.config import Settings
 from backend.agents.orchestrator import ChatRequest, chat
@@ -1544,11 +1546,35 @@ def create_app(settings=None, services=None, gemini_client=None):
         return delete_content(collection, item_id, vistra_session=vistra_session, db=db)
 
     @app.get("/api/v1/admin/revenue")
-    def v1_admin_revenue(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+    def v1_admin_revenue(date_from: str | None = Query(default=None), date_to: str | None = Query(default=None),
+                         status: str | None = Query(default=None), page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+                         vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
-        # No payment/plan-history table exists yet; never infer revenue from trip budgets.
-        return {"data": {"currency": "VND", "total": None, "mrr": None, "items": [],
-                          "available": False, "message": "Payment history is not configured"}}
+        where, params = ["1=1"], []
+        if date_from: where.append("paid_at >= ?"); params.append(date_from)
+        if date_to: where.append("paid_at < ?"); params.append(date_to)
+        if status: where.append("status = ?"); params.append(status)
+        predicate = " AND ".join(where)
+        total_count = db.execute(f"SELECT COUNT(*) FROM payment_transactions WHERE {predicate}", params).fetchone()[0]
+        total_amount = db.execute(f"SELECT COALESCE(SUM(amount),0) FROM payment_transactions WHERE {predicate} AND status='paid'", params).fetchone()[0]
+        items = rows(db, f"SELECT id,user_id,provider,external_id,amount,currency,status,description,paid_at,created_at FROM payment_transactions WHERE {predicate} ORDER BY created_at DESC LIMIT ? OFFSET ?", [*params, page_size, (page - 1) * page_size])
+        monthly = rows(db, f"SELECT SUBSTR(COALESCE(paid_at,created_at),1,7) AS month, COALESCE(SUM(amount),0) AS amount, COUNT(*) AS transactions FROM payment_transactions WHERE {predicate} AND status='paid' GROUP BY month ORDER BY month", params)
+        available = total_count > 0
+        return {"data": {"currency": "VND", "total": float(total_amount) if available else None, "mrr": None,
+                          "items": items, "monthly": monthly, "page": page, "pageSize": page_size, "totalCount": total_count,
+                          "available": available, "message": "" if available else "Chưa có giao dịch thanh toán trong khoảng lọc"}}
+
+    @app.get("/api/v1/admin/revenue/export")
+    def v1_admin_revenue_export(date_from: str | None = Query(default=None), date_to: str | None = Query(default=None),
+                                status: str | None = Query(default=None), vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        where, params = ["1=1"], []
+        if date_from: where.append("paid_at >= ?"); params.append(date_from)
+        if date_to: where.append("paid_at < ?"); params.append(date_to)
+        if status: where.append("status = ?"); params.append(status)
+        items = rows(db, f"SELECT id,user_id,provider,external_id,amount,currency,status,description,paid_at,created_at FROM payment_transactions WHERE {' AND '.join(where)} ORDER BY created_at DESC", params)
+        output = io.StringIO(); writer = csv.DictWriter(output, fieldnames=["id","user_id","provider","external_id","amount","currency","status","description","paid_at","created_at"]); writer.writeheader(); writer.writerows(items)
+        return StreamingResponse(iter([output.getvalue()]), media_type="text/csv; charset=utf-8", headers={"Content-Disposition": "attachment; filename=revenue.csv"})
 
     @app.get("/api/v1/admin/ai/provider")
     def v1_ai_provider_status(vistra_session: str | None = Cookie(default=None), db=Depends(database)):

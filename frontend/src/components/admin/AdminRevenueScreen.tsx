@@ -15,17 +15,20 @@ export default function AdminRevenueScreen() {
   const accountId = isLoggedIn && user?.role === 'admin' ? user.id : null;
   const [snapshot, setSnapshot] = useState<{ accountId: string; data: AdminRevenueView | null; error: string | null } | null>(null);
   const [reload, setReload] = useState(0);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
     if (!accountId) return;
     const controller = new AbortController();
-    getAdminRevenue(controller.signal).then(result => {
+    getAdminRevenue({ dateFrom, dateTo, status }, controller.signal).then(result => {
       if (!controller.signal.aborted) setSnapshot({ accountId, data: result.data, error: null });
     }).catch((cause: unknown) => {
       if (!controller.signal.aborted) setSnapshot({ accountId, data: null, error: cause instanceof Error ? cause.message : 'Không thể tải dữ liệu doanh thu.' });
     });
     return () => controller.abort();
-  }, [accountId, reload]);
+  }, [accountId, reload, dateFrom, dateTo, status]);
 
   const current = snapshot?.accountId === accountId ? snapshot : null;
   const data = current?.data;
@@ -46,6 +49,12 @@ export default function AdminRevenueScreen() {
       <p role={current?.error ? 'alert' : 'status'} className={current?.error ? 'text-sm text-rose-700' : 'text-sm text-[#4B5875]'}>
         {!accountId ? 'Cần phiên quản trị.' : current?.error ?? (current ? (data?.available ? 'Dữ liệu doanh thu đã được tải.' : data?.message) : 'Đang tải dữ liệu doanh thu…')}
       </p>
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-[#0E1D4F]/10 bg-warm-surface p-4">
+        <label className="text-xs font-semibold text-[#4B5875]">Từ ngày<input type="date" value={dateFrom} onChange={event => setDateFrom(event.target.value)} className="mt-1 block rounded-lg border border-[#0E1D4F]/20 px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-semibold text-[#4B5875]">Đến ngày<input type="date" value={dateTo} onChange={event => setDateTo(event.target.value)} className="mt-1 block rounded-lg border border-[#0E1D4F]/20 px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-semibold text-[#4B5875]">Trạng thái<select value={status} onChange={event => setStatus(event.target.value)} className="mt-1 block rounded-lg border border-[#0E1D4F]/20 px-3 py-2 text-sm"><option value="">Tất cả</option><option value="paid">Đã thanh toán</option><option value="pending">Đang chờ</option><option value="failed">Thất bại</option></select></label>
+        <button type="button" disabled={!accountId} onClick={() => { const params = new URLSearchParams(); if (dateFrom) params.set('date_from', dateFrom); if (dateTo) params.set('date_to', dateTo); if (status) params.set('status', status); window.open(`/api/backend/api/v1/admin/revenue/export?${params}`, '_blank', 'noopener,noreferrer'); }} className="rounded-xl bg-[#205BD6] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Export CSV</button>
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
         {[
@@ -84,6 +93,10 @@ export default function AdminRevenueScreen() {
           </div>
         </div>
       </section>
+
+      {data?.monthly.length ? <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm"><h2 className="text-lg font-bold text-[#0E1D4F]">Doanh thu theo tháng</h2><div className="mt-4 space-y-2">{data.monthly.map(item => <div key={item.month} className="flex justify-between border-b border-[#0E1D4F]/10 py-2 text-sm"><span>{item.month}</span><span>{new Intl.NumberFormat('vi-VN').format(item.amount)} VND · {item.transactions} giao dịch</span></div>)}</div></section> : null}
+
+      {data?.items.length ? <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm"><h2 className="text-lg font-bold text-[#0E1D4F]">Chi tiết giao dịch</h2><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead><tr className="border-b border-[#0E1D4F]/10"><th className="p-2">Mã</th><th className="p-2">Provider</th><th className="p-2">Số tiền</th><th className="p-2">Trạng thái</th><th className="p-2">Thời gian</th></tr></thead><tbody>{data.items.map(item => <tr key={String(item.id)} className="border-b border-[#0E1D4F]/10"><td className="p-2">{String(item.id)}</td><td className="p-2">{String(item.provider)}</td><td className="p-2">{String(item.amount)} {String(item.currency)}</td><td className="p-2">{String(item.status)}</td><td className="p-2">{String(item.paid_at ?? item.created_at)}</td></tr>)}</tbody></table></div></section> : null}
 
       <section className="bg-warm-surface rounded-3xl p-6 sm:p-8 border border-[#0E1D4F]/10 shadow-sm space-y-5">
         <div>

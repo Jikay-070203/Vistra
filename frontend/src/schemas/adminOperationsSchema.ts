@@ -74,7 +74,7 @@ export const adminRevenueSchema = {
   parse(value: unknown): AdminRevenueView {
     const raw = envelopeData(value, 'admin revenue');
     const items = raw.items;
-    if (!Array.isArray(items) || items.length !== 0) throw new TypeError('revenue.items must be an empty array until payment history is configured');
+    if (!Array.isArray(items)) throw new TypeError('revenue.items must be an array');
     for (const key of ['total', 'mrr'] as const) {
       if (raw[key] !== null && (typeof raw[key] !== 'number' || !Number.isFinite(raw[key]))) {
         throw new TypeError('revenue.' + key + ' must be a number or null');
@@ -85,7 +85,11 @@ export const adminRevenueSchema = {
       currency: text(raw.currency, 'revenue.currency'),
       total: raw.total as number | null,
       mrr: raw.mrr as number | null,
-      items: [],
+      items: items as Array<Record<string, unknown>>,
+      monthly: Array.isArray(raw.monthly) ? raw.monthly as AdminRevenueView['monthly'] : [],
+      page: typeof raw.page === 'number' ? raw.page : 1,
+      pageSize: typeof raw.pageSize === 'number' ? raw.pageSize : items.length,
+      totalCount: typeof raw.totalCount === 'number' ? raw.totalCount : items.length,
       available: raw.available,
       message: text(raw.message, 'revenue.message'),
     };

@@ -28,7 +28,11 @@ export interface AdminRevenueView {
   currency: string;
   total: number | null;
   mrr: number | null;
-  items: [];
+  items: Array<Record<string, unknown>>;
+  monthly: Array<{ month: string; amount: number; transactions: number }>;
+  page: number;
+  pageSize: number;
+  totalCount: number;
   available: boolean;
   message: string;
 }
