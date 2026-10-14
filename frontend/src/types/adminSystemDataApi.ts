@@ -26,6 +26,13 @@ export interface AdminEntityRecords {
   total: number;
 }
 
+export interface AdminEntityMutationResult {
+  table: AdminEntityTableId;
+  id: string;
+  updated?: boolean;
+  deleted?: boolean;
+}
+
 export interface AdminPlaceImportItem {
   source_place_id: string;
   name: string;

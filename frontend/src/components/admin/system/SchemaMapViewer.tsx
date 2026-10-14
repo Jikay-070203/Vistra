@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import Icon from '@/components/ui/Icon';
 import AdminDataImporter from './AdminDataImporter';
 import { useUserAuth } from '@/lib/userAuth';
-import { getAdminEntityMetadata, getAdminEntityRecords } from '@/services/adminSystemDataService';
+import { createAdminEntity, deleteAdminEntity, getAdminEntityMetadata, getAdminEntityRecords, updateAdminEntity } from '@/services/adminSystemDataService';
 import type { AdminEntityMetadata, AdminEntityRecords, AdminEntityTableId } from '@/types/adminSystemDataApi';
 
 const PAGE_SIZE = 20;
@@ -24,6 +24,8 @@ export default function SchemaMapViewer() {
   const [query, setQuery] = useState('');
   const [records, setRecords] = useState<{ key: string; data: AdminEntityRecords | null; error: string | null } | null>(null);
   const [reload, setReload] = useState(0);
+  const [mutationError, setMutationError] = useState<string | null>(null);
+  const [mutatingId, setMutatingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accountId) return;
@@ -71,6 +73,24 @@ export default function SchemaMapViewer() {
   const button = 'inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#0E1D4F]/15 px-3.5 py-2 text-xs font-semibold text-[#205BD6] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#205BD6]';
   const metadataError = metadata?.accountId === accountId ? metadata.error : null;
   const tables = metadata?.accountId === accountId ? metadata.data.tables : [];
+  const crudEnabled = selectedTableId !== 'feedback_tickets' && Boolean(selectedTableId);
+
+  async function mutate(action: 'create' | 'update' | 'delete', row?: Record<string, unknown>) {
+    if (!crudEnabled || !selectedTableName) return;
+    if (action === 'delete' && (!row?.id || !window.confirm('Xóa bản ghi này khỏi database?'))) return;
+    const raw = action === 'create'
+      ? window.prompt('Nhập JSON bản ghi mới, không gồm id:')
+      : window.prompt('Nhập JSON các trường cần cập nhật:', JSON.stringify(Object.fromEntries(Object.entries(row ?? {}).filter(([key]) => key !== 'id'))));
+    if (!raw && action !== 'delete') return;
+    try {
+      setMutationError(null); setMutatingId(action === 'create' ? 'create' : String(row?.id));
+      if (action === 'create') await createAdminEntity(selectedTableName, JSON.parse(raw as string));
+      else if (action === 'update') await updateAdminEntity(selectedTableName, String(row?.id), JSON.parse(raw as string));
+      else await deleteAdminEntity(selectedTableName, String(row?.id));
+      setReload(value => value + 1);
+    } catch (error) { setMutationError(error instanceof Error ? error.message : 'Thao tác database thất bại.'); }
+    finally { setMutatingId(null); }
+  }
 
   return <div className="space-y-6">
     {accountId && <AdminDataImporter key={accountId} onProcessed={() => setReload(value => value + 1)} />}
@@ -126,9 +146,11 @@ export default function SchemaMapViewer() {
 
           <div className="space-y-4 rounded-3xl border border-[#0E1D4F]/10 bg-warm-surface p-6 shadow-sm">
             <div className="flex flex-wrap items-end justify-between gap-3">
+              {crudEnabled && <button type="button" disabled={Boolean(mutatingId)} onClick={() => mutate('create')} className="rounded-xl bg-[#205BD6] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">+ Tạo bản ghi</button>}
               <div><h3 className="text-base font-bold text-[#0E1D4F]">Bản ghi</h3><p className="mt-1 text-xs text-[#4B5875]">Mỗi trang tối đa {PAGE_SIZE} bản ghi.</p></div>
               <button type="button" onClick={() => setReload(value => value + 1)} className={button}><Icon name="sync" size={14} />Tải lại</button>
             </div>
+            {mutationError && <p role="alert" className="text-sm text-rose-700">{mutationError}</p>}
             <form onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setPage(1); setQuery(queryDraft.trim()); }} className="flex flex-wrap gap-2">
               <label className="sr-only" htmlFor="admin-entity-search">Tìm trong bản ghi</label>
               <input id="admin-entity-search" value={queryDraft} onChange={event => setQueryDraft(event.target.value)} className="min-w-0 flex-1 rounded-xl border border-[#0E1D4F]/20 px-3 py-2.5 text-sm" placeholder="Tìm bản ghi…" />
@@ -139,11 +161,12 @@ export default function SchemaMapViewer() {
             {activeRecords && (activeRecords.items.length === 0 ? <p className="text-sm text-[#4B5875]">Không có bản ghi phù hợp.</p> : <div className="overflow-x-auto rounded-2xl border border-[#0E1D4F]/10">
               <table className="w-full min-w-[700px] text-left text-xs">
                 <thead className="border-b border-[#0E1D4F]/10 bg-warm-paper text-[11px] uppercase text-[#4B5875]">
-                  <tr>{table.fields.map(field => <th key={field.name} className="px-4 py-3">{field.name}</th>)}</tr>
+                  <tr>{table.fields.map(field => <th key={field.name} className="px-4 py-3">{field.name}</th>)}{crudEnabled && <th className="px-4 py-3">Thao tác</th>}</tr>
                 </thead>
                 <tbody className="divide-y divide-[#0E1D4F]/10">
                   {activeRecords.items.map((row, index) => <tr key={String(row.id ?? index)} className="hover:bg-warm-paper">
                     {table.fields.map(field => <td key={field.name} className="max-w-64 px-4 py-3 text-[#4B5875]" title={displayValue(row[field.name])}><span className="block truncate">{displayValue(row[field.name])}</span></td>)}
+                    {crudEnabled && <td className="whitespace-nowrap px-4 py-3"><button type="button" disabled={Boolean(mutatingId)} onClick={() => mutate('update', row)} className="mr-2 text-[#205BD6] underline">Sửa</button><button type="button" disabled={Boolean(mutatingId)} onClick={() => mutate('delete', row)} className="text-rose-700 underline">Xóa</button></td>}
                   </tr>)}
                 </tbody>
               </table>

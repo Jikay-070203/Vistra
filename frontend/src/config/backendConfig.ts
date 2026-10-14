@@ -49,6 +49,8 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'GET' && /^\/api\/v1\/admin\/traces\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'PATCH' && /^\/api\/v1\/admin\/users\/[A-Za-z0-9_-]+\/status$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/entities\/(destinations|plans|itinerary_days|activities|feedback_tickets)\/records$/.test(path)) return path;
+  if (method === 'POST' && /^\/api\/v1\/admin\/entities\/(destinations|plans|itinerary_days|activities)\/records$/.test(path)) return path;
+  if ((method === 'PATCH' || method === 'DELETE') && /^\/api\/v1\/admin\/entities\/(destinations|plans|itinerary_days|activities)\/records\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'POST' && /^\/api\/v1\/admin\/content\/(hero-plans|intro-destinations|allergy-options)$/.test(path)) return path;
   if ((method === 'PATCH' || method === 'DELETE') &&
     /^\/api\/v1\/admin\/content\/(hero-plans|intro-destinations|allergy-options)\/[A-Za-z0-9_-]+$/.test(path)) return path;

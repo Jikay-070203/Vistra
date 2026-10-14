@@ -178,29 +178,10 @@ export default function LoginScreen() {
         {/* Divider */}
         <div className="relative flex items-center justify-center my-4">
           <div className="border-t border-[#0E1D4F]/10 w-full"></div>
-          <span className="bg-warm-surface px-3 text-xs font-label-caps uppercase text-[#4B5875] shrink-0">
-            Hoặc tiếp tục với
-          </span>
         </div>
 
         {/* OAuth Provider Buttons */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={(event) => handleUnavailableAction('Google', event.currentTarget)}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#0E1D4F]/20 bg-white px-3 py-2 text-sm font-semibold text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
-          >
-            <span className="font-bold text-[#205BD6]">G</span>
-            <span>Google</span>
-          </button>
-          <button
-            type="button"
-            onClick={(event) => handleUnavailableAction('Facebook', event.currentTarget)}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#0E1D4F]/20 bg-white px-3 py-2 text-sm font-semibold text-[#0E1D4F] transition-colors hover:bg-[#EBF1F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6]"
-          >
-            <span className="font-bold text-[#205BD6]">f</span>
-            <span>Facebook</span>
-          </button>
         </div>
 
         {/* Footer Nav Link */}

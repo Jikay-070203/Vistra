@@ -1628,6 +1628,88 @@ def create_app(settings=None, services=None, gemini_client=None):
                      [*params, page_size, (page - 1) * page_size])
         return {"data": {"table": table, "items": items, "page": page, "pageSize": page_size, "total": total}}
 
+    # Generic entity CRUD is deliberately allow-listed.  The admin UI can manage
+    # the four operational entities without exposing arbitrary SQL/table names.
+    entity_crud = {
+        "destinations": {
+            "actual": "destinations", "id": "id",
+            "fields": {"slug", "display_name", "admin_name", "province_code", "center_lat", "center_lon", "target_places", "enabled"},
+        },
+        "plans": {
+            "actual": "trips", "id": "id",
+            "fields": {"destination_id", "status", "is_published"},
+        },
+        "itinerary_days": {
+            "actual": "itinerary_versions", "id": "id",
+            "fields": {"trip_id", "version"},
+        },
+        "activities": {
+            "actual": "places", "id": "id",
+            "fields": {"destination_id", "display_name", "address", "latitude", "longitude", "kind", "indoor_outdoor", "suggested_duration_min"},
+        },
+    }
+
+    def entity_spec(table: str):
+        spec = entity_crud.get(table)
+        if not spec:
+            raise HTTPException(404, "Entity CRUD is not available for this table")
+        return spec
+
+    def entity_payload(payload: dict, spec: dict, partial: bool = False):
+        if not isinstance(payload, dict):
+            raise HTTPException(422, "JSON object required")
+        unknown = set(payload) - spec["fields"]
+        if unknown:
+            raise HTTPException(422, detail={"code": "UNKNOWN_FIELDS", "fields": sorted(unknown)})
+        if not partial and not payload:
+            raise HTTPException(422, "At least one writable field is required")
+        return payload
+
+    @app.post("/api/v1/admin/entities/{table}/records", status_code=201)
+    def v1_create_entity(table: str, payload: dict,
+                         vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        spec = entity_spec(table)
+        values = entity_payload(payload, spec)
+        columns = list(values)
+        placeholders = ",".join("?" for _ in columns)
+        try:
+            cursor = db.execute(
+                f"INSERT INTO {spec['actual']} ({','.join(columns)}) VALUES ({placeholders}) RETURNING {spec['id']}",
+                [values[column] for column in columns],
+            )
+            record_id = cursor.fetchone()[0]
+        except Exception as error:
+            raise HTTPException(422, f"Cannot create {table}: {error}") from error
+        return {"data": {"table": table, "id": str(record_id)}}
+
+    @app.patch("/api/v1/admin/entities/{table}/records/{record_id}")
+    def v1_update_entity(table: str, record_id: str, payload: dict,
+                         vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        spec = entity_spec(table)
+        values = entity_payload(payload, spec, partial=True)
+        if not values:
+            raise HTTPException(422, "At least one writable field is required")
+        assignments = ",".join(f"{column}=?" for column in values)
+        result = db.execute(
+            f"UPDATE {spec['actual']} SET {assignments} WHERE {spec['id']}=?",
+            [*values.values(), record_id],
+        )
+        if result.rowcount != 1:
+            raise HTTPException(404, "Entity record not found")
+        return {"data": {"table": table, "id": record_id, "updated": True}}
+
+    @app.delete("/api/v1/admin/entities/{table}/records/{record_id}", status_code=200)
+    def v1_delete_entity(table: str, record_id: str,
+                         vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        spec = entity_spec(table)
+        result = db.execute(f"DELETE FROM {spec['actual']} WHERE {spec['id']}=?", (record_id,))
+        if result.rowcount != 1:
+            raise HTTPException(404, "Entity record not found")
+        return {"data": {"table": table, "id": record_id, "deleted": True}}
+
     @app.get("/api/v1/admin/golden-datasets")
     def v1_golden_datasets(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         # Pass concrete values when reusing the root handler; FastAPI Query
