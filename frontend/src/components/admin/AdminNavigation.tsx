@@ -259,13 +259,6 @@ export default function AdminNavigation() {
         </div>
 
         <div className="p-4 border-t border-[#0E1D4F]/10 space-y-2">
-          <Link
-            href="/"
-            className="flex min-h-11 items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper transition-colors"
-          >
-            <Icon name="arrow_back" className="size-4" />
-            <span>Về trang du khách</span>
-          </Link>
           <button
             type="button"
             onClick={handleLogout}
@@ -312,14 +305,6 @@ export default function AdminNavigation() {
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-[#0E1D4F]/10 space-y-2">
-          <Link
-            href="/"
-            className="flex min-h-11 items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-sm font-medium text-[#4B5875] hover:text-[#0E1D4F] hover:bg-warm-paper transition-colors"
-            title="Quay lại giao diện dành cho du khách"
-          >
-            <Icon name="arrow_back" className="size-4" />
-            <span>Về trang du khách</span>
-          </Link>
           <button
             type="button"
             onClick={handleLogout}

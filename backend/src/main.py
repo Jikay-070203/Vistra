@@ -1493,10 +1493,13 @@ def create_app(settings=None, services=None, gemini_client=None):
         trace_count = db.execute("SELECT COUNT(*) FROM system_traces").fetchone()[0]
         latency = row(db, "SELECT AVG(latency_ms) AS average, MAX(latency_ms) AS p95 FROM system_traces WHERE latency_ms IS NOT NULL")
         completed = db.execute("SELECT COUNT(*) FROM system_traces WHERE status IN ('completed','success','passed')").fetchone()[0]
+        trip_total = db.execute("SELECT COUNT(*) FROM trips WHERE deleted_at IS NULL").fetchone()[0]
+        trip_confirmed = db.execute("SELECT COUNT(*) FROM trips WHERE deleted_at IS NULL AND status='confirmed'").fetchone()[0]
         return {"availabilityPct": round(completed * 100 / trace_count, 2) if trace_count else 0,
                 "aiResponseLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": latency["p95"] if latency and latency["p95"] is not None else 0},
                 "apiLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": latency["p95"] if latency and latency["p95"] is not None else 0},
-                "planAcceptancePct": None, "checkedAt": now(), "benchmarkGroups": [], "traceCount": trace_count}
+                "planAcceptancePct": round(trip_confirmed * 100 / trip_total, 2) if trip_total else 0,
+                "checkedAt": now(), "benchmarkGroups": [], "traceCount": trace_count}
 
     @app.get("/api/v1/admin/benchmarks")
     def v1_admin_benchmarks(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
