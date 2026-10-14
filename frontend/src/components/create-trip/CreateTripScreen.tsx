@@ -431,6 +431,7 @@ export default function CreateTripScreen() {
                 onRemoveImage={form.removeImage}
                 onRetryImage={form.retryImageUpload}
                 onPreviewImage={handleOpenPreview}
+                onSubmit={() => void form.submit()}
                 disabled={form.isSubmitting || Boolean(form.created)}
               />
 

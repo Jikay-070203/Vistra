@@ -13,6 +13,7 @@ interface CreateTripComposerProps {
   onRemoveImage: (id: string) => void;
   onRetryImage: (id: string) => void;
   onPreviewImage: (attachment: LocalImageAttachment, triggerElement?: HTMLElement) => void;
+  onSubmit?: () => void;
   disabled?: boolean;
 }
 
@@ -24,6 +25,7 @@ export default function CreateTripComposer({
   onRemoveImage,
   onRetryImage,
   onPreviewImage,
+  onSubmit,
   disabled = false,
 }: CreateTripComposerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,9 +51,11 @@ export default function CreateTripComposer({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter or Shift+Enter inside textarea must insert a newline and NEVER submit the form
-    if (e.key === 'Enter') {
+    // Enter submits the trip; Shift+Enter keeps the normal multiline behavior.
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       e.stopPropagation();
+      if (!disabled) onSubmit?.();
     }
   };
 

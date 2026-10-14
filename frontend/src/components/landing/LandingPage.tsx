@@ -197,6 +197,12 @@ export default function LandingPage() {
   const destinationScrollEndTimerRef = React.useRef<number | null>(null);
   const destinationHoveredRef = React.useRef(false);
   const destinationPointerActiveRef = React.useRef(false);
+  const destinationDragRef = React.useRef<{
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+    moved: boolean;
+  } | null>(null);
   const preferencesHoveredRef = React.useRef(false);
   const preferencesPointerActiveRef = React.useRef(false);
   const [destinationInView, setDestinationInView] = React.useState(false);
@@ -305,30 +311,32 @@ export default function LandingPage() {
   }, [noteDestinationActivity, notePreferencesActivity]);
 
   React.useEffect(() => {
-    const section = destinationSectionRef.current;
-    if (
-      !section ||
-      !destinationInView ||
-      document.visibilityState !== "visible" ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
-      destinationHoveredRef.current ||
-      destinationPointerActiveRef.current ||
-      (document.activeElement instanceof HTMLElement &&
-        section.contains(document.activeElement) &&
-        document.activeElement.matches(":focus-visible")) ||
-      lastDestinationActivityAt === 0
-    )
-      return;
-
-    const remaining = Math.max(
-      0,
-      1500 - (Date.now() - lastDestinationActivityAt),
-    );
-    const timer = window.setTimeout(() => {
-      moveDestination(1);
-    }, remaining);
-    return () => window.clearTimeout(timer);
-  }, [destinationInView, lastDestinationActivityAt, moveDestination]);
+    if (DESTINATIONS.length < 2) return;
+    const timer = window.setInterval(() => {
+      const track = destinationTrackRef.current;
+      if (
+        !track ||
+        document.visibilityState !== "visible" ||
+        track.querySelector("[data-carousel-index]:hover") ||
+        destinationPointerActiveRef.current ||
+        destinationDragRef.current
+      ) {
+        return;
+      }
+      const card = track.querySelector<HTMLElement>(".destinationCardSlot");
+      const cardWidth = card?.getBoundingClientRect().width ?? 0;
+      const gap = Number.parseFloat(getComputedStyle(track).gap) || 16;
+      if (cardWidth > 0) {
+        track.scrollBy({
+          left: cardWidth + gap,
+          behavior: "smooth",
+        });
+      } else {
+        moveDestination(1);
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [moveDestination]);
 
   React.useEffect(() => {
     const section = preferencesSectionRef.current;
@@ -473,6 +481,49 @@ export default function LandingPage() {
     }, 140);
   };
 
+  const handleDestinationPointerDown = (
+    event: React.PointerEvent<HTMLOListElement>,
+  ) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const track = destinationTrackRef.current;
+    if (!track) return;
+    destinationDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: track.scrollLeft,
+      moved: false,
+    };
+    track.setPointerCapture(event.pointerId);
+    track.classList.add(styles.destinationDragging);
+  };
+
+  const handleDestinationPointerMove = (
+    event: React.PointerEvent<HTMLOListElement>,
+  ) => {
+    const drag = destinationDragRef.current;
+    const track = destinationTrackRef.current;
+    if (!drag || !track || drag.pointerId !== event.pointerId) return;
+    const delta = event.clientX - drag.startX;
+    if (Math.abs(delta) > 4) drag.moved = true;
+    if (drag.moved) {
+      event.preventDefault();
+      track.scrollLeft = drag.startScrollLeft - delta;
+    }
+  };
+
+  const handleDestinationPointerEnd = (
+    event: React.PointerEvent<HTMLOListElement>,
+  ) => {
+    const track = destinationTrackRef.current;
+    if (!destinationDragRef.current || destinationDragRef.current.pointerId !== event.pointerId) return;
+    if (track?.hasPointerCapture(event.pointerId)) {
+      track.releasePointerCapture(event.pointerId);
+    }
+    destinationDragRef.current = null;
+    track?.classList.remove(styles.destinationDragging);
+    noteDestinationActivity();
+  };
+
   return (
     <div className={styles.page}>
       <section
@@ -573,16 +624,6 @@ export default function LandingPage() {
         id="ban-muon-di-dau"
         className={styles.section + " " + styles.destination}
         aria-labelledby="destination-title"
-        onPointerEnter={(event) => {
-          if (event.pointerType === "touch") return;
-          destinationHoveredRef.current = true;
-          noteDestinationActivity();
-        }}
-        onPointerLeave={(event) => {
-          if (event.pointerType === "touch") return;
-          destinationHoveredRef.current = false;
-          noteDestinationActivity();
-        }}
         onPointerDownCapture={() => {
           destinationPointerActiveRef.current = true;
           noteDestinationActivity();
@@ -621,33 +662,25 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
-          <div
-            className={styles.destinationControls}
-            role="group"
-            aria-label="Điều khiển điểm đến"
-          >
-            <button
-              type="button"
-              className={styles.destinationArrow}
-              onClick={() => moveDestination(-1)}
-              aria-label="Điểm đến trước"
-            >
-              <Icon name="arrow_back" className="size-5" />
-            </button>
-            <button
-              type="button"
-              className={styles.destinationArrow}
-              onClick={() => moveDestination(1)}
-              aria-label="Điểm đến tiếp theo"
-            >
-              <Icon name="arrow_forward" className="size-5" />
-            </button>
-          </div>
           <ol
             ref={destinationTrackRef}
             className={styles.destinationTrack}
             aria-label="Chọn điểm đến"
             onScroll={syncDestinationFromScroll}
+            onPointerEnter={(event) => {
+              if (event.pointerType === "touch") return;
+              destinationHoveredRef.current = true;
+              noteDestinationActivity();
+            }}
+            onPointerLeave={(event) => {
+              if (event.pointerType === "touch") return;
+              destinationHoveredRef.current = false;
+              noteDestinationActivity();
+            }}
+            onPointerDown={handleDestinationPointerDown}
+            onPointerMove={handleDestinationPointerMove}
+            onPointerUp={handleDestinationPointerEnd}
+            onPointerCancel={handleDestinationPointerEnd}
           >
             {DESTINATION_CAROUSEL.map((destination, carouselIndex) => {
               const isClone =

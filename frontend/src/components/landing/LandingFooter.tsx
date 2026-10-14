@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
 import styles from './landing-redesign.module.css';
@@ -36,19 +35,6 @@ const FOOTER_LINKS = [
 export default function LandingFooter() {
   return (
     <footer className={styles.footer}>
-      <div className={styles.footerPhotoStrip}>
-        {FOOTER_PHOTOS.map((photo) => (
-          <div className={styles.footerPhoto} key={photo.src}>
-            <Image
-              src={photo.src}
-              alt={photo.alt}
-              fill
-              sizes="(max-width: 760px) 47vw, 25vw"
-              style={{ objectPosition: photo.position }}
-            />
-          </div>
-        ))}
-      </div>
       <div className={styles.footerPanel}>
         <div className={styles.footerTop}>
           <div className={styles.footerBrand}>

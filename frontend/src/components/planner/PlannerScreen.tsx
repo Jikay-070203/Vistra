@@ -106,6 +106,7 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
   const [place, setPlace] = useState<number | null>(null);
   const [text, setText] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [recommendationsOpen, setRecommendationsOpen] = useState(false);
   const [dismissedConfirmationIndex, setDismissedConfirmationIndex] = useState<number | null>(null);
   const destinationName = useProvinceName(trip?.destination_id, trip?.request.destination);
 
@@ -184,7 +185,7 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
         {/* Column 1: AI Chat Assistant */}
         <section className={tripPanelClass} aria-label="Hội thoại với Vistra">
           <h2 className="text-lg font-bold mb-3">Hội thoại với Vistra</h2>
-          <div className="h-[40dvh] lg:h-[50dvh] min-h-64 overflow-y-auto overscroll-contain space-y-3" aria-label="Tin nhắn" role="log" aria-live="polite">
+          <div className="max-h-[40dvh] lg:max-h-[50dvh] min-h-32 overflow-y-auto overscroll-contain space-y-3" aria-label="Tin nhắn" role="log" aria-live="polite">
             {messages.length === 0 && (
               <p className="text-[#4B5875] text-sm">
                 {!itinerary
@@ -214,6 +215,10 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
           </div>
           {(canAddPlaces || canReplacePlaces) && (
             <section className="mt-4 border-t border-[#0E1D4F]/10 pt-4" aria-labelledby="planner-recommendations-title">
+              {itinerary && <button type="button" onClick={() => setRecommendationsOpen(value => !value)} className="mb-3 flex w-full items-center justify-between rounded-lg border border-[#0E1D4F]/10 bg-[#EBF1F0]/40 px-3 py-2 text-left text-sm font-bold">
+                <span>Điểm đến gợi ý</span><span aria-hidden="true">{recommendationsOpen ? '−' : '+'}</span>
+              </button>}
+              <div className={itinerary && !recommendationsOpen ? 'hidden' : ''}>
               <div className="mb-3">
                 <h3 id="planner-recommendations-title" className="text-sm font-bold">Điểm đến gợi ý</h3>
                 <p className="mt-1 text-xs text-[#4B5875]">
@@ -225,8 +230,8 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
                 </p>
               </div>
               {recommendationCards.length > 0 ? (
-                <div className="max-h-[168px] overflow-y-auto overscroll-contain sm:max-h-[80px]">
-                  <div role="group" aria-label="Chọn điểm đến gợi ý" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="max-h-[360px] w-full overflow-y-auto overscroll-y-contain pr-1 pb-2">
+                  <div role="group" aria-label="Chọn điểm đến gợi ý" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {recommendationCards.map(item => {
                       const selected = canAddPlaces ? selectedIds.includes(item.id) : selectedRecommendationId === item.id;
                       const atLimit = canAddPlaces && !selected && selectedIds.length >= MAX_SELECTED_PLACES;
@@ -238,7 +243,7 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
                           aria-pressed={selected}
                           disabled={busy || atLimit}
                           onClick={() => toggleRecommendation(item.id)}
-                          className={`group relative h-20 min-w-0 overflow-hidden rounded-xl border bg-warm-paper text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-[#205BD6] ring-2 ring-[#205BD6]/30' : 'border-[#0E1D4F]/15 hover:border-[#205BD6]/60'}`}
+                          className={`group relative h-32 min-w-0 overflow-hidden rounded-xl border bg-warm-paper text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#205BD6] disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-[#205BD6] ring-2 ring-[#205BD6]/30' : 'border-[#0E1D4F]/15 hover:border-[#205BD6]/60'}`}
                         >
                           {item.image_url && <img src={item.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />}
                           <span aria-hidden="true" className={`absolute inset-0 grid place-items-center text-[#4B5875] ${item.image_url ? 'hidden' : ''}`}>
@@ -296,6 +301,7 @@ function PlannerWorkspace({ workspace }: { workspace: ReturnType<typeof useTripW
                   </button>
                 </div>
               )}
+              </div>
             </section>
           )}
           <form className="mt-4 space-y-2" onSubmit={async (event) => { event.preventDefault(); if (await workspace.send(text)) setText(''); }}>
