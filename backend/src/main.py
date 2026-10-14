@@ -1765,6 +1765,59 @@ def create_app(settings=None, services=None, gemini_client=None):
             raise HTTPException(404, "Entity record not found")
         return {"data": {"table": table, "id": record_id, "deleted": True}}
 
+    @app.post("/api/v1/admin/import/{kind}")
+    def v1_bulk_import(kind: Literal["destinations", "itinerary_days", "activities", "users", "content"],
+                       payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        """Bulk import for admin-managed data. Only explicit kinds/fields are accepted."""
+        admin = require_admin(vistra_session, db)
+        batch_id = str(payload.get("batch_id", "")).strip()
+        source = str(payload.get("source", "admin")).strip()[:80]
+        items = payload.get("items")
+        if not batch_id or not isinstance(items, list) or not items:
+            raise HTTPException(422, "source, batch_id and non-empty items are required")
+        if len(items) > 1000:
+            raise HTTPException(422, "A batch may contain at most 1000 items")
+        existing = row(db, "SELECT id FROM data_import_batches WHERE batch_id=?", (batch_id,))
+        if existing:
+            return {"data": {"batch_id": batch_id, "status": "already_processed", "received": 0, "inserted": 0, "updated": 0, "skipped": 0, "failed": 0, "errors": []}}
+        inserted = updated = skipped = failed = 0
+        errors = []
+        for index, item in enumerate(items):
+            try:
+                if not isinstance(item, dict): raise ValueError("item must be an object")
+                if kind == "destinations":
+                    slug = str(item["slug"]).strip(); name = str(item["display_name"]).strip()
+                    if not slug or not name: raise ValueError("slug and display_name are required")
+                    current = row(db, "SELECT id FROM destinations WHERE slug=?", (slug,))
+                    if current:
+                        db.execute("UPDATE destinations SET display_name=?,admin_name=?,province_code=?,enabled=?,updated_at=? WHERE slug=?", (name, item.get("admin_name"), item.get("province_code"), int(bool(item.get("enabled", True))), now(), slug)); updated += 1
+                    else:
+                        db.execute("INSERT INTO destinations(slug,display_name,admin_name,province_code,enabled) VALUES (?,?,?,?,?)", (slug, name, item.get("admin_name"), item.get("province_code"), int(bool(item.get("enabled", True))))); inserted += 1
+                elif kind in ("itinerary_days", "activities"):
+                    table = "itinerary_versions" if kind == "itinerary_days" else "places"
+                    allowed = entity_spec(kind)["fields"]
+                    values = {key: item[key] for key in item if key in allowed}
+                    if not values: raise ValueError("no writable fields")
+                    if kind == "itinerary_days":
+                        db.execute("INSERT INTO itinerary_versions(id,trip_id,version) VALUES (?,?,?)", (item.get("id", str(uuid4())), values.get("trip_id"), values.get("version", 1))); inserted += 1
+                    else:
+                        if not values.get("destination_id") or not values.get("display_name") or values.get("latitude") is None or values.get("longitude") is None: raise ValueError("destination_id, display_name, latitude and longitude are required")
+                        db.execute("INSERT INTO places(destination_id,display_name,normalized_name,address,latitude,longitude,kind) VALUES (?,?,?,?,?,?,?)", (values["destination_id"], values["display_name"], normalized(values["display_name"]), values.get("address"), values["latitude"], values["longitude"], values.get("kind", "other"))); inserted += 1
+                elif kind == "users":
+                    email = str(item["email"]).strip().lower(); password = item.get("password")
+                    if not email or not password or not item.get("full_name"): raise ValueError("full_name, email and password are required")
+                    if row(db, "SELECT id FROM users WHERE email=?", (email,)): skipped += 1; continue
+                    user_id = str(uuid4()); timestamp = now()
+                    db.execute("INSERT INTO users(id,full_name,email,password_hash,role,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)", (user_id, item["full_name"], email, _password_hash(str(password)), item.get("role", "traveler"), item.get("status", "active"), timestamp, timestamp)); inserted += 1
+                else:
+                    collection = item.get("collection")
+                    if collection not in ("hero-plans", "intro-destinations", "allergy-options"): raise ValueError("unsupported CMS collection")
+                    create_content(collection, item.get("payload", item), vistra_session=vistra_session, db=db); inserted += 1
+            except Exception as error:
+                failed += 1; errors.append({"index": index, "code": "IMPORT_FAILED", "message": str(error)})
+        db.execute("INSERT INTO data_import_batches(batch_id,source,kind,received,inserted,updated,skipped,failed,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (batch_id, source, kind, len(items), inserted, updated, skipped, failed, admin["id"], now()))
+        return {"data": {"batch_id": batch_id, "status": "completed_with_errors" if failed else "completed", "received": len(items), "inserted": inserted, "updated": updated, "skipped": skipped, "failed": failed, "errors": errors}}
+
     @app.get("/api/v1/admin/golden-datasets")
     def v1_golden_datasets(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         # Pass concrete values when reusing the root handler; FastAPI Query

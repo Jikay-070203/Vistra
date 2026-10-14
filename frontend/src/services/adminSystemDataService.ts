@@ -69,3 +69,10 @@ export async function importAdminPlaceImages(payload: unknown): Promise<ApiReque
   });
   return { ...result, data: adminImportResultSchema.parse(result.data) };
 }
+
+export async function importAdminBulk(kind: 'destinations' | 'itinerary_days' | 'activities' | 'users' | 'content', payload: unknown): Promise<ApiRequestResult<AdminImportResult>> {
+  const result = await apiRequest(`/api/v1/admin/import/${kind}`, getSessionProxyBaseUrl(), {
+    method: 'POST', credentials: 'include', jsonBody: payload,
+  });
+  return { ...result, data: adminImportResultSchema.parse(result.data) };
+}
