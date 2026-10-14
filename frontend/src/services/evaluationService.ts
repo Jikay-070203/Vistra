@@ -44,3 +44,13 @@ export async function getEvaluationRun(id: string, signal?: AbortSignal) {
   const result = await apiRequest(ADMIN_EVALUATION_ENDPOINTS.RUN(id), getSessionProxyBaseUrl(), { credentials: 'include', signal });
   return { ...result, data: evaluationRunSchema.parse(result.data) };
 }
+
+export async function getDatasetDetail(id: string, signal?: AbortSignal) {
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.GOLDEN_DATASET(id), getSessionProxyBaseUrl(), { credentials: 'include', signal });
+  return { ...result, data: (result.data as { data: import('@/types/adminSystemApi').GoldenDatasetDetailView }).data };
+}
+
+export async function getDatasetRuns(id: string, signal?: AbortSignal) {
+  const result = await apiRequest(API_ENDPOINTS.ADMIN_V1.GOLDEN_DATASET_RUNS(id), getSessionProxyBaseUrl(), { credentials: 'include', signal });
+  return { ...result, data: (result.data as { data: { items: import('@/types/adminSystemApi').GoldenDatasetRunView[] } }).data };
+}

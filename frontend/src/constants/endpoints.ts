@@ -65,6 +65,7 @@ export const API_ENDPOINTS = {
     ENTITY_RECORDS: (table: AdminEntityTable) =>
       '/api/v1/admin/entities/' + encodeURIComponent(table) + '/records',
     GOLDEN_DATASETS: '/api/v1/admin/golden-datasets',
+    GOLDEN_DATASET: (id: string) => '/api/v1/admin/golden-datasets/' + encodeURIComponent(id),
     GOLDEN_DATASET_RUNS: (id: string) => '/api/v1/admin/golden-datasets/' + encodeURIComponent(id) + '/runs',
     SAFETY_PRESETS: '/api/v1/admin/safety-presets',
     SAFETY_EVALUATIONS: '/api/v1/admin/safety-evaluations',

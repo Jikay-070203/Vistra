@@ -1450,10 +1450,15 @@ def create_app(settings=None, services=None, gemini_client=None):
         run = row(db, "SELECT * FROM evaluation_runs WHERE id=?", (run_id,))
         if not run: raise HTTPException(404, "Evaluation run not found")
         summary = json.loads(run["summary_json"]) if run["summary_json"] else None
+        stored_cases = summary.get("cases") if summary else None
+        cases = stored_cases if isinstance(stored_cases, list) else [
+            {"id": case["id"], "name": case["name"], "status": "pending", "result": None}
+            for case in rows(db, "SELECT id,name FROM evaluation_cases WHERE dataset_id=? ORDER BY name", (run["dataset_id"],))
+        ]
         return {"runId": run_id, "datasetId": run["dataset_id"], "status": run["status"],
                 "scorePct": summary.get("scorePct") if summary else None,
                 "counts": summary.get("counts", {"passed": 0, "warning": 0, "failed": 0}) if summary else None,
-                "cases": None}
+                "cases": cases, "createdAt": run["created_at"], "completedAt": run["completed_at"]}
 
     @app.get("/admin/system/summary")
     def system_summary(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
@@ -1740,6 +1745,30 @@ def create_app(settings=None, services=None, gemini_client=None):
         # defaults are marker objects outside dependency injection.
         return {"data": evaluation_datasets(page=1, page_size=20,
                                               vistra_session=vistra_session, db=db)}
+
+    @app.get("/api/v1/admin/golden-datasets/{dataset_id}")
+    def v1_golden_dataset_detail(dataset_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        dataset = row(db, "SELECT * FROM evaluation_datasets WHERE id=?", (dataset_id,))
+        if not dataset:
+            raise HTTPException(404, "Dataset not found")
+        cases = rows(db, "SELECT id,name,input_json,expected_json FROM evaluation_cases WHERE dataset_id=? ORDER BY name", (dataset_id,))
+        return {"data": {"id": dataset["id"], "name": dataset["name"], "description": dataset["description"],
+                          "isBuiltin": bool(dataset["is_builtin"]), "version": dataset["version"],
+                          "testCases": [{"id": item["id"], "name": item["name"],
+                                         "input": json.loads(item["input_json"]), "expected": json.loads(item["expected_json"])} for item in cases]}}
+
+    @app.get("/api/v1/admin/golden-datasets/{dataset_id}/runs")
+    def v1_golden_dataset_runs(dataset_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        if not row(db, "SELECT id FROM evaluation_datasets WHERE id=?", (dataset_id,)):
+            raise HTTPException(404, "Dataset not found")
+        runs = rows(db, "SELECT id,dataset_id,status,summary_json,created_at,completed_at FROM evaluation_runs WHERE dataset_id=? ORDER BY created_at DESC", (dataset_id,))
+        return {"data": {"items": [{"runId": item["id"], "datasetId": item["dataset_id"], "status": item["status"],
+                                      "scorePct": (json.loads(item["summary_json"]) if item["summary_json"] else {}).get("scorePct"),
+                                      "counts": (json.loads(item["summary_json"]) if item["summary_json"] else {}).get("counts"),
+                                      "cases": (json.loads(item["summary_json"]) if item["summary_json"] else {}).get("cases"),
+                                      "createdAt": item["created_at"], "completedAt": item["completed_at"]} for item in runs]}}
 
     @app.post("/api/v1/admin/golden-datasets")
     def v1_create_golden_dataset(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):

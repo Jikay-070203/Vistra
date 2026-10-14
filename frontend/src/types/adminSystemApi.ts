@@ -1,3 +1,5 @@
+import type { EvaluationRun } from './adminEvaluationApi';
+
 export interface AdminPageQuery { page: number; pageSize: number }
 
 export interface TraceListItemView {
@@ -29,3 +31,7 @@ export interface GoldenDatasetMetadataView {
   /** The list endpoint does not hydrate individual cases. */
   testCases: [];
 }
+
+export interface GoldenDatasetCaseView { id: string; name: string; input: unknown; expected: unknown; }
+export interface GoldenDatasetDetailView extends GoldenDatasetMetadataView { version: number; testCases: GoldenDatasetCaseView[]; }
+export interface GoldenDatasetRunView extends EvaluationRun { createdAt?: string; completedAt?: string | null; }

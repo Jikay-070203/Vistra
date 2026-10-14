@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useUserAuth } from '@/lib/userAuth';
-import { createDataset, getDatasets, getEvaluationRun, startEvaluation } from '@/services/evaluationService';
+import { createDataset, getDatasetDetail, getDatasetRuns, getDatasets, getEvaluationRun, startEvaluation } from '@/services/evaluationService';
 import type { AdminPageView, GoldenDatasetMetadataView } from '@/types/adminSystemApi';
 import type { EvaluationRun } from '@/types/adminEvaluationApi';
 
@@ -25,10 +25,20 @@ function DatasetPanel() {
   const [notice, setNotice] = useState<string | null>(null);
   const [run, setRun] = useState<EvaluationRun | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
+  const [detail, setDetail] = useState<import('@/types/adminSystemApi').GoldenDatasetDetailView | null>(null);
+  const [history, setHistory] = useState<import('@/types/adminSystemApi').GoldenDatasetRunView[]>([]);
   const [pollRevision, setPollRevision] = useState(0);
   const mutation = useRef<AbortController | null>(null);
   const pending = run?.status === 'queued' || run?.status === 'running';
   const selected = data?.items.find(item => item.id === selectedId);
+  useEffect(() => {
+    if (!selectedId) return;
+    const controller = new AbortController();
+    Promise.all([getDatasetDetail(selectedId, controller.signal), getDatasetRuns(selectedId, controller.signal)]).then(([datasetResult, runsResult]) => {
+      if (!controller.signal.aborted) { setDetail(datasetResult.data); setHistory(runsResult.data.items); }
+    }).catch(() => { if (!controller.signal.aborted) { setDetail(null); setHistory([]); } });
+    return () => controller.abort();
+  }, [selectedId, reload]);
 
   useEffect(() => () => mutation.current?.abort(), []);
   useEffect(() => {
@@ -121,6 +131,8 @@ function DatasetPanel() {
       <button type="button" onClick={refresh} disabled={saving} className={button + ' text-[#205BD6]'}>Tải lại danh sách</button>
       <button type="button" onClick={startRun} disabled={!selected || saving || pending} className={button + ' bg-[#205BD6] text-white'}>{saving ? 'Đang gửi…' : 'Gửi lượt đánh giá'}</button>
     </div>
+    {detail && <div className="rounded-2xl border border-[#0E1D4F]/10 bg-warm-paper p-4 text-sm"><p className="font-semibold text-[#0E1D4F]">Chi tiết test case ({detail.testCases.length})</p><ul className="mt-2 space-y-1 text-[#4B5875]">{detail.testCases.map(item => <li key={item.id} className="rounded-lg border border-[#0E1D4F]/10 p-2"><span className="font-semibold">{item.name}</span><pre className="mt-1 max-h-24 overflow-auto text-xs">{JSON.stringify({ input: item.input, expected: item.expected }, null, 2)}</pre></li>)}</ul></div>}
+    {history.length > 0 && <div className="rounded-2xl border border-[#0E1D4F]/10 p-4 text-sm"><p className="font-semibold text-[#0E1D4F]">Lịch sử chạy</p><ul className="mt-2 space-y-1 text-[#4B5875]">{history.map(item => <li key={item.runId}>{item.createdAt ?? item.runId} · {item.status} · {item.scorePct == null ? 'Chưa có điểm' : `${item.scorePct}%`}</li>)}</ul></div>}
     {data && <p className="text-sm text-[#4B5875]">{data.total} bộ dữ liệu · API hiện cung cấp tối đa 20 bộ đầu tiên.</p>}
     {run && <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-2">
       <p className="break-all">Lượt đánh giá: {run.runId} · Trạng thái máy chủ: <strong>{run.status}</strong></p>
