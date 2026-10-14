@@ -26,6 +26,7 @@ export default function SchemaMapViewer() {
   const [reload, setReload] = useState(0);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [mutatingId, setMutatingId] = useState<string | null>(null);
+  const [jsonEditor, setJsonEditor] = useState<{ action: 'create' | 'update'; row?: Record<string, unknown>; value: string } | null>(null);
 
   useEffect(() => {
     if (!accountId) return;
@@ -78,6 +79,16 @@ export default function SchemaMapViewer() {
   async function mutate(action: 'create' | 'update' | 'delete', row?: Record<string, unknown>) {
     if (!crudEnabled || !selectedTableName) return;
     if (action === 'delete' && (!row?.id || !window.confirm('Xóa bản ghi này khỏi database?'))) return;
+    if (action !== 'delete') {
+      setJsonEditor({ action, row, value: action === 'create' ? '{\n  \n}' : JSON.stringify(Object.fromEntries(Object.entries(row ?? {}).filter(([key]) => key !== 'id')), null, 2) });
+      return;
+    }
+    if (action === 'delete') {
+      try { setMutationError(null); setMutatingId(String(row?.id)); await deleteAdminEntity(selectedTableName, String(row?.id)); setReload(value => value + 1); }
+      catch (error) { setMutationError(error instanceof Error ? error.message : 'Database mutation failed.'); }
+      finally { setMutatingId(null); }
+      return;
+    }
     const raw = action === 'create'
       ? window.prompt('Nhập JSON bản ghi mới, không gồm id:')
       : window.prompt('Nhập JSON các trường cần cập nhật:', JSON.stringify(Object.fromEntries(Object.entries(row ?? {}).filter(([key]) => key !== 'id'))));
@@ -89,6 +100,18 @@ export default function SchemaMapViewer() {
       else await deleteAdminEntity(selectedTableName, String(row?.id));
       setReload(value => value + 1);
     } catch (error) { setMutationError(error instanceof Error ? error.message : 'Thao tác database thất bại.'); }
+    finally { setMutatingId(null); }
+  }
+
+  async function submitJsonEditor() {
+    if (!jsonEditor || !selectedTableName) return;
+    try {
+      const payload = JSON.parse(jsonEditor.value) as Record<string, unknown>;
+      setMutationError(null); setMutatingId(jsonEditor.action === 'create' ? 'create' : String(jsonEditor.row?.id));
+      if (jsonEditor.action === 'create') await createAdminEntity(selectedTableName, payload);
+      else await updateAdminEntity(selectedTableName, String(jsonEditor.row?.id), payload);
+      setJsonEditor(null); setReload(value => value + 1);
+    } catch (error) { setMutationError(error instanceof Error ? error.message : 'Database mutation failed.'); }
     finally { setMutatingId(null); }
   }
 
@@ -180,6 +203,13 @@ export default function SchemaMapViewer() {
             </div>}
           </div>
         </section>}
+      </div>}
+      {jsonEditor && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+        <div className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl">
+          <h3 className="font-bold text-[#0E1D4F]">{jsonEditor.action === 'create' ? 'Tạo bản ghi' : 'Cập nhật bản ghi'}</h3>
+          <textarea autoFocus value={jsonEditor.value} onChange={event => setJsonEditor(current => current ? { ...current, value: event.target.value } : current)} className="mt-3 min-h-48 w-full rounded-xl border border-[#0E1D4F]/20 p-3 font-mono text-sm" />
+          <div className="mt-3 flex justify-end gap-2"><button type="button" onClick={() => setJsonEditor(null)} className={button}>Hủy</button><button type="button" onClick={() => void submitJsonEditor()} className="rounded-xl bg-[#205BD6] px-4 py-2 text-sm font-semibold text-white">Lưu</button></div>
+        </div>
       </div>}
     </>}
   </div>;

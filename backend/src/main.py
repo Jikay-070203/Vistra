@@ -1491,11 +1491,11 @@ def create_app(settings=None, services=None, gemini_client=None):
     def system_summary(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
         trace_count = db.execute("SELECT COUNT(*) FROM system_traces").fetchone()[0]
-        latency = row(db, "SELECT AVG(latency_ms) AS average FROM system_traces WHERE latency_ms IS NOT NULL")
+        latency = row(db, "SELECT AVG(latency_ms) AS average, MAX(latency_ms) AS p95 FROM system_traces WHERE latency_ms IS NOT NULL")
         completed = db.execute("SELECT COUNT(*) FROM system_traces WHERE status IN ('completed','success','passed')").fetchone()[0]
         return {"availabilityPct": round(completed * 100 / trace_count, 2) if trace_count else 0,
-                "aiResponseLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": None},
-                "apiLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": None},
+                "aiResponseLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": latency["p95"] if latency and latency["p95"] is not None else 0},
+                "apiLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": latency["p95"] if latency and latency["p95"] is not None else 0},
                 "planAcceptancePct": None, "checkedAt": now(), "benchmarkGroups": [], "traceCount": trace_count}
 
     @app.get("/api/v1/admin/benchmarks")
@@ -1549,11 +1549,13 @@ def create_app(settings=None, services=None, gemini_client=None):
     @app.get("/api/v1/admin/overview")
     def v1_admin_overview(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
+        monthly = rows(db, "SELECT substr(created_at,1,7) AS month, COUNT(*) AS trips FROM trips WHERE deleted_at IS NULL GROUP BY substr(created_at,1,7) ORDER BY month DESC LIMIT 12")
+        statuses = rows(db, "SELECT status, COUNT(*) AS count FROM trips WHERE deleted_at IS NULL GROUP BY status")
         return {"data": {"users": db.execute("SELECT COUNT(*) FROM users").fetchone()[0],
                           "places": db.execute("SELECT COUNT(*) FROM places").fetchone()[0],
                           "trips": db.execute("SELECT COUNT(*) FROM trips WHERE deleted_at IS NULL").fetchone()[0],
                           "feedback": db.execute("SELECT COUNT(*) FROM feedback_tickets").fetchone()[0],
-                          "updatedAt": now()}}
+                          "updatedAt": now(), "monthlyTrips": monthly, "tripStatuses": statuses}}
 
     @app.get("/api/v1/admin/content")
     def v1_admin_content(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
