@@ -7,6 +7,27 @@ export interface AdminMetrics {
   // No benchmark item contract is implemented by the backend yet.
   benchmarkGroups: unknown[];
 }
+
+export interface AdminBenchmarkRun {
+  runId: string;
+  datasetId: string;
+  datasetName: string;
+  status: string;
+  createdAt: string;
+  completedAt: string | null;
+  scorePct: number | null;
+  clipScore: number | null;
+  retrievalAccuracyPct: number | null;
+  llmScore: number | null;
+  counts: { passed: number; warning: number; failed: number } | null;
+  cases: unknown;
+}
+
+export interface AdminBenchmarks {
+  available: boolean;
+  latest: AdminBenchmarkRun | null;
+  history: AdminBenchmarkRun[];
+}
 export interface CreateDatasetRequest {
   name: string;
   description: string;

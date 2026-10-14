@@ -1462,6 +1462,30 @@ def create_app(settings=None, services=None, gemini_client=None):
                 "apiLatencyMs": {"avg": None, "p95": None}, "planAcceptancePct": None,
                 "checkedAt": now(), "benchmarkGroups": []}
 
+    @app.get("/api/v1/admin/benchmarks")
+    def v1_admin_benchmarks(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        """Return persisted benchmark/evaluation results only; never synthesize scores."""
+        require_admin(vistra_session, db)
+        run_rows = rows(db, """SELECT r.id,r.dataset_id,r.status,r.summary_json,r.created_at,r.completed_at,
+                               d.name AS dataset_name
+                        FROM evaluation_runs r JOIN evaluation_datasets d ON d.id=r.dataset_id
+                        ORDER BY r.created_at DESC LIMIT 50""")
+        history, latest = [], None
+        for run in run_rows:
+            summary = json.loads(run["summary_json"]) if run["summary_json"] else None
+            item = {"runId": run["id"], "datasetId": run["dataset_id"], "datasetName": run["dataset_name"],
+                    "status": run["status"], "createdAt": run["created_at"], "completedAt": run["completed_at"],
+                    "scorePct": summary.get("scorePct") if summary else None,
+                    "counts": summary.get("counts") if summary else None,
+                    "clipScore": summary.get("clipScore") if summary else None,
+                    "retrievalAccuracyPct": summary.get("retrievalAccuracyPct") if summary else None,
+                    "llmScore": summary.get("llmScore") if summary else None,
+                    "cases": summary.get("cases") if summary else None}
+            history.append(item)
+            if latest is None and summary:
+                latest = item
+        return {"data": {"available": latest is not None, "latest": latest, "history": history}}
+
     @app.get("/admin/traces")
     def list_traces(page: int = Query(default=1, ge=1), page_size: int = Query(default=5, ge=1, le=100),
                     vistra_session: str | None = Cookie(default=None), db=Depends(database)):

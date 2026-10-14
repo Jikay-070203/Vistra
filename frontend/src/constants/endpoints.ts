@@ -72,6 +72,7 @@ export const API_ENDPOINTS = {
     TRACES: '/api/v1/admin/traces',
     TRACE: (id: string) => '/api/v1/admin/traces/' + encodeURIComponent(id),
     METRICS: '/api/v1/admin/system/metrics',
+    BENCHMARKS: '/api/v1/admin/benchmarks',
   },
   SYSTEM: {
     HEALTH: '/health',
