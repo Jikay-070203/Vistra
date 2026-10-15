@@ -1211,6 +1211,18 @@ def create_app(settings=None, services=None, gemini_client=None):
             item["metadata"] = json.loads(item.pop("metadata_json") or "{}")
         return {"trip_id": trip_id, "items": items}
 
+    @app.post("/trips/{trip_id}/agent/stream", dependencies=auth)
+    def travel_agent_stream(trip_id: str, data: ChatRequest,
+                            vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        """SSE-compatible chat response. The complete event is emitted as JSON so clients can
+        progressively update status while keeping the existing durable chat write path."""
+        result = travel_agent(trip_id, data, vistra_session, db)
+        payload = json.dumps({"type": "complete", "data": result}, ensure_ascii=False)
+        async def events():
+            yield "event: complete\ndata: " + payload + "\n\n"
+        return StreamingResponse(events(), media_type="text/event-stream",
+                                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
     @app.post("/feedback/tickets", status_code=201)
     def create_feedback(data: FeedbackCreate, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         user = require_session(vistra_session, db)
@@ -2272,6 +2284,11 @@ def create_app(settings=None, services=None, gemini_client=None):
     def v1_trip_chat(trip_id: str, data: ChatRequest,
                      vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         return travel_agent(trip_id, data, vistra_session, db)
+
+    @app.post("/api/v1/trips/{trip_id}/chat/stream")
+    def v1_trip_chat_stream(trip_id: str, data: ChatRequest,
+                            vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        return travel_agent_stream(trip_id, data, vistra_session, db)
 
     @app.get("/api/v1/trips/{trip_id}/chat/history")
     def v1_chat_history(trip_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):

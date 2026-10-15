@@ -75,6 +75,28 @@ export async function sendTripMessage(id: string, text: string, baseVersion: num
   return { ...result, data: tripChatSchema.parse(result.data) };
 }
 
+export async function sendTripMessageStream(id: string, text: string, baseVersion: number) {
+  const response = await fetch(`${getSessionProxyBaseUrl()}${API_ENDPOINTS.TRIPS.CHAT_STREAM(id)}`, {
+    method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+    body: JSON.stringify({ text, base_version: baseVersion }),
+  });
+  if (!response.ok) throw new Error(`Backend phản hồi lỗi HTTP ${response.status}`);
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('Backend không trả về luồng SSE');
+  const decoder = new TextDecoder(); let buffer = ''; let result: unknown;
+  while (true) {
+    const chunk = await reader.read();
+    buffer += decoder.decode(chunk.value ?? new Uint8Array(), { stream: !chunk.done });
+    const events = buffer.split('\n\n'); buffer = events.pop() ?? '';
+    for (const event of events) {
+      const line = event.split('\n').find(item => item.startsWith('data:'));
+      if (line) { const payload = JSON.parse(line.slice(5).trim()); if (payload.type === 'complete') result = payload.data; }
+    }
+    if (chunk.done) break;
+  }
+  return { data: tripChatSchema.parse(result) };
+}
+
 export async function getTripChatHistory(id: string) {
   const result = await apiRequest(API_ENDPOINTS.TRIPS.CHAT_HISTORY(id), getSessionProxyBaseUrl());
   return result as ApiRequestResult<{ trip_id: string; items: Array<{ id: string; role: 'user' | 'assistant'; content: string; created_at: string }> }>;

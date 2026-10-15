@@ -17,7 +17,10 @@ function renderChatMarkdown(text: string) {
   return text.split('\n').map((line, index) => {
     const heading = line.match(/^#{1,6}\s+(.+)$/);
     const bullet = line.match(/^\s*[-*]\s+(.+)$/);
-    const content = heading?.[1] ?? bullet?.[1] ?? line;
+    const content = (heading?.[1] ?? bullet?.[1] ?? line)
+      .replace(/\\([#*])/g, '$1')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1');
     const inline = content.split(/(\*\*[^*]+\*\*)/g).map((part, partIndex) =>
       part.startsWith('**') && part.endsWith('**')
         ? <strong key={partIndex}>{part.slice(2, -2)}</strong>

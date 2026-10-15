@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useUserAuth } from '@/lib/userAuth';
 import { ApiClientError } from '@/services/apiClient';
 import { commitTripRevision, confirmTrip, generateTrip, getTrip, getTripBudget, previewTripRevision,
-  sendTripMessage, getTripChatHistory, setTripPublication } from '@/services/tripService';
+  sendTripMessageStream, getTripChatHistory, setTripPublication } from '@/services/tripService';
 import type { RevisionPreviewDto } from '@/types/planApi';
 import type { TripBudgetResponse, TripDetailDto } from '@/types/tripApi';
 
@@ -117,7 +117,7 @@ export function useTripWorkspace(loadBudget = false) {
     setMessages(items => [...items, { role: 'user', text: messageText }]);
     let sent = false;
     await run(async valid => {
-      const { data } = await sendTripMessage(id, messageText, trip.current_version);
+      const { data } = await sendTripMessageStream(id, messageText, trip.current_version);
       if (!valid()) return;
       if (data.base_version !== trip.current_version) throw new Error('Phản hồi dựa trên phiên bản khác. Hãy tải lại hành trình.');
       let nextTrip = trip;

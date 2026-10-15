@@ -44,6 +44,7 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;
   if (method === 'GET' && /^\/trips\/[A-Za-z0-9_-]+\/budget$/.test(path)) return path;
   if (method === 'POST' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/chat$/.test(path)) return path;
+  if (method === 'POST' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/chat\/stream$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/trips\/[A-Za-z0-9_-]+\/chat\/history$/.test(path)) return path;
   if (method === 'POST' && /^\/trips\/[A-Za-z0-9_-]+\/(generate|confirm|revisions\/(preview|commit))$/.test(path)) return path;
   if (method === 'PATCH' && /^\/trips\/[A-Za-z0-9_-]+\/publication$/.test(path)) return path;
