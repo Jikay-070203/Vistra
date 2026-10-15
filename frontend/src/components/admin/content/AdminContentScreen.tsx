@@ -18,6 +18,7 @@ import {
 } from '@/services/contentService';
 import { useUserAuth } from '@/lib/userAuth';
 import AllergyOptionModal from './AllergyOptionModal';
+import { reportBrokenImage } from '@/services/systemService';
 
 type ContentTab = 'intro' | 'hero' | 'allergies';
 
@@ -27,6 +28,13 @@ export function isCmsManagedContentId(id: string): boolean {
 
 export function isHidingActiveCmsRecord(currentActive: boolean, nextActive: boolean): boolean {
   return currentActive && !nextActive;
+}
+
+function handleBrokenImage(event: React.SyntheticEvent<HTMLImageElement>, url: string, entityId: string) {
+  event.currentTarget.style.display = 'none';
+  void reportBrokenImage(url, entityId).catch(() => {
+    // Image fallback must never crash the admin page when the API is unavailable.
+  });
 }
 
 export interface AdminIntroItem {
@@ -657,13 +665,17 @@ function AdminContentPanel() {
                   <div>
                     <div className="relative h-44 w-full bg-warm-paper">
                       {destImage ? (
+                        <>
                         <Image
                           src={destImage}
                           alt={destName}
                           fill
                           className="object-cover"
                           sizes="(max-width: 768px) 100vw, 33vw"
+                          onError={(event) => { handleBrokenImage(event, destImage, String(dest.id)); event.currentTarget.parentElement?.querySelector('[data-image-fallback]')?.classList.remove('hidden'); }}
                         />
+                        <span data-image-fallback className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-warm-paper text-center text-sm text-[#4B5875]">Hiện không có ảnh địa danh này</span>
+                        </>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[#4B5875]">
                           <Icon name="image" size={32} />

@@ -2336,6 +2336,59 @@ def create_app(settings=None, services=None, gemini_client=None):
                 failed += 1
         return {"data": {"moved": moved, "failed": failed, "remaining": failed}}
 
+    @app.get("/api/v1/admin/qdrant/memory")
+    def v1_admin_qdrant_memory(limit: int = Query(default=50, ge=1, le=200),
+                               vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        if not settings.qdrant_url.strip():
+            return {"data": {"items": [], "ok": False, "message": "Qdrant is not configured"}}
+        try:
+            headers = {"api-key": settings.qdrant_api_key} if settings.qdrant_api_key.strip() else {}
+            with httpx.Client(timeout=8, headers=headers) as client:
+                response = client.post(
+                    f"{settings.qdrant_url.rstrip('/')}/collections/{settings.qdrant_chat_memory_collection}/points/scroll",
+                    json={"limit": limit, "with_payload": True, "with_vector": False},
+                )
+            response.raise_for_status()
+            points = response.json().get("result", {}).get("points", [])
+            items = [{"id": point.get("id"), **(point.get("payload") or {})} for point in points]
+            return {"data": {"items": items, "ok": True, "collection": settings.qdrant_chat_memory_collection}}
+        except Exception as exc:
+            return {"data": {"items": [], "ok": False, "message": str(exc)}}
+
+    @app.post("/api/v1/admin/images/report")
+    def v1_admin_image_report(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        image_url = str(payload.get("image_url", "")).strip()
+        if not image_url.startswith(("http://", "https://")):
+            raise HTTPException(422, "image_url must be an HTTP(S) URL")
+        timestamp = now()
+        report_id = str(uuid4())
+        db.execute("""INSERT INTO image_health_reports(id,image_url,entity_type,entity_id,status,error_message,created_at,updated_at)
+            VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(image_url) DO UPDATE SET status='broken',error_message=excluded.error_message,updated_at=excluded.updated_at""",
+                   (report_id, image_url, str(payload.get("entity_type", "place")), str(payload.get("entity_id", "")),
+                    "broken", str(payload.get("error", "upstream image response failed")), timestamp, timestamp))
+        return {"data": {"image_url": image_url, "status": "broken"}}
+
+    @app.get("/api/v1/admin/images/reports")
+    def v1_admin_image_reports(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        return {"data": {"items": rows(db, "SELECT * FROM image_health_reports ORDER BY updated_at DESC")}}
+
+    @app.patch("/api/v1/admin/images/reports/{report_id}")
+    def v1_admin_image_report_decision(report_id: str, payload: dict,
+                                       vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        decision = payload.get("decision")
+        if decision not in ("keep", "delete"):
+            raise HTTPException(422, "decision must be keep or delete")
+        report = row(db, "SELECT * FROM image_health_reports WHERE id=?", (report_id,))
+        if not report:
+            raise HTTPException(404, "Image report not found")
+        db.execute("UPDATE image_health_reports SET decision=?,status=?,updated_at=? WHERE id=?",
+                   (decision, "kept" if decision == "keep" else "deleted", now(), report_id))
+        return {"data": {"id": report_id, "decision": decision, "status": "kept" if decision == "keep" else "deleted"}}
+
     return app
 
 

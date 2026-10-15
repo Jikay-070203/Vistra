@@ -50,6 +50,10 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'GET' && /^\/api\/v1\/admin\/traces\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'GET' && path === '/api/v1/admin/qdrant/status') return path;
   if (method === 'POST' && path === '/api/v1/admin/qdrant/move') return path;
+  if (method === 'POST' && path === '/api/v1/admin/images/report') return path;
+  if (method === 'GET' && path === '/api/v1/admin/images/reports') return path;
+  if (method === 'PATCH' && /^\/api\/v1\/admin\/images\/reports\/[A-Za-z0-9_-]+$/.test(path)) return path;
+  if (method === 'GET' && path === '/api/v1/admin/qdrant/memory') return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/golden-datasets\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/golden-datasets\/[A-Za-z0-9_-]+\/runs$/.test(path)) return path;
   if (method === 'GET' && path === '/api/v1/admin/revenue/export') return path;

@@ -22,6 +22,14 @@ export async function moveQdrantChatMemory() {
   return apiRequest(API_ENDPOINTS.ADMIN_V1.QDRANT_MOVE, getSessionProxyBaseUrl(), { method: 'POST', credentials: 'include' });
 }
 
+export async function getQdrantChatMemory(limit = 50) {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.QDRANT_MEMORY + `?limit=${limit}`, getSessionProxyBaseUrl(), { credentials: 'include' });
+}
+
+export async function reportBrokenImage(imageUrl: string, entityId?: string) {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.IMAGE_REPORT, getSessionProxyBaseUrl(), { method: 'POST', credentials: 'include', jsonBody: { image_url: imageUrl, entity_id: entityId } });
+}
+
 export async function getTrace(id: string): Promise<ApiRequestResult<TraceDetailView>> {
   const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACE(id), getSessionProxyBaseUrl(), { credentials: 'include' });
   return { ...result, data: traceDetailSchema.parse(result.data) };

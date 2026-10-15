@@ -79,6 +79,9 @@ export const API_ENDPOINTS = {
     METRICS: '/api/v1/admin/system/metrics',
     QDRANT_STATUS: '/api/v1/admin/qdrant/status',
     QDRANT_MOVE: '/api/v1/admin/qdrant/move',
+    QDRANT_MEMORY: '/api/v1/admin/qdrant/memory',
+    IMAGE_REPORT: '/api/v1/admin/images/report',
+    IMAGE_REPORTS: '/api/v1/admin/images/reports',
     BENCHMARKS: '/api/v1/admin/benchmarks',
   },
   SYSTEM: {
