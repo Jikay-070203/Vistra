@@ -7,12 +7,12 @@ const B1_ROUTES: Readonly<Record<string, readonly string[]>> = {
     '/destinations', '/trips', '/places', '/admin/system/summary', '/api/v1/admin/system/metrics',
     '/api/v1/admin/overview', '/api/v1/admin/revenue', '/api/v1/admin/users', '/api/v1/admin/permissions',
     '/api/v1/admin/feedback', '/api/v1/admin/content', '/api/v1/admin/entities/metadata',
-    '/api/v1/admin/golden-datasets', '/api/v1/admin/safety-presets', '/api/v1/admin/benchmarks'],
+    '/api/v1/admin/golden-datasets', '/api/v1/admin/safety-presets', '/api/v1/admin/benchmarks', '/api/v1/admin/system-prompt'],
   POST: ['/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/logout', '/api/v1/auth/refresh', '/api/v1/feedback', '/api/v1/dna/analyze',
     '/api/v1/trips', '/admin/evaluation/datasets', '/admin/evaluation/runs',
     '/api/v1/admin/import/places', '/api/v1/admin/import/place-images', '/api/v1/admin/users'],
   PATCH: ['/api/v1/users/me'],
-  PUT: ['/api/v1/users/me/dna', '/api/v1/admin/ai/provider'],
+  PUT: ['/api/v1/users/me/dna', '/api/v1/admin/ai/provider', '/api/v1/admin/system-prompt'],
 };
 
 /** Backend origin is fixed by server configuration, never by browser input. */

@@ -42,6 +42,7 @@ export const API_ENDPOINTS = {
     DETAILS: (id: string) => '/api/v1/destinations/' + encodeURIComponent(id),
   },
   ADMIN_SYSTEM: {
+    SYSTEM_PROMPT: '/api/v1/admin/system-prompt',
     TRACES: '/api/v1/admin/traces',
     TRACE: (id: string) => '/api/v1/admin/traces/' + encodeURIComponent(id),
     DATASETS: '/admin/evaluation/datasets',

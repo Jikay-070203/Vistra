@@ -1685,6 +1685,24 @@ def create_app(settings=None, services=None, gemini_client=None):
         output = io.StringIO(); writer = csv.DictWriter(output, fieldnames=["id","user_id","provider","external_id","amount","currency","status","description","paid_at","created_at"]); writer.writeheader(); writer.writerows(items)
         return StreamingResponse(iter([output.getvalue()]), media_type="text/csv; charset=utf-8", headers={"Content-Disposition": "attachment; filename=revenue.csv"})
 
+    @app.get("/api/v1/admin/system-prompt")
+    def admin_system_prompt(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        admin = require_admin(vistra_session, db)
+        config = row(db, "SELECT prompt, updated_by, updated_at FROM system_prompt_settings WHERE id=1")
+        return {"data": {"prompt": config["prompt"] if config else "", "updatedBy": config["updated_by"] if config else None,
+                          "updatedAt": config["updated_at"] if config else None}}
+
+    @app.put("/api/v1/admin/system-prompt")
+    def update_admin_system_prompt(payload: dict, vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        admin = require_admin(vistra_session, db)
+        prompt = str(payload.get("prompt", "")).strip()
+        if not prompt or len(prompt) > 12000:
+            raise HTTPException(422, "System prompt phải có từ 1 đến 12000 ký tự")
+        timestamp = now()
+        db.execute("INSERT INTO system_prompt_settings(id,prompt,updated_by,updated_at) VALUES (1,?,?,?) ON CONFLICT(id) DO UPDATE SET prompt=excluded.prompt, updated_by=excluded.updated_by, updated_at=excluded.updated_at",
+                   (prompt, admin["id"], timestamp))
+        return {"data": {"prompt": prompt, "updatedBy": admin["id"], "updatedAt": timestamp}}
+
     @app.get("/api/v1/admin/ai/provider")
     def v1_ai_provider_status(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)

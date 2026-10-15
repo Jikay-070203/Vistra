@@ -10,6 +10,7 @@ import GoldenDatasetPanel from './system/GoldenDatasetPanel';
 import SafetyGuardrailPanel from './system/SafetyGuardrailPanel';
 import AiProviderConfigPanel from './system/AiProviderConfigPanel';
 import QdrantMemoryPanel from './system/QdrantMemoryPanel';
+import SystemPromptPanel from './system/SystemPromptPanel';
 import { useAdminController } from './useAdminController';
 
 type SystemView = 'health' | 'configuration';
@@ -152,6 +153,7 @@ function SystemConfigurationView() {
   return (
     <div className="space-y-6">
       <AiProviderConfigPanel />
+      <SystemPromptPanel />
       <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
         <GoldenDatasetPanel />
         <SafetyGuardrailPanel />
