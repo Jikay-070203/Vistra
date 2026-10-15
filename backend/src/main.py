@@ -203,6 +203,34 @@ async def ensure_qdrant_collections(settings: Settings) -> None:
                 await asyncio.sleep(2 * (attempt + 1))
 
 
+def store_chat_memory_qdrant(settings: Settings, *, message_id: str, trip_id: str,
+                             user_id: str, role: str, content: str, metadata: dict, created_at: str) -> bool:
+    """Store chat as JSON payload in the configured Qdrant memory collection.
+
+    The operation is best-effort: SQL remains the source of truth when Qdrant is
+    unavailable. The deterministic vector keeps the existing collection contract
+    without inventing model scores or blocking the chat request.
+    """
+    if not settings.qdrant_url.strip():
+        return False
+    digest = hashlib.sha256(content.encode("utf-8")).digest()
+    vector = [(digest[index % len(digest)] / 255.0) for index in range(settings.qdrant_chat_memory_vector_size)]
+    payload = {"message_id": message_id, "trip_id": trip_id, "user_id": user_id,
+               "role": role, "content": content, "metadata": metadata, "created_at": created_at}
+    try:
+        headers = {"api-key": settings.qdrant_api_key} if settings.qdrant_api_key.strip() else {}
+        with httpx.Client(timeout=5, headers=headers) as client:
+            response = client.put(
+                f"{settings.qdrant_url.rstrip('/')}/collections/{settings.qdrant_chat_memory_collection}/points?wait=true",
+                json={"points": [{"id": message_id, "vector": vector, "payload": payload}]},
+            )
+            response.raise_for_status()
+            return True
+    except Exception as exc:
+        logger.warning("Qdrant chat memory write skipped: %s", exc)
+        return False
+
+
 def _password_hash(password: str, salt: bytes | None = None) -> str:
     salt = salt or secrets.token_bytes(16)
     digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 210_000)
@@ -1136,18 +1164,34 @@ def create_app(settings=None, services=None, gemini_client=None):
             # Previews do not change the itinerary. Release the write lock before the next model call.
             db.commit()
             return result
+        # Persist the user's message before invoking the agent. This keeps the
+        # conversation history even when the model/provider fails afterwards.
+        user_message_id = str(uuid4())
+        user_message_created_at = now()
+        db.execute("""INSERT INTO chat_messages
+            (id,trip_id,user_id,role,content,metadata_json,created_at)
+            VALUES (?,?,?,?,?,?,?)""", (user_message_id, trip_id, user["id"], "user", data.text,
+            json.dumps({"base_version": data.base_version}, ensure_ascii=False), user_message_created_at))
+        db.commit()
+        if store_chat_memory_qdrant(settings, message_id=user_message_id, trip_id=trip_id, user_id=user["id"],
+                                 role="user", content=data.text, metadata={"base_version": data.base_version},
+                                 created_at=user_message_created_at):
+            db.execute("UPDATE chat_messages SET qdrant_synced=1 WHERE id=?", (user_message_id,))
         trace_started = time.perf_counter()
         result = chat(settings, db, current, data, make_preview,
                       client=app.state.gemini)
+        assistant_message_id = str(uuid4())
+        assistant_message_created_at = now()
         db.execute("""INSERT INTO chat_messages
             (id,trip_id,user_id,role,content,metadata_json,created_at)
-            VALUES (?,?,?,?,?,?,?)""", (str(uuid4()), trip_id, user["id"], "user", data.text,
-            json.dumps({"base_version": data.base_version}, ensure_ascii=False), now()))
-        db.execute("""INSERT INTO chat_messages
-            (id,trip_id,user_id,role,content,metadata_json,created_at)
-            VALUES (?,?,?,?,?,?,?)""", (str(uuid4()), trip_id, user["id"], "assistant", result["reply"],
+            VALUES (?,?,?,?,?,?,?)""", (assistant_message_id, trip_id, user["id"], "assistant", result["reply"],
             json.dumps({"tools_used": result.get("tools_used", []),
-                        "base_version": result.get("base_version")}, ensure_ascii=False), now()))
+                        "base_version": result.get("base_version")}, ensure_ascii=False), assistant_message_created_at))
+        if store_chat_memory_qdrant(settings, message_id=assistant_message_id, trip_id=trip_id, user_id=user["id"],
+                                 role="assistant", content=result["reply"],
+                                 metadata={"tools_used": result.get("tools_used", []), "base_version": result.get("base_version")},
+                                 created_at=assistant_message_created_at):
+            db.execute("UPDATE chat_messages SET qdrant_synced=1 WHERE id=?", (assistant_message_id,))
         db.execute("""INSERT INTO system_traces
             (id,user_id,trace_type,status,latency_ms,confidence,context_json,details_json,created_at)
             VALUES (?,?,?,?,?,?,?,?,?)""", (str(uuid4()), user["id"], "planner_chat", "completed",
@@ -2260,6 +2304,37 @@ def create_app(settings=None, services=None, gemini_client=None):
     @app.get("/api/v1/admin/system/metrics")
     def v1_admin_metrics(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         return system_summary(vistra_session, db)
+
+    @app.get("/api/v1/admin/qdrant/status")
+    def v1_admin_qdrant_status(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        pending = db.execute("SELECT COUNT(*) FROM chat_messages WHERE qdrant_synced=0").fetchone()[0]
+        if not settings.qdrant_url.strip():
+            return {"data": {"ok": False, "statusCode": None, "pending": pending, "message": "Qdrant is not configured"}}
+        try:
+            headers = {"api-key": settings.qdrant_api_key} if settings.qdrant_api_key.strip() else {}
+            with httpx.Client(timeout=5, headers=headers) as client:
+                response = client.get(f"{settings.qdrant_url.rstrip('/')}/collections/{settings.qdrant_chat_memory_collection}")
+            return {"data": {"ok": response.status_code == 200, "statusCode": response.status_code,
+                              "pending": pending, "collection": settings.qdrant_chat_memory_collection}}
+        except Exception as exc:
+            return {"data": {"ok": False, "statusCode": None, "pending": pending, "message": str(exc)}}
+
+    @app.post("/api/v1/admin/qdrant/move")
+    def v1_admin_qdrant_move(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
+        require_admin(vistra_session, db)
+        messages = rows(db, "SELECT * FROM chat_messages WHERE qdrant_synced=0 ORDER BY created_at,id")
+        moved, failed = 0, 0
+        for message in messages:
+            metadata = json.loads(message["metadata_json"] or "{}")
+            if store_chat_memory_qdrant(settings, message_id=message["id"], trip_id=message["trip_id"],
+                                        user_id=message["user_id"], role=message["role"], content=message["content"],
+                                        metadata=metadata, created_at=message["created_at"]):
+                db.execute("DELETE FROM chat_messages WHERE id=? AND qdrant_synced=0", (message["id"],))
+                moved += 1
+            else:
+                failed += 1
+        return {"data": {"moved": moved, "failed": failed, "remaining": failed}}
 
     return app
 

@@ -9,6 +9,7 @@ import TraceDetailDialog from './TraceDetailDialog';
 import GoldenDatasetPanel from './system/GoldenDatasetPanel';
 import SafetyGuardrailPanel from './system/SafetyGuardrailPanel';
 import AiProviderConfigPanel from './system/AiProviderConfigPanel';
+import QdrantMemoryPanel from './system/QdrantMemoryPanel';
 import { useAdminController } from './useAdminController';
 
 type SystemView = 'health' | 'configuration';
@@ -114,6 +115,7 @@ function SystemHealthView() {
       )}
 
       <AdminKpiSummary />
+      <QdrantMemoryPanel />
 
       <TraceTable
         logs={paginatedLogs}

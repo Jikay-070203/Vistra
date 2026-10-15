@@ -14,6 +14,14 @@ export async function getTraces(query: AdminPageQuery & { status?: string }): Pr
   return { ...result, data: traceListSchema.parse(result.data) };
 }
 
+export async function getQdrantStatus() {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.QDRANT_STATUS, getSessionProxyBaseUrl(), { credentials: 'include' });
+}
+
+export async function moveQdrantChatMemory() {
+  return apiRequest(API_ENDPOINTS.ADMIN_V1.QDRANT_MOVE, getSessionProxyBaseUrl(), { method: 'POST', credentials: 'include' });
+}
+
 export async function getTrace(id: string): Promise<ApiRequestResult<TraceDetailView>> {
   const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACE(id), getSessionProxyBaseUrl(), { credentials: 'include' });
   return { ...result, data: traceDetailSchema.parse(result.data) };

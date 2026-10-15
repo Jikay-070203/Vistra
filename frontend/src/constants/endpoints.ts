@@ -77,6 +77,8 @@ export const API_ENDPOINTS = {
     TRACES: '/api/v1/admin/traces',
     TRACE: (id: string) => '/api/v1/admin/traces/' + encodeURIComponent(id),
     METRICS: '/api/v1/admin/system/metrics',
+    QDRANT_STATUS: '/api/v1/admin/qdrant/status',
+    QDRANT_MOVE: '/api/v1/admin/qdrant/move',
     BENCHMARKS: '/api/v1/admin/benchmarks',
   },
   SYSTEM: {

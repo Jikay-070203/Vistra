@@ -48,6 +48,8 @@ export function resolveBackendPath(segments: readonly string[], method: string):
   if (method === 'POST' && /^\/trips\/[A-Za-z0-9_-]+\/(generate|confirm|revisions\/(preview|commit))$/.test(path)) return path;
   if (method === 'PATCH' && /^\/trips\/[A-Za-z0-9_-]+\/publication$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/traces\/[A-Za-z0-9_-]+$/.test(path)) return path;
+  if (method === 'GET' && path === '/api/v1/admin/qdrant/status') return path;
+  if (method === 'POST' && path === '/api/v1/admin/qdrant/move') return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/golden-datasets\/[A-Za-z0-9_-]+$/.test(path)) return path;
   if (method === 'GET' && /^\/api\/v1\/admin\/golden-datasets\/[A-Za-z0-9_-]+\/runs$/.test(path)) return path;
   if (method === 'GET' && path === '/api/v1/admin/revenue/export') return path;

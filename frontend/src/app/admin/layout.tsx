@@ -2,7 +2,7 @@ import React from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import AdminNavigation from '@/components/admin/AdminNavigation';
-import { requireBackendAdmin } from '@/lib/backendSession';
+import { readBackendSession } from '@/lib/backendSession';
 import { getSafeAdminRedirect } from '@/lib/adminAuth';
 
 export default async function AdminLayout({
@@ -28,7 +28,11 @@ export default async function AdminLayout({
   // Server-side verification using backendSession
   let adminSession = null;
   try {
-    adminSession = await requireBackendAdmin();
+    const session = await readBackendSession();
+    if (session?.user.role !== 'admin') {
+      redirect(session ? '/' : `/login?next=${encodeURIComponent(getSafeAdminRedirect(currentPath || '/admin'))}`);
+    }
+    adminSession = session;
   } catch (error) {
     console.error('[Admin Layout] Failed to verify backend admin session:', error);
   }
