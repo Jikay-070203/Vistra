@@ -118,7 +118,7 @@ export function useAdminController() {
 
     let active = true;
 
-    getTraces({ page: targetPage, pageSize: serverPageSize })
+    getTraces({ page: targetPage, pageSize: serverPageSize, status: filterStatus })
       .then((res) => {
         if (!active) return;
         if (res.data) {
@@ -156,7 +156,7 @@ export function useAdminController() {
     return () => {
       active = false;
     };
-  }, [targetPage, serverPageSize, tracesRefreshIndex, currentAccountId]);
+  }, [targetPage, serverPageSize, filterStatus, tracesRefreshIndex, currentAccountId]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setIsLoadingTraces(true);

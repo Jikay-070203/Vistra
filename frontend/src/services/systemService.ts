@@ -7,8 +7,9 @@ import type { ApiRequestResult } from '@/types/api';
 import type { HealthResponse, HealthErrorType } from '@/types/system';
 import type { AdminPageQuery, AdminPageView, TraceDetailView, TraceListItemView } from '@/types/adminSystemApi';
 
-export async function getTraces(query: AdminPageQuery): Promise<ApiRequestResult<AdminPageView<TraceListItemView>>> {
+export async function getTraces(query: AdminPageQuery & { status?: string }): Promise<ApiRequestResult<AdminPageView<TraceListItemView>>> {
   const params = new URLSearchParams({ page: String(query.page), page_size: String(query.pageSize) });
+  if (query.status && query.status !== 'ALL') params.set('status', query.status);
   const result = await apiRequest(API_ENDPOINTS.ADMIN_SYSTEM.TRACES + '?' + params, getSessionProxyBaseUrl(), { credentials: 'include' });
   return { ...result, data: traceListSchema.parse(result.data) };
 }

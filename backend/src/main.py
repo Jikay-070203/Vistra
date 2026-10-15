@@ -1514,6 +1514,11 @@ def create_app(settings=None, services=None, gemini_client=None):
         history, latest = [], None
         for run in run_rows:
             summary = json.loads(run["summary_json"]) if run["summary_json"] else None
+            if summary is None:
+                case_count = db.execute("SELECT COUNT(*) FROM evaluation_cases WHERE dataset_id=?", (run["dataset_id"],)).fetchone()[0]
+                summary = {"scorePct": 0, "counts": {"passed": 0, "warning": case_count, "failed": 0}, "cases": []}
+                db.execute("UPDATE evaluation_runs SET status='completed', summary_json=?, completed_at=COALESCE(completed_at, ?) WHERE id=?",
+                           (json.dumps(summary), now(), run["id"]))
             item = {"runId": run["id"], "datasetId": run["dataset_id"], "datasetName": run["dataset_name"],
                     "status": run["status"], "createdAt": run["created_at"], "completedAt": run["completed_at"],
                     "scorePct": summary.get("scorePct") if summary else None,
@@ -1528,12 +1533,14 @@ def create_app(settings=None, services=None, gemini_client=None):
         return {"data": {"available": latest is not None, "latest": latest, "history": history}}
 
     @app.get("/admin/traces")
-    def list_traces(page: int = Query(default=1, ge=1), page_size: int = Query(default=5, ge=1, le=100),
+    def list_traces(page: int = Query(default=1, ge=1), page_size: int = Query(default=5, ge=1, le=100), status: str = "",
                     vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
-        total = db.execute("SELECT COUNT(*) FROM system_traces").fetchone()[0]
+        where = " WHERE status=?" if status and status != "ALL" else ""
+        params = (status,) if where else ()
+        total = db.execute("SELECT COUNT(*) FROM system_traces" + where, params).fetchone()[0]
         items = rows(db, "SELECT id,created_at,trace_type,status,latency_ms,confidence,context_json FROM system_traces "
-                     "ORDER BY created_at DESC LIMIT ? OFFSET ?", (page_size, (page - 1) * page_size))
+                     + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?", (*params, page_size, (page - 1) * page_size))
         return {"items": [{"id": i["id"], "timestamp": i["created_at"], "traceType": i["trace_type"],
                            "status": i["status"], "latencyMs": i["latency_ms"], "confidence": i["confidence"],
                            "context": json.loads(i["context_json"])} for i in items],
@@ -2232,9 +2239,9 @@ def create_app(settings=None, services=None, gemini_client=None):
         return reply_feedback(ticket_id, data, vistra_session, db)
 
     @app.get("/api/v1/admin/traces")
-    def v1_admin_traces(page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100),
+    def v1_admin_traces(page: int = Query(default=1, ge=1), page_size: int = Query(default=20, ge=1, le=100), status: str = "",
                         vistra_session: str | None = Cookie(default=None), db=Depends(database)):
-        return list_traces(page, page_size, vistra_session, db)
+        return list_traces(page, page_size, status, vistra_session, db)
 
     @app.get("/api/v1/admin/traces/{trace_id}")
     def v1_admin_trace(trace_id: str, vistra_session: str | None = Cookie(default=None), db=Depends(database)):

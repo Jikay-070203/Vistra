@@ -22,6 +22,8 @@ interface TraceTableProps {
 
 export default function TraceTable({
   logs,
+  filterStatus = 'ALL',
+  onFilterChange,
   totalCount,
   currentPage,
   totalPages,
@@ -54,17 +56,14 @@ export default function TraceTable({
           <div className="flex items-center gap-2">
             <span className="text-xs text-[#4B5875] font-semibold">Lọc theo trạng thái:</span>
             <select
-              value="ALL"
-              disabled
+              value={filterStatus ?? 'ALL'}
+              onChange={event => onFilterChange?.(event.target.value)}
               className="px-3 py-1.5 rounded-xl border border-[#0E1D4F]/15 bg-warm-paper text-xs font-semibold text-[#4B5875] cursor-not-allowed opacity-75"
               title="Backend chưa hỗ trợ lọc theo trạng thái (status query param). Phân trang máy chủ được bảo toàn nguyên vẹn."
             >
               <option value="ALL">Tất cả ({totalCount})</option>
             </select>
           </div>
-          <span className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1 font-medium">
-            Chưa hỗ trợ lọc toàn cục (BE thiếu status query) — hiển thị phân trang máy chủ
-          </span>
         </div>
       </div>
 
