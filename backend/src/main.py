@@ -8,6 +8,7 @@ import sqlite3
 import unicodedata
 import csv
 import io
+import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -1135,6 +1136,7 @@ def create_app(settings=None, services=None, gemini_client=None):
             # Previews do not change the itinerary. Release the write lock before the next model call.
             db.commit()
             return result
+        trace_started = time.perf_counter()
         result = chat(settings, db, current, data, make_preview,
                       client=app.state.gemini)
         db.execute("""INSERT INTO chat_messages
@@ -1149,7 +1151,7 @@ def create_app(settings=None, services=None, gemini_client=None):
         db.execute("""INSERT INTO system_traces
             (id,user_id,trace_type,status,latency_ms,confidence,context_json,details_json,created_at)
             VALUES (?,?,?,?,?,?,?,?,?)""", (str(uuid4()), user["id"], "planner_chat", "completed",
-            None, None, json.dumps({"trip_id": trip_id}, ensure_ascii=False),
+            round((time.perf_counter() - trace_started) * 1000), None, json.dumps({"trip_id": trip_id}, ensure_ascii=False),
             json.dumps({"tools_used": result.get("tools_used", [])}, ensure_ascii=False), now()))
         return result
 
