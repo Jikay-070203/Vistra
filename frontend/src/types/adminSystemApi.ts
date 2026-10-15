@@ -29,7 +29,7 @@ export interface GoldenDatasetMetadataView {
   testCasesCount: number;
   isBuiltin: boolean;
   /** The list endpoint does not hydrate individual cases. */
-  testCases: [];
+  testCases: GoldenDatasetCaseView[];
 }
 
 export interface GoldenDatasetCaseView { id: string; name: string; input: unknown; expected: unknown; }

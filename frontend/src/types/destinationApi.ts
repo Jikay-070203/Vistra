@@ -22,6 +22,7 @@ export type PlaceQuality = 'discovered' | 'schedulable' | 'verified' | 'archived
 
 export interface PlaceDto {
   id: number;
+  image_url?: string | null;
   destination_id: number;
   destination?: string;
   display_name: string;

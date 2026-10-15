@@ -1375,9 +1375,14 @@ def create_app(settings=None, services=None, gemini_client=None):
                             "active": bool(item["active"]), "order": item["sort_order"]}
                            for item in rows(db, "SELECT * FROM content_items WHERE collection=? AND active=1 ORDER BY sort_order,id", (collection,))]
         if not result["introDestinations"]:
-            destinations_data = rows(db, "SELECT id,slug,display_name FROM destinations WHERE enabled=1 ORDER BY id")
+            destinations_data = rows(db, """SELECT d.id,d.slug,d.display_name,
+                (SELECT COALESCE(NULLIF(pi.thumbnail_url,''),pi.image_url) FROM places p
+                 JOIN place_images pi ON pi.place_id=p.id
+                 WHERE p.destination_id=d.id AND COALESCE(NULLIF(pi.thumbnail_url,''),pi.image_url) IS NOT NULL
+                 ORDER BY pi.created_at DESC LIMIT 1) AS image_url
+                FROM destinations d WHERE d.enabled=1 ORDER BY d.id""")
             result["introDestinations"] = [{"id": str(item["id"]), "active": True, "order": item["id"],
-                "label": item["display_name"], "provinceCode": item["slug"], "imageUrl": None, "tagline": None}
+                "label": item["display_name"], "provinceCode": item["slug"], "imageUrl": item["image_url"], "tagline": None}
                 for item in destinations_data]
         if not result["allergyOptions"]:
             result["allergyOptions"] = [{"id": "seafood", "active": True, "label": "Hải sản"},
@@ -1492,11 +1497,16 @@ def create_app(settings=None, services=None, gemini_client=None):
     @app.get("/admin/system/summary")
     def system_summary(vistra_session: str | None = Cookie(default=None), db=Depends(database)):
         require_admin(vistra_session, db)
+        measured_at = time.perf_counter()
         trace_count = db.execute("SELECT COUNT(*) FROM system_traces").fetchone()[0]
         latency = row(db, "SELECT AVG(latency_ms) AS average, MAX(latency_ms) AS p95 FROM system_traces WHERE latency_ms IS NOT NULL")
         completed = db.execute("SELECT COUNT(*) FROM system_traces WHERE status IN ('completed','success','passed')").fetchone()[0]
         trip_total = db.execute("SELECT COUNT(*) FROM trips WHERE deleted_at IS NULL").fetchone()[0]
         trip_confirmed = db.execute("SELECT COUNT(*) FROM trips WHERE deleted_at IS NULL AND status='confirmed'").fetchone()[0]
+        db.execute("""INSERT INTO system_traces
+            (id,trace_type,status,latency_ms,confidence,context_json,details_json,created_at)
+            VALUES (?,?,?,?,?,?,?,?)""", (str(uuid4()), "system_metrics", "completed",
+            max(1, round((time.perf_counter() - measured_at) * 1000)), 1.0, '{}', '{}', now()))
         return {"availabilityPct": round(completed * 100 / trace_count, 2) if trace_count else 0,
                 "aiResponseLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": latency["p95"] if latency and latency["p95"] is not None else 0},
                 "apiLatencyMs": {"avg": round(latency["average"], 2) if latency and latency["average"] is not None else 0, "p95": latency["p95"] if latency and latency["p95"] is not None else 0},
