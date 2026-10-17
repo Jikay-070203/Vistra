@@ -11,7 +11,7 @@
 2. **Problem** — Vấn đề là gì? Có bao nhiêu người gặp?
 3. **Solution** — Giải pháp AI của bạn
 4. **Demo** — Screenshot/Video ngắn
-5. **Architecture** — System diagram đơn giản
+5. **Architecture** — System diagram đơn giản (Sử dụng ảnh: `system_architecture.png`)
 6. **Tech Stack** — Technologies used
 7. **Traction** — Metrics, users, feedback
 8. **Market** — Quy mô thị trường
