@@ -1,0 +1,66 @@
+{
+  "dataset": "VISTRA golden-set candidate v1",
+  "status": "authored_pending_independent_review",
+  "area_family_counts": {
+    "routing": 50,
+    "retrieval": 50,
+    "grounding": 50,
+    "memory": 50,
+    "planning": 50,
+    "reliability": 50
+  },
+  "families": 300,
+  "language_variants": 600,
+  "languages": [
+    "en",
+    "vi"
+  ],
+  "turn_requests": 716,
+  "split_families": {
+    "development": 90,
+    "validation": 60,
+    "test": 150
+  },
+  "split_language_variants": {
+    "development": 180,
+    "validation": 120,
+    "test": 300
+  },
+  "feasibility": {
+    "not_applicable": 250,
+    "known_feasible": 12,
+    "unknown": 34,
+    "known_infeasible": 4
+  },
+  "difficulty": {
+    "easy": 80,
+    "medium": 110,
+    "hard": 110
+  },
+  "fixture_manifest_sha256": "bb250628f26adbdcdbbbdeb741d8713237cfb8a47ab4e1fcc56392a7f4ab4991",
+  "case_schema_sha256": "701eed9ce50039f0027bac809802d8e1b6cc1b8a6a58aeb8822bdc39cf39fecb",
+  "files": {
+    "private/grounding.jsonl": "840c5646ec88ce0e0e2ed5765a983d1bcd1dfc6ebe3414aedf4577e7d7244814",
+    "private/memory.jsonl": "1fbe1105f5542158c5eb5e9363dd8963294af82631a42a048b474d4dfa9553eb",
+    "private/planning.jsonl": "0ea03dd20e945ae630d5c1b54e4e6532ab0b8cf6d1cd41969f00b86b11e3e637",
+    "private/reliability.jsonl": "d58ffb92c7351787d07cfb9757dfcd37e3fe86eef6df0e0d3e1ef5ae249cae71",
+    "private/retrieval.jsonl": "1eed823f1616272040a146da47e3449014840e8074e21246c992d9c896455039",
+    "private/routing.jsonl": "cfcb5cb7e33331db657cc54edf8c3629f8008422c281d55959c8c1c8534e7358",
+    "public/cases.jsonl": "0e6af5c70ebc16ebb35452c55fa0c54a0c00b74876b1de472e28f8e8c7cf33c6"
+  },
+  "independent_reviewed_families": 0,
+  "benchmark_executed": false,
+  "authoring_sources": {
+    "benchmarks/scripts/build_golden_set.py": "21f4d579cf8e30bac03d8130081caf22be273c850ef36d11f69b3c5ce0ef7bbc",
+    "benchmarks/scripts/golden_catalog.py": "c4cc4320357dae8fd90648c0f4989a7e6743e3eda3150ffa5eef3850462ba972",
+    "benchmarks/scripts/golden_conversations.py": "e292b7d173459adbdd83275eb58910c383c412a8139331719dd664b1df393398",
+    "benchmarks/scripts/golden_planning_failures.py": "c9698ac7358a1e255b0d7d4938907d70e5014b949488830c89ee6c013419a941"
+  },
+  "limitations": [
+    "No finite collection covers every possible user request.",
+    "Metadata qrels are not visual-pixel relevance labels.",
+    "Synthetic source prices and venue claims are not real travel facts.",
+    "No replay/fault adapter or model-scoring runner is supplied by this authoring build.",
+    "Template families/translations must stay together; the proposed test split is exposed to its authors, not a secret third-party test."
+  ]
+}

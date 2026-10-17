@@ -1,0 +1,84 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "date": "2026-10-16",
+      "city": "Hanoi",
+      "breakfast": {
+        "entity_id": "google:bench_meal_01",
+        "start": "08:00",
+        "end": "09:00"
+      },
+      "attraction": {
+        "entity_id": "google:bench_attraction_01",
+        "start": "09:30",
+        "end": "11:00"
+      },
+      "lunch": {
+        "entity_id": "google:bench_meal_02",
+        "start": "12:00",
+        "end": "13:00"
+      },
+      "dinner": {
+        "entity_id": "google:bench_meal_03",
+        "start": "18:00",
+        "end": "19:00"
+      },
+      "accommodation": "google:bench_lodging"
+    },
+    {
+      "day": 2,
+      "date": "2026-10-17",
+      "city": "Hanoi",
+      "breakfast": {
+        "entity_id": "google:bench_meal_04",
+        "start": "08:00",
+        "end": "09:00"
+      },
+      "attraction": {
+        "entity_id": "google:bench_attraction_02",
+        "start": "09:30",
+        "end": "11:00"
+      },
+      "lunch": {
+        "entity_id": "google:bench_meal_05",
+        "start": "12:00",
+        "end": "13:00"
+      },
+      "dinner": {
+        "entity_id": "google:bench_meal_06",
+        "start": "18:00",
+        "end": "19:00"
+      },
+      "accommodation": "google:bench_lodging"
+    },
+    {
+      "day": 3,
+      "date": "2026-10-18",
+      "city": "Hanoi",
+      "breakfast": {
+        "entity_id": "google:bench_meal_07",
+        "start": "08:00",
+        "end": "09:00"
+      },
+      "attraction": {
+        "entity_id": "google:bench_attraction_03",
+        "start": "09:30",
+        "end": "11:00"
+      },
+      "lunch": {
+        "entity_id": "google:bench_meal_08",
+        "start": "12:00",
+        "end": "13:00"
+      },
+      "dinner": {
+        "entity_id": "google:bench_meal_09",
+        "start": "18:00",
+        "end": "19:00"
+      },
+      "accommodation": null
+    }
+  ],
+  "provenance": "synthetic_not_live",
+  "purpose": "Allowed prior plan input for edit-only diagnostics; not an answer for creation tasks."
+}

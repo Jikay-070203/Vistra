@@ -1,0 +1,23 @@
+{
+  "budget_floor": {
+    "proof": "Required minimum three-day fixture cost is 2700000 VND for two adults, greater than the 1 VND limit.",
+    "minimum_cost_vnd": 2700000,
+    "budget_vnd": 1
+  },
+  "occupancy": {
+    "proof": "One mandatory room permits two guests; five guests exceed capacity and extra rooms are forbidden.",
+    "guests": 5,
+    "rooms": 1,
+    "capacity_per_room": 2
+  },
+  "minimum_stay": {
+    "proof": "The only permitted hotel requires at least two nights; exactly one is requested.",
+    "requested_nights": 1,
+    "minimum_nights": 2
+  },
+  "time_capacity": {
+    "proof": "Four nonoverlapping one-hour visits require 240 minutes in a 120-minute window, before travel.",
+    "required_minutes": 240,
+    "available_minutes": 120
+  }
+}

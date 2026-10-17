@@ -1,0 +1,557 @@
+{
+  "VB1-RETR-101": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2
+    },
+    "negative": {
+      "google:bench_hcm_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Scope and indoor category both matter."
+  },
+  "VB1-RETR-102": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_park": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Do not confuse indoor culture with outdoor nature."
+  },
+  "VB1-RETR-103": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_vegan": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Use explicit dietary metadata; a cafe is not automatically vegetarian."
+  },
+  "VB1-RETR-104": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_cafe": 2,
+      "google:bench_hn_cafe_far": 2
+    },
+    "negative": {
+      "google:bench_hn_hotel": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Multiple relevant distinct cafes are allowed."
+  },
+  "VB1-RETR-105": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_hotel": 2
+    },
+    "negative": {
+      "google:bench_pq_resort": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Filter room type and city, not just accommodation category."
+  },
+  "VB1-RETR-106": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_pq_beach": 2
+    },
+    "negative": {
+      "google:bench_dn_beach": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "A different coastal city is a geographic distractor."
+  },
+  "VB1-RETR-107": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_dn_beach": 2
+    },
+    "negative": {
+      "google:bench_pq_beach": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Do not return the more common Phu Quoc match."
+  },
+  "VB1-RETR-108": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hue_palace": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Use the requested city and heritage evidence."
+  },
+  "VB1-RETR-109": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hcm_museum": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Same-category candidates in another city are irrelevant."
+  },
+  "VB1-RETR-110": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_sapa_trail": 2
+    },
+    "negative": {
+      "google:bench_dalat_garden": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Mountain/trail intent is more specific than general greenery."
+  },
+  "VB1-RETR-111": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_dalat_garden": 2
+    },
+    "negative": {
+      "google:bench_hn_park": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Respect garden category and city."
+  },
+  "VB1-RETR-112": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_cantho_market": 2
+    },
+    "negative": {
+      "google:bench_hcm_market": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Opening window and locality distinguish markets."
+  },
+  "VB1-RETR-113": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_ninhbinh_cave": 2
+    },
+    "negative": {
+      "google:bench_halong_view": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Similar scenic vocabulary must not replace the requested activity."
+  },
+  "VB1-RETR-114": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_halong_view": 2
+    },
+    "negative": {
+      "google:bench_sapa_trail": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Viewpoint relevance is distinct from trekking."
+  },
+  "VB1-RETR-115": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_pq_beach": 2,
+      "google:bench_dn_beach": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Do not narrow a country-wide discovery to one island."
+  },
+  "VB1-RETR-116": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2,
+      "google:bench_hcm_museum": 2,
+      "google:bench_hue_palace": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Retrieve multiple eligible cities without silently enforcing a city filter."
+  },
+  "VB1-RETR-117": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_pq_beach": 2
+    },
+    "negative": {
+      "google:bench_dn_beach": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Explicit no-photo preference overrides scenic discovery."
+  },
+  "VB1-RETR-118": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_dn_beach": 2
+    },
+    "negative": {
+      "google:bench_pq_beach": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "A written list is not an implicit photo request."
+  },
+  "VB1-RETR-119": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_pq_beach": 2
+    },
+    "negative": {
+      "google:bench_pq_resort": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "No photo pixels exist in this controlled fixture; retain sourced metadata."
+  },
+  "VB1-RETR-120": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_pq_beach": 2
+    },
+    "negative": {
+      "google:bench_pq_resort": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "An exclusion targets resorts, not the entire image branch."
+  },
+  "VB1-RETR-121": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2,
+      "google:bench_hn_park": 2,
+      "google:bench_hn_lake": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe": 0,
+      "google:bench_hn_cafe_far": 0,
+      "google:bench_hn_hotel": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Honor multiple category exclusions."
+  },
+  "VB1-RETR-122": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2,
+      "google:bench_hn_park": 2,
+      "google:bench_hn_lake": 2
+    },
+    "negative": {
+      "google:bench_hn_hotel": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "An unknown price cannot satisfy a price filter."
+  },
+  "VB1-RETR-123": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_park": 2,
+      "google:bench_hn_lake": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Free requires an explicit zero price."
+  },
+  "VB1-RETR-124": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hue_cafe": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Unknown fields preserve candidate identity without invented price claims."
+  },
+  "VB1-RETR-125": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2
+    },
+    "negative": {
+      "google:bench_sapa_trail": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Accessibility must come from the requested property, not a photo."
+  },
+  "VB1-RETR-126": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_sapa_trail": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "A trail may be relevant while accessibility remains unverified."
+  },
+  "VB1-RETR-127": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_cafe": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe_far": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Use known hours and distinguish closing-time boundaries."
+  },
+  "VB1-RETR-128": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {},
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Known closed venues must not satisfy the filter."
+  },
+  "VB1-RETR-129": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2
+    },
+    "negative": {
+      "google:bench_hn_similar_name": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Exact identity outranks a visually or lexically similar name."
+  },
+  "VB1-RETR-130": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_similar_name": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Distinct similarly named entities must not be merged."
+  },
+  "VB1-RETR-131": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hcm_museum": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Alias resolution must still constrain membership before ranking."
+  },
+  "VB1-RETR-132": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_dn_beach": 2
+    },
+    "negative": {
+      "google:bench_hn_lake": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "An origin mention must not become the destination filter."
+  },
+  "VB1-RETR-133": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_pq_beach": 2,
+      "google:bench_dn_beach": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Resolve short follow-up scope without choosing an arbitrary city."
+  },
+  "VB1-RETR-134": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_dalat_garden": 2
+    },
+    "negative": {
+      "google:bench_hn_park": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Do not retain stale city/category filters."
+  },
+  "VB1-RETR-135": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_park": 2
+    },
+    "negative": {
+      "google:bench_hn_lake": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Update exclusions while keeping the active city."
+  },
+  "VB1-RETR-136": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2
+    },
+    "negative": {
+      "google:bench_hcm_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "The latest explicit evidence preference takes precedence."
+  },
+  "VB1-RETR-137": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_cafe": 2,
+      "google:bench_hn_cafe_far": 2
+    },
+    "negative": {
+      "google:bench_pq_resort": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Order the eligible cafes by the declared distance basis."
+  },
+  "VB1-RETR-138": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hue_cafe": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Missing coordinates sort after known distances rather than being fabricated."
+  },
+  "VB1-RETR-139": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_dalat_garden": 2
+    },
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Preserve similarity order and disclose unavailable distance reranking."
+  },
+  "VB1-RETR-140": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_cafe": 2,
+      "google:bench_hn_cafe_far": 2
+    },
+    "negative": {
+      "google:bench_hn_hotel": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Deduplicate by stable place identity, not photo point count."
+  },
+  "VB1-RETR-141": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hue_cafe": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Missing images do not erase useful place metadata."
+  },
+  "VB1-RETR-142": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_pq_beach": 2
+    },
+    "negative": {
+      "google:bench_dn_beach": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Use the surviving place branch and identify the missing guide evidence."
+  },
+  "VB1-RETR-143": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2
+    },
+    "negative": {
+      "google:bench_hcm_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Use the surviving guide evidence; invent no images."
+  },
+  "VB1-RETR-144": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {},
+    "negative": {
+      "google:bench_hn_museum": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Do not fall back to unrelated popular places."
+  },
+  "VB1-RETR-145": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {},
+    "negative": {
+      "google:bench_hn_hotel": 0,
+      "google:bench_hn_park": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Empty relevance is an acceptable result; do not relabel a hotel as skiing."
+  },
+  "VB1-RETR-146": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2,
+      "google:bench_hn_park": 2,
+      "google:bench_hn_lake": 2
+    },
+    "negative": {
+      "google:bench_hn_hotel": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Honor the requested display cap while measuring retrieval separately."
+  },
+  "VB1-RETR-147": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2,
+      "google:bench_hn_park": 2
+    },
+    "negative": {
+      "google:bench_hn_cafe": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Both requested subjects must survive the generation-context budget."
+  },
+  "VB1-RETR-148": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {},
+    "negative": {},
+    "unlisted": "unjudged",
+    "relevance_requirement": "Reject the invalid image before models; no guessed location or identity."
+  },
+  "VB1-RETR-149": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {},
+    "negative": {},
+    "unlisted": "unjudged",
+    "relevance_requirement": "State that pixels are unavailable; perform no visual relevance scoring."
+  },
+  "VB1-RETR-150": {
+    "judgment_basis": "synthetic_place_metadata_not_pixels",
+    "graded": {
+      "google:bench_hn_museum": 2,
+      "google:bench_hn_similar_name": 2
+    },
+    "negative": {
+      "google:bench_hue_cafe": 0
+    },
+    "unlisted": "unjudged",
+    "relevance_requirement": "Classify the real task rather than quoted distractor scope."
+  }
+}

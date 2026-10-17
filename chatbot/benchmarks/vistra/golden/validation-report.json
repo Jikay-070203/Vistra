@@ -1,0 +1,30 @@
+{
+  "status": "passed_structural_reference_witness_checks",
+  "families": 300,
+  "areas": 6,
+  "families_per_area": 50,
+  "language_cases": 600,
+  "user_turn_requests": 716,
+  "languages": [
+    "en",
+    "vi"
+  ],
+  "planning_witnesses_checked": 4,
+  "contradiction_certificates_checked": 4,
+  "source_fact_assertions_checked": 50,
+  "retrieval_qrel_sets_checked": 50,
+  "schema_mutation_control_passed": true,
+  "dataset_file_hashes": {
+    "private/grounding.jsonl": "840c5646ec88ce0e0e2ed5765a983d1bcd1dfc6ebe3414aedf4577e7d7244814",
+    "private/memory.jsonl": "1fbe1105f5542158c5eb5e9363dd8963294af82631a42a048b474d4dfa9553eb",
+    "private/planning.jsonl": "0ea03dd20e945ae630d5c1b54e4e6532ab0b8cf6d1cd41969f00b86b11e3e637",
+    "private/reliability.jsonl": "d58ffb92c7351787d07cfb9757dfcd37e3fe86eef6df0e0d3e1ef5ae249cae71",
+    "private/retrieval.jsonl": "1eed823f1616272040a146da47e3449014840e8074e21246c992d9c896455039",
+    "private/routing.jsonl": "cfcb5cb7e33331db657cc54edf8c3629f8008422c281d55959c8c1c8534e7358",
+    "public/cases.jsonl": "0e6af5c70ebc16ebb35452c55fa0c54a0c00b74876b1de472e28f8e8c7cf33c6"
+  },
+  "agent_benchmark_executed": false,
+  "independent_semantic_adjudication": "pending",
+  "replay_adapter_implementation": "pending",
+  "visual_pixel_labels": "not_included"
+}

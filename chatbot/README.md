@@ -1,37 +1,42 @@
-# VISTRA
+# VISTRA — Visual Intelligence System for Travel Recommendation & Agents
 
 **Your travel companion, with memory.**
 
-VISTRA is an AI travel assistant for grounded Q&A and multi-turn itinerary planning. It remembers your preferences, retrieves travel guides and place photos, and brings weather into plans you can refine through conversation.
+VISTRA is an AI travel assistant for Vietnam, combining travel guides, place
+photos, conversation memory and itinerary planning. Users can explore destinations,
+ask source-based questions and refine a trip through follow-up messages.
 
-## A look inside
+## System overview
 
-![VISTRA chat with Hanoi place photos, ratings, addresses, and Maps links](assets/readme/vistra-ui.png)
+![VISTRA system overview](assets/readme/vistra-pipeline.png)
 
-Chat naturally, explore photos and place details beneath each reply, and revisit your saved conversations.
+VISTRA loads conversation memory, interprets the request and selects a direct
+reply, grounded Q&A or planning path. It retrieves relevant evidence, builds and
+checks the answer or itinerary, then saves the completed turn for future edits.
+PostgreSQL stores memory and place metadata; Qdrant supports guide and photo
+retrieval. Weather and optional route estimates inform planning, while missing
+evidence is identified in partial results.
 
-## From question to trip
+## Benchmark overview
 
-![VISTRA pipeline: from user query through memory, retrieval, and itinerary planning to final output](assets/readme/vistra-pipeline.png)
+![VISTRA English benchmark overview](benchmarks/plot/benchmark_overview.png)
 
-PostgreSQL holds short- and long-term memory; Qdrant retrieves travel evidence. Itineraries follow a TravelPlanner-style tools → notebook → planner flow, with constraint checks and bounded repair before delivery.
+The benchmark compares **GPT-5 nano, GPT-6 Luna and GPT-4.1 nano** across routing,
+retrieval, grounding, memory, planning and reliability. It contains **600 English
+and Vietnamese cases** from 300 scenario families. The current runner supports
+**408/600 cases (68%)**, with 192 unsupported. A separate **100-case retrieval
+supplement** evaluates the actual index.
 
-The pipeline now also uses optional OpenRouteService estimates to check travel time between stops.
+The overview shows behavioral checks, citation presence, retrieval metrics,
+SDK-call latency, token usage and estimated API cost. GPT-6 Luna leads the
+observed routing, memory and structural planning checks; GPT-4.1 nano has the
+lowest mean SDK latency, and GPT-5 nano has the lowest recorded cost estimate.
+Retrieval results are shared across all three configurations.
 
-## Get started
+These are development measurements, not overall accuracy: citation presence does
+not establish factual correctness, and structural planning checks do not prove
+complete itinerary feasibility.
 
-Use the existing `.env`, model cache, and indexed datasets. New installations need provider keys and PostgreSQL settings; see the [setup guide](api/README.md).
-
-Run from the project root on Windows; create `.venv` with `python -m venv .venv` if needed:
-
-```powershell
-.\.venv\python.exe -m pip install -r requirements.txt
-docker compose -f compose.postgres.yaml -f compose.qdrant.yaml up -d
-.\.venv\python.exe -B -m frontend.server
-```
-
-Open **[VISTRA chat](http://127.0.0.1:8000)**. Try “Plan three relaxed days in Hanoi,” then “Make day two more relaxed; keep the other days unchanged.” Add your trip dates to request a forecast.
-
-**Terminal:** run `main.py --chat`; type `/last` to inspect the full backend JSON.
-
-**Developer API:** follow the [API &amp; Docker guide](api/README.md) to call `POST /v1/chat` with `X-API-Key`. See the [frontend guide](frontend/README.md) for chat and memory controls.
+[Benchmark description](benchmarks/BENCHMARK_DESCRIPTION.md) ·
+[Three-model results](benchmarks/runs/model-comparison/REPORT.md) ·
+[Mô tả tiếng Việt](benchmarks/BENCHMARK_DESCRIPTION_VI.md)

@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "provenance": "synthetic_not_live",
+  "files": {
+    "fixtures/contradictions.json": "f4764f60129db022a42b4c7687b2c251f2ab570c4ace6ca9b246ca973e1dd25f",
+    "fixtures/environment.json": "b1966e0759f557c387aa1a82c064577e2c512fb9b342f99243f7e5ac7a5d84fa",
+    "fixtures/planning-environment.json": "d90e9dc1c04f868ef48e28c2beec44dec6368addbd278fa425d43d583790a623",
+    "fixtures/planning-requests.json": "0636a9552182141cddf249c7d2f698928de5cdceb036be7b1ea385c9ca30dd7e",
+    "fixtures/planning-witnesses.json": "17bbadcdaf38bf30ba5d89b1c771d9953b53b069d4e00d3a5d00455e9ad0aca6",
+    "fixtures/public-prior-plan.json": "4a6253cd2a96ac4b1320846ff7942e5f50f375b5b192f0e2f1ea641abbfaaafe",
+    "fixtures/qrels.json": "9e6f13e9e0e0a2a2d00fff82646e9fdbb1b4f9f70b5187d65705ce3318a75341",
+    "fixtures/scenario-profiles.json": "37f1e79b4565075f2c7975ab6cf4e7436c81c7cd6801918332b27d95119f1211"
+  }
+}

@@ -1,0 +1,969 @@
+{
+  "provenance": "synthetic_not_live",
+  "records": [
+    {
+      "entity_id": "google:bench_meal_01",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 01",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_02",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 02",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_03",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 03",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_04",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 04",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_05",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 05",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_06",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 06",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_07",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 07",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_08",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 08",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_09",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 09",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_10",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 10",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_11",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 11",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_meal_12",
+      "kind": "restaurant",
+      "name": "Benchmark Meal Venue 12",
+      "city": "Hanoi",
+      "cost": 50000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "cuisines": [
+        "Vietnamese",
+        "vegetarian"
+      ],
+      "opening_hours": {
+        "all_days": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "allergen_safety": null
+    },
+    {
+      "entity_id": "google:bench_attraction_01",
+      "kind": "attraction",
+      "name": "Benchmark Indoor Attraction 01",
+      "city": "Hanoi",
+      "cost": 100000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "indoor": true,
+      "opening_hours": {
+        "all_days": [
+          [
+            "08:00",
+            "20:00"
+          ]
+        ]
+      }
+    },
+    {
+      "entity_id": "google:bench_attraction_02",
+      "kind": "attraction",
+      "name": "Benchmark Indoor Attraction 02",
+      "city": "Hanoi",
+      "cost": 100000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "indoor": true,
+      "opening_hours": {
+        "all_days": [
+          [
+            "08:00",
+            "20:00"
+          ]
+        ]
+      }
+    },
+    {
+      "entity_id": "google:bench_attraction_03",
+      "kind": "attraction",
+      "name": "Benchmark Indoor Attraction 03",
+      "city": "Hanoi",
+      "cost": 100000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "indoor": true,
+      "opening_hours": {
+        "all_days": [
+          [
+            "08:00",
+            "20:00"
+          ]
+        ]
+      }
+    },
+    {
+      "entity_id": "google:bench_attraction_04",
+      "kind": "attraction",
+      "name": "Benchmark Indoor Attraction 04",
+      "city": "Hanoi",
+      "cost": 100000,
+      "currency": "VND",
+      "cost_unit": "per_person",
+      "indoor": true,
+      "opening_hours": {
+        "all_days": [
+          [
+            "08:00",
+            "20:00"
+          ]
+        ]
+      }
+    },
+    {
+      "entity_id": "google:bench_lodging",
+      "kind": "accommodation",
+      "name": "Benchmark Private Double",
+      "city": "Hanoi",
+      "cost": 600000,
+      "currency": "VND",
+      "cost_unit": "per_night",
+      "room_type": "private double",
+      "maximum_occupancy": 2,
+      "minimum_nights": 2,
+      "live_availability": null
+    }
+  ],
+  "route_matrix": {
+    "locations": [
+      "google:bench_meal_01",
+      "google:bench_meal_02",
+      "google:bench_meal_03",
+      "google:bench_meal_04",
+      "google:bench_meal_05",
+      "google:bench_meal_06",
+      "google:bench_meal_07",
+      "google:bench_meal_08",
+      "google:bench_meal_09",
+      "google:bench_meal_10",
+      "google:bench_meal_11",
+      "google:bench_meal_12",
+      "google:bench_attraction_01",
+      "google:bench_attraction_02",
+      "google:bench_attraction_03",
+      "google:bench_attraction_04"
+    ],
+    "mode": "walking",
+    "units": "seconds",
+    "durations": [
+      [
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0,
+        900
+      ],
+      [
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        900,
+        0
+      ]
+    ],
+    "distances_meters": [
+      [
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0,
+        1000
+      ],
+      [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        0
+      ]
+    ]
+  },
+  "walking_fare_vnd": 0,
+  "meal_policy": "Three unique restaurants and one attraction per day.",
+  "price_scope": [
+    "meals",
+    "attraction_tickets",
+    "lodging",
+    "local_walking"
+  ],
+  "scope_exclusions": [
+    "flights",
+    "live_booking_inventory",
+    "unspecified_extras"
+  ]
+}

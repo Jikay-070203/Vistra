@@ -1,0 +1,264 @@
+{
+  "base1": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 1,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-16",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "base3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "solo1": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 1,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-16",
+    "travelers": 1,
+    "currency": "VND",
+    "budget_amount": 1000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "group4": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 4,
+    "currency": "VND",
+    "budget_amount": 10000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "exact3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 2700000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "perperson3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 1500000,
+    "budget_basis": "per_person",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "vegetarian3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": [
+      "vegetarian"
+    ]
+  },
+  "private3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "noflight3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "walking3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "dates3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "diversity3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  },
+  "routes3": {
+    "destinations": [
+      "Hanoi"
+    ],
+    "origin": "Hanoi",
+    "duration_days": 3,
+    "start_date": "2026-10-16",
+    "end_date": "2026-10-18",
+    "travelers": 2,
+    "currency": "VND",
+    "budget_amount": 6000000,
+    "budget_basis": "total",
+    "transport_mode": "walking",
+    "transport_constraints": [
+      "no_flight",
+      "no_driving"
+    ],
+    "room_type": "private double",
+    "cuisines": []
+  }
+}
